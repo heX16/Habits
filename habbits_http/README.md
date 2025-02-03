@@ -1,16 +1,20 @@
 
-Структура:
+Struct:
 ```
 project/
-├── app.py
-├── database.db            # создаётся автоматически при запуске
+├── flask_backend.py               # Wrapper for running in standard mode
+├── flask_cgi_backend.exec.py      # Wrapper for CGI mode
+├── flask_backend_core.py          # Flask routes and middleware (calls core functions)
+├── habbits_core.py                # Core business logic and database operations
+├── database.db                    # (Automatically created on first run)
 ├── templates/
-│   ├── index.html         # главная страница (учёт привычек)
-│   └── edit.html          # страница редактирования привычек
+│   ├── index.html                 # Main page (habit tracker)
+│   └── edit.html                  # Habit editing page
 └── static/
-    ├── script.js          # скрипт для главной страницы
-    ├── edit.js            # скрипт для страницы редактирования
-    └── style.css          # базовые стили (необязательно)
+    ├── script.js                  # Main page JS
+    ├── edit.js                    # Edit page JS
+    └── style.css                  # CSS styles
+
 ```
 
 req:
