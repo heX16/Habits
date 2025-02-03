@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Habit Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Habit Tracker</h1>
+    <div>
+        <a href="/edit">Edit Habits</a>
+    </div>
+    <table id="habits-table" border="1">
+        <!-- Table content will be dynamically generated -->
+    </table>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Habits</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Edit Habits</h1>
+    <div>
+        <a href="/">Back to Tracker</a>
+    </div>
+    <h2>Add New Habit</h2>
+    <form id="add-habit-form">
+        <input type="text" id="habit-name" placeholder="Enter habit name" required>
+        <button type="submit">Add Habit</button>
+    </form>
+    <h2>Existing Habits</h2>
+    <ul id="habits-list">
+        <!-- List of habits will be dynamically generated -->
+    </ul>
+    <script src="{{ url_for('static', filename='edit.js') }}"></script>
+</body>
+</html>
