@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Habit Statistics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Statistics for Habit #{{ habit_id }}</h1>
+    <div>
+        <a href="/">Back to Tracker</a>
+    </div>
+    <div id="stat-container">
+        <!-- Statistics table will be rendered here -->
+    </div>
+    <script>
+        // Pass habit_id from Flask to JavaScript
+        const habitId = {{ habit_id }};
+    </script>
+    <script src="{{ url_for('static', filename='stat.js') }}"></script>
+</body>
+</html>

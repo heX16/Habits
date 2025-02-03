@@ -3,17 +3,17 @@ import sqlite3
 from datetime import datetime, timedelta
 from flask import g
 
+
 def get_db():
     """
     Return a database connection.
-
-    :return: SQLite connection object.
     """
     db = getattr(g, '_database', None)
     if db is None:
         db = g._database = sqlite3.connect('database.db')
     db.row_factory = sqlite3.Row
     return db
+
 
 def init_db():
     """
@@ -37,12 +37,14 @@ def init_db():
     db.commit()
     db.close()
 
-def fetch_habits(start_date, end_date):
+
+def fetch_habits(start_date, end_date, habit_id=None):
     """
     Fetch habits and their tracking data within a date range.
 
-    :param start_date: Start date as a string in 'YYYY-MM-DD' format.
-    :param end_date: End date as a string in 'YYYY-MM-DD' format.
+    :param start_date: Start date as 'YYYY-MM-DD'.
+    :param end_date: End date as 'YYYY-MM-DD'.
+    :param habit_id: Optional habit ID; if provided, only this habit is fetched.
     :return: Dictionary with 'start_date', 'end_date', and list of habits with tracking data.
     :raises ValueError: if the date format is invalid.
     """
@@ -57,23 +59,26 @@ def fetch_habits(start_date, end_date):
 
     db = get_db()
     cursor = db.cursor()
-    cursor.execute('SELECT id, name FROM habits')
+    if habit_id:
+        cursor.execute('SELECT id, name FROM habits WHERE id = ?', (habit_id,))
+    else:
+        cursor.execute('SELECT id, name FROM habits')
     habits = cursor.fetchall()
 
     habits_data = []
     for habit in habits:
-        habit_id = habit['id']
+        habit_id_value = habit['id']
         habit_name = habit['name']
         cursor.execute(
             'SELECT date, status FROM habit_tracking WHERE habit_id = ? AND date BETWEEN ? AND ?',
-            (habit_id, start_date, end_date)
+            (habit_id_value, start_date, end_date)
         )
         tracking_rows = cursor.fetchall()
         tracking_dict = {row['date']: row['status'] for row in tracking_rows}
         tracking = [tracking_dict.get(date, 0) for date in date_list]
 
         habits_data.append({
-            'id': habit_id,
+            'id': habit_id_value,
             'name': habit_name,
             'tracking': tracking
         })

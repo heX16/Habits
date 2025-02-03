@@ -5,8 +5,6 @@ from habbits_core import init_db, fetch_habits, update_habit, add_habit, delete_
 def create_app():
     """
     Create and configure the Flask application with route definitions.
-
-    :return: A Flask application instance.
     """
     app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -41,13 +39,20 @@ def create_app():
     def api_get_habits():
         """
         API endpoint to retrieve habits and tracking data within a date range.
+        If 'habit_id' parameter is provided, returns data for that habit only.
         """
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
+        habit_id = request.args.get('habit_id')
+        if habit_id:
+            try:
+                habit_id = int(habit_id)
+            except ValueError:
+                return jsonify({'error': 'Invalid habit_id'}), 400
         if not start_date or not end_date:
             return jsonify({'error': 'start_date and end_date parameters are required'}), 400
         try:
-            data = fetch_habits(start_date, end_date)
+            data = fetch_habits(start_date, end_date, habit_id)
         except ValueError as e:
             return jsonify({'error': str(e)}), 400
         return jsonify(data)
@@ -97,6 +102,13 @@ def create_app():
         """
         result = get_all_habits()
         return jsonify(result)
+
+    @app.route('/stat/<int:habit_id>')
+    def stat_page(habit_id):
+        """
+        Render the statistics page for a specific habit.
+        """
+        return render_template('stat.html', habit_id=habit_id)
 
     return app
 

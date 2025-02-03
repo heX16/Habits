@@ -127,7 +127,10 @@ function createHabitRow(habit, dates) {
 
     // Create the habit name cell.
     const habitCell = document.createElement('td');
-    habitCell.textContent = habit.name;
+    const habitLink = document.createElement('a');
+    habitLink.href = '/stat/' + habit.id;
+    habitLink.textContent = habit.name;
+    habitCell.appendChild(habitLink);
     row.appendChild(habitCell);
 
     // Create cells for each tracking status.
