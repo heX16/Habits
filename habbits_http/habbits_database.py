@@ -1,10 +1,9 @@
 import sqlite3
 from datetime import datetime, timedelta
-import calendar
 
 class Database:
     '''
-    Database class for managing habits and habit tracking.
+    Database class for managing habits, habit tracking, and special parameters.
     '''
     def __init__(self, db_name='database.db'):
         '''
@@ -36,6 +35,12 @@ class Database:
                        'date TEXT NOT NULL, '
                        'status INTEGER NOT NULL DEFAULT 0, '
                        'UNIQUE(habit_id, date))')
+        cursor.execute('CREATE TABLE IF NOT EXISTS habit_params ('
+                       'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                       'habit_id INTEGER NOT NULL, '  # -1 for global/user-level params
+                       'param_name TEXT NOT NULL, '
+                       'value TEXT NOT NULL, '
+                       'UNIQUE(habit_id, param_name))')
         conn.commit()
         conn.close()
 
@@ -56,13 +61,14 @@ class Database:
 
     def delete_habit(self, habit_id):
         '''
-        Delete a habit and its associated tracking data.
+        Delete a habit and its associated tracking data and parameters.
 
         :param habit_id: The ID of the habit to delete.
         '''
         conn = self.connect()
         cursor = conn.cursor()
         cursor.execute('DELETE FROM habit_tracking WHERE habit_id = ?', (habit_id,))
+        cursor.execute('DELETE FROM habit_params WHERE habit_id = ?', (habit_id,))
         cursor.execute('DELETE FROM habits WHERE id = ?', (habit_id,))
         conn.commit()
         conn.close()
@@ -142,3 +148,36 @@ class Database:
         habits_list = [{'id': habit['id'], 'name': habit['name']} for habit in habits]
         conn.close()
         return habits_list
+
+    def get_param(self, habit_id, param_name):
+        '''
+        Get the value of a specific parameter for a habit or globally.
+
+        :param habit_id: The habit ID (-1 for global parameters).
+        :param param_name: The name of the parameter.
+        :return: The value of the parameter, or None if not found.
+        '''
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute('SELECT value FROM habit_params WHERE habit_id = ? AND param_name = ?',
+                       (habit_id, param_name))
+        row = cursor.fetchone()
+        conn.close()
+        return row['value'] if row else None
+
+    def set_param(self, habit_id, param_name, value):
+        '''
+        Set or update the value of a specific parameter for a habit or globally.
+
+        :param habit_id: The habit ID (-1 for global parameters).
+        :param param_name: The name of the parameter.
+        :param value: The value to store.
+        '''
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute('''INSERT INTO habit_params (habit_id, param_name, value)
+                          VALUES (?, ?, ?)
+                          ON CONFLICT(habit_id, param_name) DO UPDATE SET value=excluded.value''',
+                       (habit_id, param_name, value))
+        conn.commit()
+        conn.close()
