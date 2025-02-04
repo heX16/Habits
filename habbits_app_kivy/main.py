@@ -9,7 +9,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.properties import NumericProperty
 from datetime import datetime, timedelta
 import calendar
-from database import Database
+from habbits_database import Database
 
 # Initialize the database
 db = Database()
