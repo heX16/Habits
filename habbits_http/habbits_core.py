@@ -1,153 +1,95 @@
 # habbits_core.py
-import sqlite3
 from datetime import datetime, timedelta
-from flask import g
+from habbits_database import Database
 
-
-def get_db():
-    """
-    Return a database connection.
-    """
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect('database.db')
-    db.row_factory = sqlite3.Row
-    return db
-
+# Global variable to hold the Database instance.
+database = None
 
 def init_db():
     """
-    Initialize the database with required tables.
+    Initialize the database using the Database object.
     """
-    db = sqlite3.connect('database.db')
-    cursor = db.cursor()
-    cursor.execute(
-        'CREATE TABLE IF NOT EXISTS habits ('
-        'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'name TEXT NOT NULL)'
-    )
-    cursor.execute(
-        'CREATE TABLE IF NOT EXISTS habit_tracking ('
-        'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'habit_id INTEGER NOT NULL, '
-        'date TEXT NOT NULL, '
-        'status INTEGER NOT NULL DEFAULT 0, '
-        'UNIQUE(habit_id, date))'
-    )
-    db.commit()
-    db.close()
+    global database
+    database = Database()
 
-
-def fetch_habits(start_date, end_date, habit_id=None):
+def api_fetch_habits(args):
     """
-    Fetch habits and their tracking data within a date range.
+    Process query parameters to fetch habits and their tracking data.
 
-    :param start_date: Start date as 'YYYY-MM-DD'.
-    :param end_date: End date as 'YYYY-MM-DD'.
-    :param habit_id: Optional habit ID; if provided, only this habit is fetched.
-    :return: Dictionary with 'start_date', 'end_date', and list of habits with tracking data.
-    :raises ValueError: if the date format is invalid.
+    :param args: A dictionary-like object with query parameters (e.g. flask.request.args)
+    :return: On success, a dictionary with habit data; on error, a tuple (error dict, status code).
     """
-    try:
-        start_dt = datetime.strptime(start_date, '%Y-%m-%d')
-        end_dt = datetime.strptime(end_date, '%Y-%m-%d')
-    except ValueError:
-        raise ValueError('Invalid date format. Use YYYY-MM-DD.')
-
-    num_days = (end_dt - start_dt).days + 1
-    date_list = [(start_dt + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(num_days)]
-
-    db = get_db()
-    cursor = db.cursor()
+    start_date = args.get('start_date')
+    end_date = args.get('end_date')
+    habit_id = args.get('habit_id')
     if habit_id:
-        cursor.execute('SELECT id, name FROM habits WHERE id = ?', (habit_id,))
-    else:
-        cursor.execute('SELECT id, name FROM habits')
-    habits = cursor.fetchall()
+        try:
+            habit_id = int(habit_id)
+        except ValueError:
+            return {'error': 'Invalid habit_id'}, 400
+    if not start_date or not end_date:
+        return {'error': 'start_date and end_date parameters are required'}, 400
+    try:
+        data = database.fetch_habits(start_date, end_date, habit_id)
+    except ValueError as e:
+        return {'error': str(e)}, 400
+    return data
 
-    habits_data = []
-    for habit in habits:
-        habit_id_value = habit['id']
-        habit_name = habit['name']
-        cursor.execute(
-            'SELECT date, status FROM habit_tracking WHERE habit_id = ? AND date BETWEEN ? AND ?',
-            (habit_id_value, start_date, end_date)
-        )
-        tracking_rows = cursor.fetchall()
-        tracking_dict = {row['date']: row['status'] for row in tracking_rows}
-        tracking = [tracking_dict.get(date, 0) for date in date_list]
-
-        habits_data.append({
-            'id': habit_id_value,
-            'name': habit_name,
-            'tracking': tracking
-        })
-
-    return {
-        'start_date': start_date,
-        'end_date': end_date,
-        'habits': habits_data
-    }
-
-def update_habit(habit_id, date, status):
+def api_update_habit(json_data):
     """
-    Update the status of a habit on a specific date.
+    Process JSON data to update a habit's tracking status.
 
-    :param habit_id: ID of the habit.
-    :param date: Date as a string in 'YYYY-MM-DD' format.
-    :param status: New status as an integer.
-    :return: Dictionary with a confirmation message.
+    :param json_data: A dictionary with JSON data from the request.
+    :return: On success, a dictionary with a confirmation message; on error, a tuple (error dict, status code).
     """
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute(
-        '''
-        INSERT INTO habit_tracking (habit_id, date, status)
-        VALUES (?, ?, ?)
-        ON CONFLICT(habit_id, date) DO UPDATE SET status=excluded.status
-        ''',
-        (habit_id, date, status)
-    )
-    db.commit()
+    habit_id = json_data.get('habit_id')
+    date = json_data.get('date')
+    status = json_data.get('status')
+    if habit_id is None or date is None or status is None:
+        return {'error': 'habit_id, date, and status are required'}, 400
+    try:
+        habit_id = int(habit_id)
+        status = int(status)
+    except ValueError:
+        return {'error': 'Invalid habit_id or status value'}, 400
+    database.update_habit(habit_id, date, status)
     return {'message': 'Habit status updated successfully'}
 
-def add_habit(name):
+def api_add_habit(json_data):
     """
-    Add a new habit.
+    Process JSON data to add a new habit.
 
-    :param name: Name of the habit.
-    :return: Dictionary with a confirmation message and the habit ID.
+    :param json_data: A dictionary with JSON data from the request.
+    :return: On success, a dictionary with a confirmation message and habit_id; on error, a tuple (error dict, status code).
     """
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute('INSERT INTO habits (name) VALUES (?)', (name,))
-    db.commit()
-    habit_id = cursor.lastrowid
+    name = json_data.get('name')
+    if not name:
+        return {'error': 'Habit name is required'}, 400
+    habit_id = database.add_habit(name)
     return {'message': 'Habit added successfully', 'habit_id': habit_id}
 
-def delete_habit(habit_id):
+def api_delete_habit(json_data):
     """
-    Delete a habit and its associated tracking data.
+    Process JSON data to delete a habit and its tracking data.
 
-    :param habit_id: ID of the habit to delete.
-    :return: Dictionary with a confirmation message.
+    :param json_data: A dictionary with JSON data from the request.
+    :return: On success, a dictionary with a confirmation message; on error, a tuple (error dict, status code).
     """
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute('DELETE FROM habit_tracking WHERE habit_id = ?', (habit_id,))
-    cursor.execute('DELETE FROM habits WHERE id = ?', (habit_id,))
-    db.commit()
+    habit_id = json_data.get('habit_id')
+    if habit_id is None:
+        return {'error': 'habit_id is required'}, 400
+    try:
+        habit_id = int(habit_id)
+    except ValueError:
+        return {'error': 'Invalid habit_id'}, 400
+    database.delete_habit(habit_id)
     return {'message': 'Habit deleted successfully'}
 
-def get_all_habits():
+def api_get_all_habits():
     """
-    Get a list of all habits.
+    Retrieve all habits.
 
-    :return: Dictionary containing a list of habits.
+    :return: A dictionary containing a list of all habits.
     """
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute('SELECT id, name FROM habits')
-    habits = cursor.fetchall()
-    habits_list = [{'id': habit['id'], 'name': habit['name']} for habit in habits]
+    habits_list = database.get_all_habits()
     return {'habits': habits_list}

@@ -1,6 +1,6 @@
 # flask_backend_core.py
-from flask import Flask, jsonify, request, render_template, g
-from habbits_core import init_db, fetch_habits, update_habit, add_habit, delete_habit, get_all_habits
+from flask import Flask, jsonify, request, render_template
+from habbits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits
 
 def create_app():
     """
@@ -11,15 +11,6 @@ def create_app():
     # Initialize the database on app startup.
     with app.app_context():
         init_db()
-
-    @app.teardown_appcontext
-    def close_connection(exception):
-        """
-        Close the database connection after each request.
-        """
-        db = getattr(g, '_database', None)
-        if db is not None:
-            db.close()
 
     @app.route('/')
     def index():
@@ -38,69 +29,54 @@ def create_app():
     @app.route('/api/habits', methods=['GET'])
     def api_get_habits():
         """
-        API endpoint to retrieve habits and tracking data within a date range.
-        If 'habit_id' parameter is provided, returns data for that habit only.
+        API endpoint to retrieve habits and their tracking data.
+        Delegates argument parsing to habbits_core.api_fetch_habits.
         """
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
-        habit_id = request.args.get('habit_id')
-        if habit_id:
-            try:
-                habit_id = int(habit_id)
-            except ValueError:
-                return jsonify({'error': 'Invalid habit_id'}), 400
-        if not start_date or not end_date:
-            return jsonify({'error': 'start_date and end_date parameters are required'}), 400
-        try:
-            data = fetch_habits(start_date, end_date, habit_id)
-        except ValueError as e:
-            return jsonify({'error': str(e)}), 400
-        return jsonify(data)
+        result = api_fetch_habits(request.args)
+        # If an error is returned as a tuple, unpack the error message and status code.
+        if isinstance(result, tuple):
+            return jsonify(result[0]), result[1]
+        return jsonify(result)
 
     @app.route('/api/habits/update', methods=['POST'])
-    def api_update_habit():
+    def api_update():
         """
         API endpoint to update a habit's status.
+        Delegates JSON parsing to habbits_core.api_update_habit.
         """
-        data = request.get_json()
-        habit_id = data.get('habit_id')
-        date = data.get('date')
-        status = data.get('status')
-        if habit_id is None or date is None or status is None:
-            return jsonify({'error': 'habit_id, date, and status are required'}), 400
-        result = update_habit(habit_id, date, status)
+        result = api_update_habit(request.get_json())
+        if isinstance(result, tuple):
+            return jsonify(result[0]), result[1]
         return jsonify(result)
 
     @app.route('/api/habits/add', methods=['POST'])
-    def api_add_habit():
+    def api_add():
         """
         API endpoint to add a new habit.
+        Delegates JSON parsing to habbits_core.api_add_habit.
         """
-        data = request.get_json()
-        name = data.get('name')
-        if not name:
-            return jsonify({'error': 'Habit name is required'}), 400
-        result = add_habit(name)
+        result = api_add_habit(request.get_json())
+        if isinstance(result, tuple):
+            return jsonify(result[0]), result[1]
         return jsonify(result)
 
     @app.route('/api/habits/delete', methods=['DELETE'])
-    def api_delete_habit():
+    def api_delete():
         """
         API endpoint to delete a habit.
+        Delegates JSON parsing to habbits_core.api_delete_habit.
         """
-        data = request.get_json()
-        habit_id = data.get('habit_id')
-        if habit_id is None:
-            return jsonify({'error': 'habit_id is required'}), 400
-        result = delete_habit(habit_id)
+        result = api_delete_habit(request.get_json())
+        if isinstance(result, tuple):
+            return jsonify(result[0]), result[1]
         return jsonify(result)
 
     @app.route('/api/habits/all', methods=['GET'])
-    def api_get_all_habits():
+    def api_all():
         """
-        API endpoint to get all habits.
+        API endpoint to retrieve all habits.
         """
-        result = get_all_habits()
+        result = api_get_all_habits()
         return jsonify(result)
 
     @app.route('/stat/<int:habit_id>')
