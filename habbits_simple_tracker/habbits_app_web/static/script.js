@@ -8,6 +8,9 @@
  */
 
 let openStatusMenu = null; // Holds the currently open status menu (if any)
+let lastClickedCell = null;
+let lastClickedStatus = null;
+let lastClickTime = 0;
 
 document.addEventListener('DOMContentLoaded', function () {
     // Calculate the date range for the last 7 days.
@@ -68,29 +71,34 @@ function attachCellListeners(cell) {
 
 /**
  * Handles a single click event on a cell.
- * It cycles the status (0→1→2→0) and schedules an update after 2 seconds.
+ * It cycles the status and schedules an update after 2 seconds.
  * @param {HTMLElement} cell - The table cell element.
  * @param {MouseEvent} e - The mouse event.
  */
 function handleCellClick(cell, e) {
-    // Ignore the click if it is flagged to be ignored (after a double-click).
-    if (cell.ignoreClick) {
-        cell.ignoreClick = false;
-        return;
-    }
-    let currentStatus = parseInt(cell.dataset.status);
-    let newStatus = (currentStatus + 1) % 3;
-    cell.dataset.status = newStatus;
-    cell.textContent = getStatusEmoji(newStatus);
+    const currentTime = new Date().getTime();
+    
+    // Если это первый клик
+    if (lastClickedCell !== cell || (currentTime - lastClickTime) > 300) {
+        // Сохраняем информацию о клике
+        lastClickedCell = cell;
+        lastClickedStatus = parseInt(cell.dataset.status);
+        lastClickTime = currentTime;
+        
+        // Обычная обработка клика
+        let currentStatus = parseInt(cell.dataset.status);
+        let newStatus = (currentStatus + 1) % 5;  // Теперь у нас 5 состояний
+        cell.dataset.status = newStatus;
+        cell.textContent = getStatusEmoji(newStatus);
 
-    // Cancel any pending update and schedule a new one after 2 seconds.
-    if (cell.pendingUpdateTimer) {
-        clearTimeout(cell.pendingUpdateTimer);
+        if (cell.pendingUpdateTimer) {
+            clearTimeout(cell.pendingUpdateTimer);
+        }
+        cell.pendingUpdateTimer = setTimeout(() => {
+            sendUpdate(cell.dataset.habitId, cell.dataset.date, parseInt(cell.dataset.status), cell);
+            cell.pendingUpdateTimer = null;
+        }, 2000);
     }
-    cell.pendingUpdateTimer = setTimeout(() => {
-        sendUpdate(cell.dataset.habitId, cell.dataset.date, parseInt(cell.dataset.status), cell);
-        cell.pendingUpdateTimer = null;
-    }, 2000);
 }
 
 /**
@@ -101,12 +109,25 @@ function handleCellClick(cell, e) {
  */
 function handleCellDblClick(cell, e) {
     e.stopPropagation();
-    // Flag the cell to ignore the subsequent single-click.
-    cell.ignoreClick = true;
+    
+    // Отменяем таймер обновления если он есть
     if (cell.pendingUpdateTimer) {
         clearTimeout(cell.pendingUpdateTimer);
         cell.pendingUpdateTimer = null;
     }
+    
+    // Возвращаем предыдущее состояние
+    if (lastClickedCell === cell && lastClickedStatus !== null) {
+        cell.dataset.status = lastClickedStatus;
+        cell.textContent = getStatusEmoji(lastClickedStatus);
+    }
+    
+    // Очищаем информацию о последнем клике
+    lastClickedCell = null;
+    lastClickedStatus = null;
+    lastClickTime = 0;
+    
+    // Показываем меню
     showStatusMenu(cell, e);
 }
 
