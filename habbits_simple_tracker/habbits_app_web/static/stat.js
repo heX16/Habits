@@ -51,8 +51,9 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if(data.habits && data.habits.length > 0) {
                 let habit = data.habits[0];
-                let tracking = habit.tracking; // Array for the entire date range.
-                renderStatTable(tracking, daysInPrevMonth, daysInCurrentMonth);
+                document.getElementById('habit-name').textContent = habit.name;
+                let tracking = habit.tracking;
+                renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth);
             } else {
                 document.getElementById('stat-container').textContent = 'No data available for this habit.';
             }
@@ -63,70 +64,90 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Renders the statistics table.
- * @param {Array} tracking - Array of statuses for previous and current month.
- * @param {number} daysInPrevMonth - Number of days in the previous month.
- * @param {number} daysInCurrentMonth - Number of days in the current month.
+ * Renders calendar for a specific month
+ * @param {Array} tracking - Array of statuses
+ * @param {number} year - Year to render
+ * @param {number} month - Month to render (0-11)
+ * @param {number} trackingOffset - Offset in tracking array
+ * @returns {HTMLElement} Table element with calendar
  */
-function renderStatTable(tracking, daysInPrevMonth, daysInCurrentMonth) {
-    const container = document.getElementById('stat-container');
-    // Create table element.
+function renderMonth(tracking, year, month, trackingOffset) {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    
     const table = document.createElement('table');
-    table.style.borderCollapse = 'collapse';
-    table.style.width = '100%';
-
-    // Create header row (days 1 to 31).
+    table.className = 'calendar-table';
+    
+    // Month header
+    const caption = document.createElement('caption');
+    caption.textContent = `${monthNames[month]} ${year}`;
+    table.appendChild(caption);
+    
+    // Week days header
     const headerRow = document.createElement('tr');
-    // First empty header cell.
-    const emptyHeader = document.createElement('th');
-    emptyHeader.style.border = '1px solid #ccc';
-    headerRow.appendChild(emptyHeader);
-    for (let i = 1; i <= 31; i++) {
+    weekDays.forEach(day => {
         const th = document.createElement('th');
-        th.textContent = i;
-        th.style.border = '1px solid #ccc';
+        th.textContent = day;
         headerRow.appendChild(th);
-    }
+    });
     table.appendChild(headerRow);
-
-    // Create row for previous month.
-    const prevRow = document.createElement('tr');
-    const prevLabel = document.createElement('td');
-    prevLabel.textContent = 'Previous Month';
-    prevLabel.style.border = '1px solid #ccc';
-    prevRow.appendChild(prevLabel);
-    for (let i = 1; i <= 31; i++) {
-        const td = document.createElement('td');
-        td.style.border = '1px solid #ccc';
-        if (i <= daysInPrevMonth) {
-            // Index in tracking array: day-1.
-            let status = tracking[i - 1];
-            td.style.backgroundColor = getStatusColor(status);
+    
+    // Get first day of month and total days
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Create calendar grid
+    let date = 1;
+    for (let i = 0; i < 6; i++) {
+        const row = document.createElement('tr');
+        
+        for (let j = 0; j < 7; j++) {
+            const cell = document.createElement('td');
+            
+            if (i === 0 && j < firstDay) {
+                // Empty cells before first day
+                cell.className = 'empty';
+            } else if (date > daysInMonth) {
+                // Empty cells after last day
+                cell.className = 'empty';
+            } else {
+                if (date <= daysInMonth) {
+                    cell.textContent = date;
+                    const status = tracking[trackingOffset + date - 1];
+                    cell.style.backgroundColor = getStatusColor(status);
+                    date++;
+                }
+            }
+            row.appendChild(cell);
         }
-        prevRow.appendChild(td);
+        
+        table.appendChild(row);
+        if (date > daysInMonth) break;
     }
-    table.appendChild(prevRow);
+    
+    return table;
+}
 
-    // Create row for current month.
-    const currRow = document.createElement('tr');
-    const currLabel = document.createElement('td');
-    currLabel.textContent = 'Current Month';
-    currLabel.style.border = '1px solid #ccc';
-    currRow.appendChild(currLabel);
-    // Current month tracking starts after previous month's days.
-    for (let i = 1; i <= 31; i++) {
-        const td = document.createElement('td');
-        td.style.border = '1px solid #ccc';
-        if (i <= daysInCurrentMonth) {
-            let status = tracking[daysInPrevMonth + i - 1];
-            td.style.backgroundColor = getStatusColor(status);
-        }
-        currRow.appendChild(td);
-    }
-    table.appendChild(currRow);
-
+/**
+ * Renders both calendar months
+ */
+function renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth) {
+    const container = document.getElementById('stat-container');
     container.innerHTML = '';
-    container.appendChild(table);
+    
+    const calendarsDiv = document.createElement('div');
+    calendarsDiv.className = 'calendars-container';
+    
+    // Previous month calendar
+    const prevMonthDays = new Date(prevYear, prevMonth + 1, 0).getDate();
+    const prevMonthCalendar = renderMonth(tracking, prevYear, prevMonth, 0);
+    
+    // Current month calendar
+    const currentMonthCalendar = renderMonth(tracking, currentYear, currentMonth, prevMonthDays);
+    
+    calendarsDiv.appendChild(prevMonthCalendar);
+    calendarsDiv.appendChild(currentMonthCalendar);
+    container.appendChild(calendarsDiv);
 }
 
 /**
