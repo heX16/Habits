@@ -109,4 +109,4 @@ def api_import_habits(csv_data):
     :param csv_data: CSV data as string
     :return: List of status messages
     """
-    return list(database.import_from_csv(csv_data.splitlines()))
+    database.import_from_csv(csv_data.splitlines())

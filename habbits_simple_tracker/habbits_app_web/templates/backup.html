@@ -79,20 +79,34 @@
             const reader = new FileReader();
             
             reader.onload = function(e) {
+                const csvData = e.target.result;
+                if (!csvData) {
+                    showStatus('Error: File is empty', true);
+                    return;
+                }
+                
                 fetch('/api/habits/import', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'text/csv'
+                        'Content-Type': 'text/plain'
                     },
-                    body: e.target.result
+                    body: csvData
                 })
                 .then(response => response.json())
                 .then(data => {
-                    showStatus(data.join('\n'));
+                    if (data.error) {
+                        showStatus('Error: ' + data.error, true);
+                    } else {
+                        showStatus(data.message);
+                    }
                 })
                 .catch(error => {
                     showStatus('Error during import: ' + error, true);
                 });
+            };
+            
+            reader.onerror = function() {
+                showStatus('Error reading file', true);
             };
             
             reader.readAsText(file);

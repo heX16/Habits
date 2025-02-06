@@ -96,9 +96,16 @@ def create_app():
 
     @app.route('/api/habits/import', methods=['POST'])
     def import_habits():
-        csv_data = request.get_data(as_text=True)
-        messages = api_import_habits(csv_data)
-        return jsonify(messages)
+        try:
+            csv_data = request.get_data(as_text=True)
+            if not csv_data:
+                return jsonify({'error': 'No data received'}), 400
+            
+            api_import_habits(csv_data)
+            return jsonify({'message': 'Import completed successfully'})
+        
+        except Exception as e:
+            return jsonify({'error': str(e)}), 400
 
     return app
 

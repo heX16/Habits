@@ -203,39 +203,48 @@ class Database:
 
     def export_to_csv(self):
         '''
-        Generate CSV data for all habits.
+        Generate CSV data for all habits in a human-readable format.
         
         :yield: Each line of CSV data as a string
         '''
         conn = self.connect()
         cursor = conn.cursor()
         
-        # Yield header
-        yield 'type,habit_id,name,date,status,param_name,value'
-        
-        # Export habits
+        # Export habits and their tracking data
         cursor.execute('SELECT id, name FROM habits')
         habits = cursor.fetchall()
         for habit in habits:
-            yield f'habit,{habit["id"]},{habit["name"]},,,,,'
+            yield f'habit:,{habit["name"]}'
             
             # Export tracking data for this habit
-            cursor.execute('SELECT date, status FROM habit_tracking WHERE habit_id = ?', (habit['id'],))
+            cursor.execute('SELECT date, status FROM habit_tracking WHERE habit_id = ? ORDER BY date', 
+                          (habit['id'],))
             tracking = cursor.fetchall()
             for track in tracking:
-                yield f',{habit["id"]},,{track["date"]},{track["status"]},,'
+                yield f'{track["date"]},{track["status"]}'
             
-            # Export parameters for this habit
-            cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = ?', (habit['id'],))
-            params = cursor.fetchall()
-            for param in params:
-                yield f'param,{habit["id"]},,,,,{param["param_name"]},{param["value"]}'
+            # Add empty line between habits
+            yield ''
         
         # Export global parameters
         cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = -1')
         global_params = cursor.fetchall()
-        for param in global_params:
-            yield f'global_param,-1,,,,,{param["param_name"]},{param["value"]}'
+        if global_params:  # If there are any global params
+            yield 'habit_params:,global'
+            for param in global_params:
+                yield f'{param["param_name"]},{param["value"]}'
+            yield ''
+        
+        # Export habit-specific parameters
+        for habit in habits:
+            cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = ?', 
+                          (habit['id'],))
+            params = cursor.fetchall()
+            if params:  # Only output section if habit has params
+                yield f'habit_params:,{habit["name"]}'
+                for param in params:
+                    yield f'{param["param_name"]},{param["value"]}'
+                yield ''
         
         conn.close()
 
@@ -264,10 +273,10 @@ class Database:
 
     def import_from_csv(self, csv_lines):
         '''
-        Import habits data from CSV lines.
+        Import habits data from CSV lines in human-readable format.
         
         :param csv_lines: Iterator of CSV lines
-        :yield: Status messages about the import process
+        :raises Exception: If there is an error during import
         '''
         conn = self.connect()
         cursor = conn.cursor()
@@ -278,41 +287,61 @@ class Database:
             # Clear and recreate tables
             self.clear_db()
             self.create_tables()
-            yield 'Database structure reset'
             
-            # Skip header
-            next(csv_lines)
+            current_habit_id = None
+            current_habit_name = None
+            mode = None  # Can be 'habit' or 'params'
             
             for line in csv_lines:
-                if not line.strip():  # Skip empty lines
+                line = line.strip()
+                if not line:  # Skip empty lines
                     continue
-                    
+                
                 # Split CSV line manually to handle quoted values
                 row = next(csv.reader([line]))
-                record_type, habit_id, name, date, status, param_name, value = row
                 
-                if record_type == 'habit':
-                    cursor.execute('INSERT INTO habits (id, name) VALUES (?, ?)', 
-                                 (int(habit_id), name))
-                    yield f'Imported habit: {name}'
-                
-                elif record_type == '':
-                    cursor.execute('INSERT INTO habit_tracking (habit_id, date, status) VALUES (?, ?, ?)',
-                                 (int(habit_id), date, int(status)))
-                    yield f'Imported tracking data for habit {habit_id} on {date}'
-                
-                elif record_type in ('param', 'global_param'):
-                    cursor.execute('INSERT INTO habit_params (habit_id, param_name, value) VALUES (?, ?, ?)',
-                                 (int(habit_id), param_name, value))
-                    yield f'Imported parameter {param_name} for habit {habit_id}'
+                if line.startswith('habit:'):
+                    # New habit section
+                    _, habit_name = row
+                    cursor.execute('INSERT INTO habits (name) VALUES (?)', (habit_name,))
+                    current_habit_id = cursor.lastrowid
+                    current_habit_name = habit_name
+                    mode = 'habit'
+                    
+                elif line.startswith('habit_params:'):
+                    # New parameters section
+                    _, target = row
+                    mode = 'params'
+                    if target == 'global':
+                        current_habit_id = -1
+                    else:
+                        # Find habit ID by name
+                        cursor.execute('SELECT id FROM habits WHERE name = ?', (target,))
+                        result = cursor.fetchone()
+                        if result:
+                            current_habit_id = result['id']
+                        else:
+                            mode = None
+                    
+                elif mode == 'habit':
+                    # Tracking data line
+                    date, status = row
+                    cursor.execute('''INSERT INTO habit_tracking (habit_id, date, status) 
+                                    VALUES (?, ?, ?)''', 
+                                 (current_habit_id, date, int(status)))
+                    
+                elif mode == 'params':
+                    # Parameter line
+                    param_name, value = row
+                    cursor.execute('''INSERT INTO habit_params (habit_id, param_name, value) 
+                                    VALUES (?, ?, ?)''', 
+                                 (current_habit_id, param_name, value))
             
             conn.commit()
-            yield 'Import completed successfully'
             
         except Exception as e:
             conn.rollback()
-            yield f'Error during import: {str(e)}'
-            raise
+            raise Exception(f'Error during import: {str(e)}')
         
         finally:
             conn.close()
