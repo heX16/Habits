@@ -107,6 +107,32 @@ def create_app():
         except Exception as e:
             return jsonify({'error': str(e)}), 400
 
+    @app.route('/js/constants.js')
+    def js_constants():
+        """
+        Generate JavaScript constants dynamically with caching headers
+        """
+        cache_duration_sec = 60 * 60 * 1
+        
+        constants = {
+            'singleClickMaxStatus': 3
+        }
+        
+        js_content = f"// This file is generated automatically\n"
+        for key, value in constants.items():
+            js_content += f"const {key} = {value};\n"
+            
+        response = app.response_class(
+            response=js_content,
+            status=200,
+            mimetype='application/javascript'
+        )
+        
+        response.headers['Cache-Control'] = f'public, max-age={cache_duration_sec}'
+        response.add_etag()
+        
+        return response.make_conditional(request)
+
     return app
 
 if __name__ == '__main__':

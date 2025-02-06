@@ -8,7 +8,6 @@
  */
 
 let openStatusMenu = null; // Holds the currently open status menu (if any)
-let singleClickMaxStatus = 3;
 
 /**
  * Variables to handle double-click issue:
@@ -188,9 +187,8 @@ function createHabitRow(habit, dates) {
  */
 function renderTable(data, startDateStr, endDateStr) {
     const table = document.getElementById('habits-table');
-    table.innerHTML = ''; // Clear any previous content.
+    table.innerHTML = '';
 
-    // Create header row with dates.
     const headerRow = document.createElement('tr');
     const emptyHeaderCell = document.createElement('th');
     emptyHeaderCell.textContent = 'Habit / Date';
@@ -200,6 +198,9 @@ function renderTable(data, startDateStr, endDateStr) {
     const endDate = new Date(endDateStr);
     const numDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
+    // Массив для трехбуквенных названий дней недели
+    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
     const dates = [];
     for (let i = 0; i < numDays; i++) {
         const currentDate = new Date(startDate);
@@ -208,7 +209,10 @@ function renderTable(data, startDateStr, endDateStr) {
         dates.push(dateStr);
 
         const th = document.createElement('th');
-        th.textContent = dateStr;
+        // Форматируем заголовок: число месяца и три буквы дня недели
+        const dayOfMonth = currentDate.getDate();
+        const dayOfWeek = weekDays[currentDate.getDay()];
+        th.textContent = `${dayOfMonth} ${dayOfWeek}`;
         headerRow.appendChild(th);
     }
     table.appendChild(headerRow);
