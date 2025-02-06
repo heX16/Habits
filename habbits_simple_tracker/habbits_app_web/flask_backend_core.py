@@ -117,7 +117,8 @@ def create_app():
         cache_duration_sec = 60 * 60 * 1
         
         constants = {
-            'singleClickMaxStatus': 3
+            'singleClickMaxStatus': 3,
+            'tableDaysCount': 7
         }
         
         status_options = database.get_status_options()
@@ -128,6 +129,7 @@ def create_app():
         
         js_content =  f"// This file is generated automatically\n"
         js_content += f"const {list(constants.keys())[0]} = {list(constants.values())[0]};\n"
+        js_content += f"const {list(constants.keys())[1]} = {list(constants.values())[1]};\n"
         js_content += f"\n"
         js_content += f"const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];\n"
         js_content += f"\n"

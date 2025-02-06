@@ -24,10 +24,18 @@ let lastClickedStatus = null;
 let lastClickTime = 0;
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Calculate the date range for the last 7 days.
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - 6);
+    // Calculate the current week's date range (Monday to Sunday)
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 (Sun) to 6 (Sat)
+    const startDate = new Date(now); // Clone current date
+    
+    // Adjust to Monday (if Sunday, go back 6 days, if Monday go back 0 days, etc)
+    const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
+    startDate.setDate(now.getDate() - daysToMonday);
+    
+    // Set end date to Sunday
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + (tableDaysCount - 1));
 
     const formatDate = (date) => {
         const year = date.getFullYear();
@@ -148,12 +156,65 @@ function handleCellDblClick(cell, e) {
 }
 
 /**
+ * Renders the habit tracking table.
+ * @param {Object} data - The JSON data from the backend.
+ * @param {string} startDateStr - The start date of the tracking range.
+ * @param {string} endDateStr - The end date of the tracking range.
+ */
+function renderTable(data, startDateStr, endDateStr) {
+    const table = document.getElementById('habits-table');
+    table.innerHTML = '';
+
+    const headerRow = document.createElement('tr');
+    const emptyHeaderCell = document.createElement('th');
+    emptyHeaderCell.textContent = 'Habit / Date';
+    headerRow.appendChild(emptyHeaderCell);
+
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time part for correct comparison
+
+    const dates = [];
+    for (let i = 0; i < tableDaysCount; i++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + i);
+        const dateStr = currentDate.toISOString().split('T')[0];
+        dates.push(dateStr);
+
+        const th = document.createElement('th');
+        const dayOfMonth = currentDate.getDate();
+        const dayOfWeek = weekDays[currentDate.getDay()];
+        th.textContent = `${dayOfMonth} ${dayOfWeek}`;
+        
+        // Подсветка текущего дня и будущих дней
+        if (currentDate.getFullYear() === today.getFullYear() &&
+            currentDate.getMonth() === today.getMonth() &&
+            currentDate.getDate() === today.getDate()) {
+            th.classList.add('current-day');
+        } else if (currentDate > today) {
+            th.classList.add('future-day');
+        }
+        
+        headerRow.appendChild(th);
+    }
+    table.appendChild(headerRow);
+
+    // Create a row for each habit using createHabitRow().
+    data.habits.forEach(habit => {
+        const row = createHabitRow(habit, dates, today);
+        table.appendChild(row);
+    });
+}
+
+/**
  * Creates a table row for a given habit.
  * @param {Object} habit - The habit object containing 'id', 'name', and 'tracking' array.
  * @param {Array} dates - Array of date strings corresponding to the tracking data.
+ * @param {Date} today - The current date.
  * @returns {HTMLElement} The table row element.
  */
-function createHabitRow(habit, dates) {
+function createHabitRow(habit, dates, today) {
     const row = document.createElement('tr');
 
     // Create the habit name cell.
@@ -172,53 +233,22 @@ function createHabitRow(habit, dates) {
         cell.dataset.habitId = habit.id;
         cell.dataset.date = dates[index];
         cell.dataset.status = status;
-        attachCellListeners(cell);
+        
+        // Проверяем, является ли дата будущей
+        const cellDate = new Date(dates[index]);
+        cellDate.setHours(0, 0, 0, 0);
+        if (cellDate > today) {
+            cell.classList.add('future-day');
+            // Отключаем интерактивность для будущих дней
+            cell.style.cursor = 'default';
+        } else {
+            attachCellListeners(cell);
+        }
+        
         row.appendChild(cell);
     });
 
     return row;
-}
-
-/**
- * Renders the habit tracking table.
- * @param {Object} data - The JSON data from the backend.
- * @param {string} startDateStr - The start date of the tracking range.
- * @param {string} endDateStr - The end date of the tracking range.
- */
-function renderTable(data, startDateStr, endDateStr) {
-    const table = document.getElementById('habits-table');
-    table.innerHTML = '';
-
-    const headerRow = document.createElement('tr');
-    const emptyHeaderCell = document.createElement('th');
-    emptyHeaderCell.textContent = 'Habit / Date';
-    headerRow.appendChild(emptyHeaderCell);
-
-    const startDate = new Date(startDateStr);
-    const endDate = new Date(endDateStr);
-    const numDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-
-    const dates = [];
-    for (let i = 0; i < numDays; i++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(startDate.getDate() + i);
-        const dateStr = currentDate.toISOString().split('T')[0];
-        dates.push(dateStr);
-
-        const th = document.createElement('th');
-        // Форматируем заголовок: число месяца и три буквы дня недели
-        const dayOfMonth = currentDate.getDate();
-        const dayOfWeek = weekDays[currentDate.getDay()];
-        th.textContent = `${dayOfMonth} ${dayOfWeek}`;
-        headerRow.appendChild(th);
-    }
-    table.appendChild(headerRow);
-
-    // Create a row for each habit using createHabitRow().
-    data.habits.forEach(habit => {
-        const row = createHabitRow(habit, dates);
-        table.appendChild(row);
-    });
 }
 
 /**
