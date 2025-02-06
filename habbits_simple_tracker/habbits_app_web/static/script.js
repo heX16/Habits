@@ -49,14 +49,8 @@ document.addEventListener('DOMContentLoaded', function () {
  * @returns {string} The corresponding emoji or an empty string.
  */
 function getStatusEmoji(status) {
-    if (status === 0) {
-        return '';
-    } else if (status === 1) {
-        return '✅'; // Green check mark
-    } else if (status === 2) {
-        return '❌'; // Red cross mark
-    }
-    return '';
+    const option = getStatusOptions().find(opt => opt.value === status);
+    return option ? option.icon : '';
 }
 
 /**
@@ -210,14 +204,7 @@ function showStatusMenu(cell, event) {
     const menuTable = document.createElement('table');
     menuTable.style.borderCollapse = 'collapse';
 
-    // Define the status options.
-    const statusOptions = [
-        { value: 0, icon: '_', label: 'not set' },
-        { value: 1, icon: '✅', label: 'done' },
-        { value: 2, icon: '❌', label: 'fail' }
-    ];
-
-    statusOptions.forEach(option => {
+    getStatusOptions().forEach(option => {
         const row = document.createElement('tr');
         row.style.cursor = 'pointer';
         row.style.borderBottom = '1px solid #ddd';
@@ -238,7 +225,7 @@ function showStatusMenu(cell, event) {
         row.addEventListener('click', function (e) {
             e.stopPropagation();
             cell.dataset.status = option.value;
-            cell.textContent = getStatusEmoji(option.value);
+            cell.textContent = option.icon;
             if (cell.pendingUpdateTimer) {
                 clearTimeout(cell.pendingUpdateTimer);
             }
@@ -299,4 +286,14 @@ function sendUpdate(habitId, date, status, cell) {
     .catch(error => {
         console.error('Error updating habit status:', error);
     });
+}
+
+function getStatusOptions() {
+    return [
+        {value: 0, label: 'empty', icon: ''},
+        {value: 1, label: 'done', icon: '✅'},
+        {value: 2, label: 'fail', icon: '❌'},
+        {value: 3, label: 'done. mini', icon: '☑️'},
+        {value: 4, label: 'done. elite', icon: '🌟'}
+    ];
 }

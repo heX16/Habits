@@ -31,6 +31,7 @@ def api_fetch_habits(args):
         return {'error': 'start_date and end_date parameters are required'}, 400
     try:
         data = database.fetch_habits(start_date, end_date, habit_id)
+
     except ValueError as e:
         return {'error': str(e)}, 400
     return data
@@ -52,7 +53,9 @@ def api_update_habit(json_data):
         status = int(status)
     except ValueError:
         return {'error': 'Invalid habit_id or status value'}, 400
+
     database.update_habit(habit_id, date, status)
+
     return {'message': 'Habit status updated successfully'}
 
 def api_add_habit(json_data):
@@ -65,7 +68,9 @@ def api_add_habit(json_data):
     name = json_data.get('name')
     if not name:
         return {'error': 'Habit name is required'}, 400
+
     habit_id = database.add_habit(name)
+
     return {'message': 'Habit added successfully', 'habit_id': habit_id}
 
 def api_delete_habit(json_data):
@@ -82,7 +87,9 @@ def api_delete_habit(json_data):
         habit_id = int(habit_id)
     except ValueError:
         return {'error': 'Invalid habit_id'}, 400
+
     database.delete_habit(habit_id)
+
     return {'message': 'Habit deleted successfully'}
 
 def api_get_all_habits():
@@ -92,6 +99,7 @@ def api_get_all_habits():
     :return: A dictionary containing a list of all habits.
     """
     habits_list = database.get_all_habits()
+
     return {'habits': habits_list}
 
 def api_export_habits():

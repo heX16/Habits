@@ -63,6 +63,29 @@ class Database:
         finally:
             conn.close()
 
+    def clear_db(self):
+        '''
+        Clear all tables from the database.
+        '''
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            conn.execute('BEGIN TRANSACTION')
+            
+            # Drop all tables
+            cursor.execute('DROP TABLE IF EXISTS habit_tracking')
+            cursor.execute('DROP TABLE IF EXISTS habit_params')
+            cursor.execute('DROP TABLE IF EXISTS habits')
+            
+            conn.commit()
+            
+        except Exception as e:
+            conn.rollback()
+            raise Exception(f'Error clearing database: {str(e)}')
+        
+        finally:
+            conn.close()
+
     def add_habit(self, name):
         '''
         Add a new habit.
@@ -248,29 +271,6 @@ class Database:
         
         conn.close()
 
-    def clear_db(self):
-        '''
-        Clear all tables from the database.
-        '''
-        conn = self.connect()
-        cursor = conn.cursor()
-        try:
-            conn.execute('BEGIN TRANSACTION')
-            
-            # Drop all tables
-            cursor.execute('DROP TABLE IF EXISTS habit_tracking')
-            cursor.execute('DROP TABLE IF EXISTS habit_params')
-            cursor.execute('DROP TABLE IF EXISTS habits')
-            
-            conn.commit()
-            
-        except Exception as e:
-            conn.rollback()
-            raise Exception(f'Error clearing database: {str(e)}')
-        
-        finally:
-            conn.close()
-
     def import_from_csv(self, csv_lines):
         '''
         Import habits data from CSV lines in human-readable format.
@@ -345,3 +345,17 @@ class Database:
         
         finally:
             conn.close()
+
+    def get_status_options(self):
+        '''
+        Get list of possible status values with their descriptions and icons.
+        
+        :return: List of dictionaries with status options
+        '''
+        return [
+            {'value': 0, 'label': 'empty', 'icon': ''},
+            {'value': 1, 'label': 'done', 'icon': '✅'},
+            {'value': 2, 'label': 'fail', 'icon': '❌'},
+            {'value': 3, 'label': 'done. mini', 'icon': '☑️'},
+            {'value': 4, 'label': 'done. elite', 'icon': '🌟'}
+        ]
