@@ -8,6 +8,18 @@
  */
 
 let openStatusMenu = null; // Holds the currently open status menu (if any)
+let singleClickMaxStatus = 3;
+
+/**
+ * Variables to handle double-click issue:
+ * When user double-clicks, browser first triggers single click, which changes the cell state,
+ * then triggers double click. These variables help to:
+ * 1. Track which cell was clicked (lastClickedCell)
+ * 2. Remember its original state (lastClickedStatus)
+ * 3. Measure time between clicks (lastClickTime)
+ * This allows us to restore the original state when double-click is detected,
+ * preventing unwanted state change from the first click.
+ */
 let lastClickedCell = null;
 let lastClickedStatus = null;
 let lastClickTime = 0;
@@ -78,24 +90,29 @@ function attachCellListeners(cell) {
 function handleCellClick(cell, e) {
     const currentTime = new Date().getTime();
     
-    // Если это первый клик
     if (lastClickedCell !== cell || (currentTime - lastClickTime) > 300) {
-        // Сохраняем информацию о клике
         lastClickedCell = cell;
         lastClickedStatus = parseInt(cell.dataset.status);
         lastClickTime = currentTime;
         
-        // Обычная обработка клика
         let currentStatus = parseInt(cell.dataset.status);
-        let newStatus = (currentStatus + 1) % 5;  // Теперь у нас 5 состояний
+        let newStatus = (currentStatus + 1) % singleClickMaxStatus;
         cell.dataset.status = newStatus;
         cell.textContent = getStatusEmoji(newStatus);
 
         if (cell.pendingUpdateTimer) {
             clearTimeout(cell.pendingUpdateTimer);
         }
+        
         cell.pendingUpdateTimer = setTimeout(() => {
-            sendUpdate(cell.dataset.habitId, cell.dataset.date, parseInt(cell.dataset.status), cell);
+            const status = parseInt(cell.dataset.status);
+            // Play animation at the same time as sending update
+            if (status === 4) {
+                playFireworkAnimation(cell, true);
+            } else if (status === 1) {
+                playFireworkAnimation(cell, false);
+            }
+            sendUpdate(cell.dataset.habitId, cell.dataset.date, status, cell);
             cell.pendingUpdateTimer = null;
         }, 2000);
     }
@@ -110,24 +127,24 @@ function handleCellClick(cell, e) {
 function handleCellDblClick(cell, e) {
     e.stopPropagation();
     
-    // Отменяем таймер обновления если он есть
+    // Cancel update timer if exists
     if (cell.pendingUpdateTimer) {
         clearTimeout(cell.pendingUpdateTimer);
         cell.pendingUpdateTimer = null;
     }
     
-    // Возвращаем предыдущее состояние
+    // Restore previous state
     if (lastClickedCell === cell && lastClickedStatus !== null) {
         cell.dataset.status = lastClickedStatus;
         cell.textContent = getStatusEmoji(lastClickedStatus);
     }
     
-    // Очищаем информацию о последнем клике
+    // Clear last click information
     lastClickedCell = null;
     lastClickedStatus = null;
     lastClickTime = 0;
     
-    // Показываем меню
+    // Show menu
     showStatusMenu(cell, e);
 }
 
@@ -245,15 +262,26 @@ function showStatusMenu(cell, event) {
         // When a menu option is clicked, update the cell accordingly.
         row.addEventListener('click', function (e) {
             e.stopPropagation();
-            cell.dataset.status = option.value;
+            const newStatus = option.value;
+            cell.dataset.status = newStatus;
             cell.textContent = option.icon;
+            
             if (cell.pendingUpdateTimer) {
                 clearTimeout(cell.pendingUpdateTimer);
             }
+            
             cell.pendingUpdateTimer = setTimeout(() => {
-                sendUpdate(cell.dataset.habitId, cell.dataset.date, parseInt(cell.dataset.status), cell);
+                const status = parseInt(cell.dataset.status);
+                // Play animation at the same time as sending update
+                if (status === 4) {
+                    playFireworkAnimation(cell, true);
+                } else if (status === 1) {
+                    playFireworkAnimation(cell, false);
+                }
+                sendUpdate(cell.dataset.habitId, cell.dataset.date, status, cell);
                 cell.pendingUpdateTimer = null;
             }, 2000);
+            
             removeStatusMenu();
         });
 
@@ -317,4 +345,62 @@ function getStatusOptions() {
         {value: 3, label: 'done. mini', icon: '☑️'},
         {value: 4, label: 'done. elite', icon: '🌟'}
     ];
+}
+
+/**
+ * Creates and plays a firework animation near the cell
+ * @param {HTMLElement} cell - The table cell element to show firework near
+ * @param {boolean} isElite - Whether this is an elite status animation (more particles)
+ */
+function playFireworkAnimation(cell, isElite = false) {
+    const emojis = ['✨', '🌟', '⭐', '💫', '🎇'];
+    const rect = cell.getBoundingClientRect();
+    
+    // Add scroll offset to get absolute position
+    const centerX = rect.left + rect.width / 2 + window.scrollX;
+    const centerY = rect.top + rect.height / 2 + window.scrollY;
+
+    // Number of particles based on status
+    const particleCount = isElite ? 10 : 3;
+
+    // Create particles
+    for (let i = 0; i < particleCount; i++) {
+        const firework = document.createElement('div');
+        firework.className = 'firework';
+        
+        // Calculate angle for circular distribution
+        const angle = (i / particleCount) * 2 * Math.PI + Math.random() * 0.5;
+        const distance = 25 + Math.random() * 75;
+        
+        // Calculate final position using angle and distance
+        const offsetX = Math.cos(angle) * distance;
+        const offsetY = Math.sin(angle) * distance;
+        
+        // Start from center, adjusting for element size
+        firework.style.left = (centerX - 8) + 'px';
+        firework.style.top = (centerY - 8) + 'px';
+        
+        firework.style.setProperty('--final-x', `${offsetX}px`);
+        firework.style.setProperty('--final-y', `${offsetY}px`);
+        
+        // Randomize animation parameters
+        const delay = Math.random() * 0.2;
+        const duration = 1.8 + Math.random() * 0.4;
+        // Slightly smaller scale for regular done status
+        const scale = isElite ? (2.4 + Math.random() * 1.2) : (1.8 + Math.random() * 0.8);
+        
+        firework.style.animationDelay = `${delay}s`;
+        firework.style.animationDuration = `${duration}s`;
+        firework.style.fontSize = `${16 * scale}px`;
+        
+        // Randomly select emoji
+        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+        firework.setAttribute('data-emoji', emoji);
+        
+        document.body.appendChild(firework);
+        
+        setTimeout(() => {
+            firework.remove();
+        }, (delay + duration) * 1000);
+    }
 }
