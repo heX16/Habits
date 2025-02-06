@@ -198,9 +198,6 @@ function renderTable(data, startDateStr, endDateStr) {
     const endDate = new Date(endDateStr);
     const numDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
-    // Массив для трехбуквенных названий дней недели
-    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
     const dates = [];
     for (let i = 0; i < numDays; i++) {
         const currentDate = new Date(startDate);
@@ -339,16 +336,6 @@ function sendUpdate(habitId, date, status, cell) {
     .catch(error => {
         console.error('Error updating habit status:', error);
     });
-}
-
-function getStatusOptions() {
-    return [
-        {value: 0, label: 'empty', icon: ''},
-        {value: 1, label: 'done', icon: '✅'},
-        {value: 2, label: 'fail', icon: '❌'},
-        {value: 3, label: 'done. mini', icon: '☑️'},
-        {value: 4, label: 'done. elite', icon: '🌟'}
-    ];
 }
 
 /**

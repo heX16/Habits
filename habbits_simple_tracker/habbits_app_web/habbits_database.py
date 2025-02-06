@@ -348,9 +348,7 @@ class Database:
 
     def get_status_options(self):
         '''
-        Get list of possible status values with their descriptions and icons.
-        
-        :return: List of dictionaries with status options
+        Returns list of possible status options for habits
         '''
         return [
             {'value': 0, 'label': 'empty', 'icon': ''},
