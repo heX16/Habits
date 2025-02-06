@@ -24,18 +24,18 @@ let lastClickedStatus = null;
 let lastClickTime = 0;
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Calculate the current week's date range (Monday to Sunday)
+    // Calculate the date range ending with Sunday
     const now = new Date();
     const currentDay = now.getDay(); // 0 (Sun) to 6 (Sat)
-    const startDate = new Date(now); // Clone current date
+    const endDate = new Date(now); // Clone current date
     
-    // Adjust to Monday (if Sunday, go back 6 days, if Monday go back 0 days, etc)
-    const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
-    startDate.setDate(now.getDate() - daysToMonday);
+    // Adjust to next Sunday if not already Sunday
+    const daysToSunday = currentDay === 0 ? 0 : 7 - currentDay;
+    endDate.setDate(now.getDate() + daysToSunday);
     
-    // Set end date to Sunday
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + (tableDaysCount - 1));
+    // Set start date by going back from end date
+    const startDate = new Date(endDate);
+    startDate.setDate(endDate.getDate() - (tableDaysCount - 1));
 
     const formatDate = (date) => {
         const year = date.getFullYear();

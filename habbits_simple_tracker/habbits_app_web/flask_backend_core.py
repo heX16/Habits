@@ -118,7 +118,7 @@ def create_app():
         
         constants = {
             'singleClickMaxStatus': 3,
-            'tableDaysCount': 7
+            'tableDaysCount': 10
         }
         
         status_options = database.get_status_options()
