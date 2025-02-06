@@ -93,3 +93,20 @@ def api_get_all_habits():
     """
     habits_list = database.get_all_habits()
     return {'habits': habits_list}
+
+def api_export_habits():
+    """
+    Export all habits data to CSV format.
+    
+    :return: CSV data as string
+    """
+    return '\n'.join(database.export_to_csv())
+
+def api_import_habits(csv_data):
+    """
+    Import habits from CSV data.
+    
+    :param csv_data: CSV data as string
+    :return: List of status messages
+    """
+    return list(database.import_from_csv(csv_data.splitlines()))

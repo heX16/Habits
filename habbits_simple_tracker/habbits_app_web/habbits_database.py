@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime, timedelta
+import csv
 
 class Database:
     '''
@@ -181,3 +182,97 @@ class Database:
                        (habit_id, param_name, value))
         conn.commit()
         conn.close()
+
+    def export_to_csv(self):
+        '''
+        Generate CSV data for all habits.
+        
+        :yield: Each line of CSV data as a string
+        '''
+        conn = self.connect()
+        cursor = conn.cursor()
+        
+        # Yield header
+        yield 'type,habit_id,name,date,status,param_name,value'
+        
+        # Export habits
+        cursor.execute('SELECT id, name FROM habits')
+        habits = cursor.fetchall()
+        for habit in habits:
+            yield f'habit,{habit["id"]},{habit["name"]},,,,,'
+            
+            # Export tracking data for this habit
+            cursor.execute('SELECT date, status FROM habit_tracking WHERE habit_id = ?', (habit['id'],))
+            tracking = cursor.fetchall()
+            for track in tracking:
+                yield f'tracking,{habit["id"]},,{track["date"]},{track["status"]},,'
+            
+            # Export parameters for this habit
+            cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = ?', (habit['id'],))
+            params = cursor.fetchall()
+            for param in params:
+                yield f'param,{habit["id"]},,,,,{param["param_name"]},{param["value"]}'
+        
+        # Export global parameters
+        cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = -1')
+        global_params = cursor.fetchall()
+        for param in global_params:
+            yield f'global_param,-1,,,,,{param["param_name"]},{param["value"]}'
+        
+        conn.close()
+
+    def import_from_csv(self, csv_lines):
+        '''
+        Import habits data from CSV lines.
+        
+        :param csv_lines: Iterator of CSV lines
+        :yield: Status messages about the import process
+        '''
+        conn = self.connect()
+        cursor = conn.cursor()
+        
+        try:
+            conn.execute('BEGIN TRANSACTION')
+            
+            # Clear existing data
+            cursor.execute('DELETE FROM habit_tracking')
+            cursor.execute('DELETE FROM habit_params')
+            cursor.execute('DELETE FROM habits')
+            yield 'Existing data cleared'
+            
+            # Skip header
+            next(csv_lines)
+            
+            for line in csv_lines:
+                if not line.strip():  # Skip empty lines
+                    continue
+                    
+                # Split CSV line manually to handle quoted values
+                row = next(csv.reader([line]))
+                record_type, habit_id, name, date, status, param_name, value = row
+                
+                if record_type == 'habit':
+                    cursor.execute('INSERT INTO habits (id, name) VALUES (?, ?)', 
+                                 (int(habit_id), name))
+                    yield f'Imported habit: {name}'
+                
+                elif record_type == 'tracking':
+                    cursor.execute('INSERT INTO habit_tracking (habit_id, date, status) VALUES (?, ?, ?)',
+                                 (int(habit_id), date, int(status)))
+                    yield f'Imported tracking data for habit {habit_id} on {date}'
+                
+                elif record_type in ('param', 'global_param'):
+                    cursor.execute('INSERT INTO habit_params (habit_id, param_name, value) VALUES (?, ?, ?)',
+                                 (int(habit_id), param_name, value))
+                    yield f'Imported parameter {param_name} for habit {habit_id}'
+            
+            conn.commit()
+            yield 'Import completed successfully'
+            
+        except Exception as e:
+            conn.rollback()
+            yield f'Error during import: {str(e)}'
+            raise
+        
+        finally:
+            conn.close()

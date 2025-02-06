@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Backup/Restore Habits</title>
+    <style>
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            margin: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <h1>Backup/Restore Habits</h1>
+    <div>
+        <a href="/" class="button" style="background-color: #666;">Back to Main Page</a>
+    </div>
+    <div>
+        <button onclick="exportHabits()" class="button">Export to habits.csv</button>
+        <input type="file" id="importFile" accept=".csv" style="display: none;" onchange="importHabits(this.files)">
+        <button onclick="document.getElementById('importFile').click()" class="button">Import from habits.csv</button>
+    </div>
+    <div id="status"></div>
+
+    <script>
+        function showStatus(message, isError = false) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = isError ? 'error' : 'success';
+        }
+
+        function exportHabits() {
+            fetch('/api/habits/export')
+                .then(response => response.text())
+                .then(csv => {
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'habits.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    showStatus('Export completed successfully');
+                })
+                .catch(error => {
+                    showStatus('Error during export: ' + error, true);
+                });
+        }
+
+        function importHabits(files) {
+            if (files.length === 0) return;
+            
+            const file = files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                fetch('/api/habits/import', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/csv'
+                    },
+                    body: e.target.result
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showStatus(data.join('\n'));
+                })
+                .catch(error => {
+                    showStatus('Error during import: ' + error, true);
+                });
+            };
+            
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html> 

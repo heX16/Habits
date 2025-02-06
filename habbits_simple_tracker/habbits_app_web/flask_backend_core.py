@@ -1,6 +1,6 @@
 # flask_backend_core.py
-from flask import Flask, jsonify, request, render_template
-from habbits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits
+from flask import Flask, jsonify, request, render_template, send_file
+from habbits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits
 
 def create_app():
     """
@@ -85,6 +85,20 @@ def create_app():
         Render the statistics page for a specific habit.
         """
         return render_template('stat.html', habit_id=habit_id)
+
+    @app.route('/backup')
+    def backup_page():
+        return render_template('backup.html')
+
+    @app.route('/api/habits/export')
+    def export_habits():
+        return api_export_habits()
+
+    @app.route('/api/habits/import', methods=['POST'])
+    def import_habits():
+        csv_data = request.get_data(as_text=True)
+        messages = api_import_habits(csv_data)
+        return jsonify(messages)
 
     return app
 
