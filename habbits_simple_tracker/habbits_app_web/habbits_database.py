@@ -25,25 +25,43 @@ class Database:
         '''
         Initialize the database with the required tables.
         '''
+        self.create_tables()
+
+    def create_tables(self):
+        '''
+        Create all necessary tables in the database.
+        '''
         conn = self.connect()
         cursor = conn.cursor()
-        cursor.execute('CREATE TABLE IF NOT EXISTS habits ('
-                       'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                       'name TEXT NOT NULL)')
-        cursor.execute('CREATE TABLE IF NOT EXISTS habit_tracking ('
-                       'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                       'habit_id INTEGER NOT NULL, '
-                       'date TEXT NOT NULL, '
-                       'status INTEGER NOT NULL DEFAULT 0, '
-                       'UNIQUE(habit_id, date))')
-        cursor.execute('CREATE TABLE IF NOT EXISTS habit_params ('
-                       'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                       'habit_id INTEGER NOT NULL, '  # -1 for global/user-level params
-                       'param_name TEXT NOT NULL, '
-                       'value TEXT NOT NULL, '
-                       'UNIQUE(habit_id, param_name))')
-        conn.commit()
-        conn.close()
+        try:
+            conn.execute('BEGIN TRANSACTION')
+            
+            cursor.execute('CREATE TABLE IF NOT EXISTS habits ('
+                          'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                          'name TEXT NOT NULL)')
+            
+            cursor.execute('CREATE TABLE IF NOT EXISTS habit_tracking ('
+                          'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                          'habit_id INTEGER NOT NULL, '
+                          'date TEXT NOT NULL, '
+                          'status INTEGER NOT NULL DEFAULT 0, '
+                          'UNIQUE(habit_id, date))')
+            
+            cursor.execute('CREATE TABLE IF NOT EXISTS habit_params ('
+                          'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                          'habit_id INTEGER NOT NULL, '  # -1 for global/user-level params
+                          'param_name TEXT NOT NULL, '
+                          'value TEXT NOT NULL, '
+                          'UNIQUE(habit_id, param_name))')
+            
+            conn.commit()
+            
+        except Exception as e:
+            conn.rollback()
+            raise Exception(f'Error creating tables: {str(e)}')
+        
+        finally:
+            conn.close()
 
     def add_habit(self, name):
         '''
@@ -205,7 +223,7 @@ class Database:
             cursor.execute('SELECT date, status FROM habit_tracking WHERE habit_id = ?', (habit['id'],))
             tracking = cursor.fetchall()
             for track in tracking:
-                yield f'tracking,{habit["id"]},,{track["date"]},{track["status"]},,'
+                yield f',{habit["id"]},,{track["date"]},{track["status"]},,'
             
             # Export parameters for this habit
             cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = ?', (habit['id'],))
@@ -221,6 +239,29 @@ class Database:
         
         conn.close()
 
+    def clear_db(self):
+        '''
+        Clear all tables from the database.
+        '''
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            conn.execute('BEGIN TRANSACTION')
+            
+            # Drop all tables
+            cursor.execute('DROP TABLE IF EXISTS habit_tracking')
+            cursor.execute('DROP TABLE IF EXISTS habit_params')
+            cursor.execute('DROP TABLE IF EXISTS habits')
+            
+            conn.commit()
+            
+        except Exception as e:
+            conn.rollback()
+            raise Exception(f'Error clearing database: {str(e)}')
+        
+        finally:
+            conn.close()
+
     def import_from_csv(self, csv_lines):
         '''
         Import habits data from CSV lines.
@@ -234,11 +275,10 @@ class Database:
         try:
             conn.execute('BEGIN TRANSACTION')
             
-            # Clear existing data
-            cursor.execute('DELETE FROM habit_tracking')
-            cursor.execute('DELETE FROM habit_params')
-            cursor.execute('DELETE FROM habits')
-            yield 'Existing data cleared'
+            # Clear and recreate tables
+            self.clear_db()
+            self.create_tables()
+            yield 'Database structure reset'
             
             # Skip header
             next(csv_lines)
@@ -256,7 +296,7 @@ class Database:
                                  (int(habit_id), name))
                     yield f'Imported habit: {name}'
                 
-                elif record_type == 'tracking':
+                elif record_type == '':
                     cursor.execute('INSERT INTO habit_tracking (habit_id, date, status) VALUES (?, ?, ?)',
                                  (int(habit_id), date, int(status)))
                     yield f'Imported tracking data for habit {habit_id} on {date}'
