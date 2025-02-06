@@ -3,21 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Backup/Restore Habits</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .button {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-        }
-        .button:hover {
-            background-color: #45a049;
-        }
         #status {
             margin: 20px;
             padding: 10px;
@@ -35,13 +22,13 @@
 </head>
 <body>
     <h1>Backup/Restore Habits</h1>
-    <div>
-        <a href="{{ url_for('index') }}" class="button" style="background-color: #666;">Back to Main Page</a>
+    <div class="nav-link-container">
+        <a href="{{ url_for('index') }}">Back to Main Page</a>
     </div>
     <div>
-        <button onclick="exportHabits()" class="button">Export to habits.csv</button>
+        <button onclick="exportHabits()">Export to habits.csv</button>
         <input type="file" id="importFile" accept=".csv" style="display: none;" onchange="importHabits(this.files)">
-        <button onclick="document.getElementById('importFile').click()" class="button">Import from habits.csv</button>
+        <button onclick="document.getElementById('importFile').click()">Import from habits.csv</button>
     </div>
     <div id="status"></div>
 
