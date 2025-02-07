@@ -415,9 +415,9 @@ class HabitsDatabase:
         Returns list of possible status options for habits
         '''
         return [
-            {'value': 0, 'label': 'not set', 'icon': ''},
-            {'value': 1, 'label': 'done mini', 'icon': '☑️'},
-            {'value': 2, 'label': 'done', 'icon': '✅'},
-            {'value': 3, 'label': 'done elite', 'icon': '🌟'},
-            {'value': 9, 'label': 'fail', 'icon': '❌'}
+            {'value': 0, 'label': 'not set', 'icon': '', 'color': 'none', 'as_char': ' '},
+            {'value': 1, 'label': 'done mini', 'icon': '☑️', 'color': 'green', 'as_char': 'v'},
+            {'value': 2, 'label': 'done', 'icon': '✅', 'color': 'green', 'as_char': 'V'},
+            {'value': 3, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W'},
+            {'value': 9, 'label': 'fail', 'icon': '❌', 'color': 'red', 'as_char': 'X'}
         ]

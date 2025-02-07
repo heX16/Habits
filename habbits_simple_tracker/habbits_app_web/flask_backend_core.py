@@ -122,10 +122,17 @@ def create_app():
         }
 
         status_options = database.get_status_options()
-        status_options_js = ',\n        '.join(
-            f"{{value: {opt['value']}, label: '{opt['label']}', icon: '{opt['icon']}'}}"
-            for opt in status_options
-        )
+        formatted_options = []
+        for option in status_options:
+            formatted_items = []
+            for k, v in option.items():
+                if isinstance(v, str):
+                    formatted_items.append(f"'{k}': '{v}'")
+                else:
+                    formatted_items.append(f"'{k}': {v}")
+            formatted_options.append('{' + ', '.join(formatted_items) + '}')
+        
+        status_options_js_str = ',\n        '.join(formatted_options)
 
         js_content =  f"// This file is generated automatically\n"
         js_content += f"const {list(constants.keys())[0]} = {list(constants.values())[0]};\n"
@@ -135,7 +142,7 @@ def create_app():
         js_content += f"\n"
         js_content += f"function getStatusOptions() {{\n"
         js_content += f"    return [\n"
-        js_content += f"        {status_options_js}\n"
+        js_content += f"        {status_options_js_str}\n"
         js_content += f"    ];\n"
         js_content += f"}}\n"
 

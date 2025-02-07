@@ -112,9 +112,39 @@ function renderMonth(tracking, year, month, trackingOffset) {
                 cell.className = 'empty';
             } else {
                 if (date <= daysInMonth) {
-                    cell.textContent = date;
                     const status = tracking[trackingOffset + date - 1];
-                    cell.style.backgroundColor = getStatusColor(status);
+                    const statusOption = getStatusOptions().find(opt => opt.value === status);
+                    
+                    // Create wrapper for content
+                    const contentDiv = document.createElement('div');
+                    contentDiv.style.display = 'inline-block';
+                    
+                    // Add date number
+                    contentDiv.textContent = date;
+                    
+                    // Check if date is in future
+                    const cellDate = new Date(year, month, date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    // Add current-day class if date matches today
+                    if (cellDate.getTime() === today.getTime()) {
+                        cell.classList.add('current-day');
+                    }
+                    
+                    if (cellDate > today && (!statusOption || statusOption.value === 0 || statusOption.value === 9)) {
+                        cell.style.backgroundColor = '#f5f5f5';  // Серый цвет только для будущих дат со статусом 0 или 9
+                    } else if (statusOption) {
+                        // Add status indicator
+                        if (statusOption.icon) {
+                            contentDiv.textContent += statusOption.icon;
+                        } else {
+                            contentDiv.textContent += statusOption.as_char;
+                        }
+                        cell.style.backgroundColor = statusOption.color === 'none' ? 'transparent' : statusOption.color;
+                    }
+                    
+                    cell.appendChild(contentDiv);
                     date++;
                 }
             }
@@ -156,10 +186,7 @@ function renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMont
  * @returns {string} The corresponding background color.
  */
 function getStatusColor(status) {
-    if (status == 1) {
-        return 'lightgreen';
-    } else if (status == 2) {
-        return 'lightcoral';
-    }
-    return 'transparent';
+    const options = getStatusOptions();
+    const statusOption = options.find(opt => opt.value === status);
+    return statusOption ? statusOption.color : 'transparent';
 }
