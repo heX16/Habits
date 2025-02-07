@@ -103,7 +103,27 @@ function handleCellClick(cell, e) {
         lastClickTime = currentTime;
         
         let currentStatus = parseInt(cell.dataset.status);
-        let newStatus = (currentStatus + 1) % singleClickMaxStatus;
+        let newStatus;
+        switch(currentStatus) {
+            case 0:
+                newStatus = 1; // not set -> done mini
+                break;
+            case 1:
+                newStatus = 2; // done mini -> done
+                break;
+            case 2:
+                newStatus = 3; // done -> done elite
+                break;
+            case 3:
+                newStatus = 9; // done elite -> fail
+                break;
+            case 9:
+                newStatus = 0; // fail -> not set
+                break;
+            default:
+                newStatus = 0;
+        }
+        
         cell.dataset.status = newStatus;
         cell.textContent = getStatusEmoji(newStatus);
 
@@ -114,9 +134,9 @@ function handleCellClick(cell, e) {
         cell.pendingUpdateTimer = setTimeout(() => {
             const status = parseInt(cell.dataset.status);
             // Play animation at the same time as sending update
-            if (status === 4) {
+            if (status === 3) {
                 playFireworkAnimation(cell, true);
-            } else if (status === 1) {
+            } else if (status === 2) {
                 playFireworkAnimation(cell, false);
             }
             sendUpdate(cell.dataset.habitId, cell.dataset.date, status, cell);
@@ -304,9 +324,9 @@ function showStatusMenu(cell, event) {
             cell.pendingUpdateTimer = setTimeout(() => {
                 const status = parseInt(cell.dataset.status);
                 // Play animation at the same time as sending update
-                if (status === 4) {
+                if (status === 3) {
                     playFireworkAnimation(cell, true);
-                } else if (status === 1) {
+                } else if (status === 2) {
                     playFireworkAnimation(cell, false);
                 }
                 sendUpdate(cell.dataset.habitId, cell.dataset.date, status, cell);

@@ -118,6 +118,7 @@ class Database:
     def update_habit(self, habit_id, date, status):
         '''
         Update the status of a habit for a given date.
+        If status is 0, the record will be deleted from the database.
 
         :param habit_id: The ID of the habit.
         :param date: The date in 'YYYY-MM-DD' format.
@@ -125,16 +126,36 @@ class Database:
         '''
         conn = self.connect()
         cursor = conn.cursor()
-        cursor.execute('''INSERT INTO habit_tracking (habit_id, date, status)
-                          VALUES (?, ?, ?)
-                          ON CONFLICT(habit_id, date) DO UPDATE SET status=excluded.status''',
-                       (habit_id, date, status))
-        conn.commit()
-        conn.close()
+        try:
+            if status == 0:
+                cursor.execute('''DELETE FROM habit_tracking 
+                                WHERE habit_id = ? AND date = ?''',
+                             (habit_id, date))
+            else:
+                cursor.execute('''INSERT INTO habit_tracking (habit_id, date, status)
+                                VALUES (?, ?, ?)
+                                ON CONFLICT(habit_id, date) 
+                                DO UPDATE SET status=excluded.status''',
+                             (habit_id, date, status))
+            conn.commit()
+        finally:
+            conn.close()
+
+    def status_mapping(self, value: int) -> int:
+        '''
+        Maps database status values to client-side values.
+        By default returns value unchanged.
+
+        :param value: The status value from database
+        :return: Mapped status value for client
+        '''
+        return value
 
     def fetch_habits(self, start_date, end_date, habit_id=None):
         '''
         Fetch habits and their tracking data within a specified date range.
+        Status 0 is returned for dates with no records in the database.
+        All status values are mapped through status_mapping() before return.
 
         :param start_date: The start date as 'YYYY-MM-DD'.
         :param end_date: The end date as 'YYYY-MM-DD'.
@@ -147,30 +168,45 @@ class Database:
             end_dt = datetime.strptime(end_date, '%Y-%m-%d')
         except ValueError:
             raise ValueError('Invalid date format. Use YYYY-MM-DD.')
+
         num_days = (end_dt - start_dt).days + 1
         date_list = [(start_dt + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(num_days)]
+        
         conn = self.connect()
         cursor = conn.cursor()
+        
         if habit_id:
             cursor.execute('SELECT id, name FROM habits WHERE id = ?', (habit_id,))
         else:
             cursor.execute('SELECT id, name FROM habits')
+            
         habits = cursor.fetchall()
         habits_data = []
+        
         for habit in habits:
             habit_id_val = habit['id']
             habit_name = habit['name']
-            cursor.execute('SELECT date, status FROM habit_tracking WHERE habit_id = ? AND date BETWEEN ? AND ?',
-                           (habit_id_val, start_date, end_date))
+            
+            # Get all records for habit in date range
+            cursor.execute('''SELECT date, status 
+                            FROM habit_tracking 
+                            WHERE habit_id = ? AND date BETWEEN ? AND ?''',
+                         (habit_id_val, start_date, end_date))
+                         
             tracking_rows = cursor.fetchall()
             tracking_dict = {row['date']: row['status'] for row in tracking_rows}
-            tracking = [tracking_dict.get(date, 0) for date in date_list]
+            
+            # Return 0 for dates with no records and map all values through status_mapping
+            tracking = [self.status_mapping(tracking_dict.get(date, 0)) for date in date_list]
+            
             habits_data.append({
                 'id': habit_id_val,
                 'name': habit_name,
                 'tracking': tracking
             })
+            
         conn.close()
+        
         return {
             'start_date': start_date,
             'end_date': end_date,
@@ -351,9 +387,9 @@ class Database:
         Returns list of possible status options for habits
         '''
         return [
-            {'value': 0, 'label': 'empty', 'icon': ''},
-            {'value': 1, 'label': 'done', 'icon': '✅'},
-            {'value': 2, 'label': 'fail', 'icon': '❌'},
-            {'value': 3, 'label': 'done. mini', 'icon': '☑️'},
-            {'value': 4, 'label': 'done. elite', 'icon': '🌟'}
+            {'value': 0, 'label': 'not set', 'icon': ''},
+            {'value': 1, 'label': 'done mini', 'icon': '☑️'},
+            {'value': 2, 'label': 'done', 'icon': '✅'},
+            {'value': 3, 'label': 'done elite', 'icon': '🌟'},
+            {'value': 9, 'label': 'fail', 'icon': '❌'}
         ]
