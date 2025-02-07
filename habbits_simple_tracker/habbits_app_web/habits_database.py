@@ -171,6 +171,49 @@ class HabitsDatabase:
             return 9 if fail_by_default else 0
         return value
 
+    def fetch_habit(self, habit_id, date_list, cursor):
+        '''
+        Fetch tracking data for a single habit.
+        
+        :param habit_id: The ID of the habit
+        :param date_list: List of dates to fetch data for
+        :param cursor: Database cursor
+        :return: Dictionary with habit data and tracking
+        '''
+        # Get habit info
+        cursor.execute('SELECT id, name FROM habits_list WHERE id = ?', (habit_id,))
+        habit = cursor.fetchone()
+        if not habit:
+            return None
+            
+        habit_id_val = habit['id']
+        habit_name = habit['name']
+        
+        # Get fail_by_default parameter for this habit
+        fail_by_default: bool = self.get_param(habit_id_val, 'fail_by_default', '0') == '1'
+        
+        # Get all records for habit in date range
+        cursor.execute('''SELECT date, status 
+                        FROM habit_tracking 
+                        WHERE habit_id = ? AND date BETWEEN ? AND ?''',
+                     (habit_id_val, date_list[0], date_list[-1]))
+                     
+        tracking_rows = cursor.fetchall()
+        tracking_dict = {row['date']: row['status'] for row in tracking_rows}
+        
+        tracking = []
+        for date in date_list:
+            # Get status from tracking dict, default to 0 if not found
+            status = tracking_dict.get(date, 0)
+            status = self.status_mapping(status, habit_id_val, fail_by_default=fail_by_default)
+            tracking.append(status)
+        
+        return {
+            'id': habit_id_val,
+            'name': habit_name,
+            'tracking': tracking
+        }
+
     def fetch_habits(self, start_date, end_date, habit_id=None):
         '''
         Fetch habits and their tracking data within a specified date range.
@@ -195,42 +238,19 @@ class HabitsDatabase:
         conn = self.connect()
         cursor = conn.cursor()
         
+        # Fetch habits list (name and id)
         if habit_id:
-            cursor.execute('SELECT id, name FROM habits_list WHERE id = ?', (habit_id,))
+            cursor.execute('SELECT id FROM habits_list WHERE id = ?', (habit_id,))
         else:
-            cursor.execute('SELECT id, name FROM habits_list')
+            cursor.execute('SELECT id FROM habits_list')
             
-        habits = cursor.fetchall()
+        habit_ids = [row['id'] for row in cursor.fetchall()]
         habits_data = []
         
-        for habit in habits:
-            habit_id_val = habit['id']
-            habit_name = habit['name']
-            
-            # Get fail_by_default parameter for this habit
-            fail_by_default: bool = self.get_param(habit_id_val, 'fail_by_default', '0') == '1'
-            
-            # Get all records for habit in date range
-            cursor.execute('''SELECT date, status 
-                            FROM habit_tracking 
-                            WHERE habit_id = ? AND date BETWEEN ? AND ?''',
-                         (habit_id_val, start_date, end_date))
-                         
-            tracking_rows = cursor.fetchall()
-            tracking_dict = {row['date']: row['status'] for row in tracking_rows}
-            
-            tracking = []
-            for date in date_list:
-                # Get status from tracking dict, default to 0 if not found
-                status = tracking_dict.get(date, 0)
-                status = self.status_mapping(status, habit_id_val, fail_by_default=fail_by_default)
-                tracking.append(status)
-            
-            habits_data.append({
-                'id': habit_id_val,
-                'name': habit_name,
-                'tracking': tracking
-            })
+        for habit_id_val in habit_ids:
+            habit_data = self.fetch_habit(habit_id_val, date_list, cursor)
+            if habit_data:
+                habits_data.append(habit_data)
             
         conn.close()
         
