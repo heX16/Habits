@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
  * Fetches all habits from the backend and renders them.
  */
 function loadHabits() {
-    fetch('./api/habits/list')
+    fetch('../api/habits/list')
         .then(response => response.json())
         .then(data => {
             renderHabitsList(data.habits);
@@ -67,7 +67,7 @@ function renderHabitsList(habits) {
  * @param {string} habitName - The name of the new habit.
  */
 function addHabit(habitName) {
-    fetch('./api/habits/add', {
+    fetch('../api/habits/add', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -88,7 +88,7 @@ function addHabit(habitName) {
  * @param {string} habitId - The ID of the habit to delete.
  */
 function deleteHabit(habitId) {
-    fetch('./api/habits/delete', {
+    fetch('../api/habits/delete', {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json'

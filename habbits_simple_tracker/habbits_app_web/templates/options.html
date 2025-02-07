@@ -33,7 +33,7 @@
 
             // Load all options
             options.forEach(option => {
-                fetch(`./api/param/${option.param}`)
+                fetch(`../api/param/${option.param}`)
                     .then(response => response.json())
                     .then(data => {
                         if (option.type === 'bool') {
@@ -54,7 +54,7 @@
                         value = e.target.checked ? '1' : '0';
                     }
                     
-                    fetch(`./api/param/${option.param}`, {
+                    fetch(`../api/param/${option.param}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'

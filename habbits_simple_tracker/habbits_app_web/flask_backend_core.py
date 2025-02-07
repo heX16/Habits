@@ -1,4 +1,35 @@
 # flask_backend_core.py
+"""
+URL structure:
+
+Pages:
+http://server.test/habits/                    - Main page (index.html)
+http://server.test/habits/edit               - Edit habits page (edit.html)
+http://server.test/habits/backup             - Backup/restore page (backup.html)
+http://server.test/habits/options            - Global options page (options.html)
+http://server.test/habits/habit/2            - Single habit page (habit.html)
+http://server.test/habits/habit/2/options    - Single habit options page (habit_options.html)
+
+API endpoints:
+http://server.test/habits/api/habits              - GET: fetch habits data
+http://server.test/habits/api/habits/update       - POST: update habit status
+http://server.test/habits/api/habits/add          - POST: add new habit
+http://server.test/habits/api/habits/delete       - DELETE: delete habit
+http://server.test/habits/api/habits/list         - GET: list all habits
+http://server.test/habits/api/habits/rename       - POST: rename habit
+http://server.test/habits/api/habits/export       - GET: export habits to CSV
+http://server.test/habits/api/habits/import       - POST: import habits from CSV
+http://server.test/habits/api/param/<name>        - GET/POST: get/set global parameter
+http://server.test/habits/api/param/<name>/<id>   - GET/POST: get/set habit parameter
+
+Static files:
+http://server.test/habits/static/script.js   - Main page script
+http://server.test/habits/static/habit.js    - Single habit page script
+http://server.test/habits/static/edit.js     - Edit page script
+http://server.test/habits/static/menu.js     - Floating menu component
+http://server.test/habits/static/style.css   - Styles
+http://server.test/habits/js/constants.js    - Generated constants
+"""
 import os
 from flask import Flask, jsonify, request, render_template, send_file, Response
 from habits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits, api_rename_habit
