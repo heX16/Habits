@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime, timedelta
 import csv
 
-class Database:
+class HabitsDatabase:
     '''
     Database class for managing habits, habit tracking, and special parameters.
     '''

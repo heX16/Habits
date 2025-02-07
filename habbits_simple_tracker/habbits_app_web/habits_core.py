@@ -1,6 +1,6 @@
 # habits_core.py
 from datetime import datetime, timedelta
-from habits_database import Database
+from habits_database import HabitsDatabase
 
 # Global variable to hold the Database instance.
 database = None
@@ -10,7 +10,7 @@ def init_db():
     Initialize the database using the Database object.
     """
     global database
-    database = Database()
+    database = HabitsDatabase()
 
 def api_fetch_habits(args):
     """
