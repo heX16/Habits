@@ -171,7 +171,7 @@ class HabitsDatabase:
             return 9 if fail_by_default else 0
         return value
 
-    def get_all_habits(self, habit_id=None):
+    def get_habits_list(self, habit_id=None):
         '''
         Retrieve a list of all habits or a specific habit.
 
@@ -212,7 +212,7 @@ class HabitsDatabase:
             habit_name = habit['name']
         else:
             # Backwards compatibility - if habit ID is passed
-            habits = self.get_all_habits(habit)
+            habits = self.get_habits_list(habit)
             if not habits:
                 return None
             habit_id_val = habits[0]['id']
@@ -272,7 +272,7 @@ class HabitsDatabase:
         cursor = conn.cursor()
         
         try:
-            habits = self.get_all_habits(habit_id)
+            habits = self.get_habits_list(habit_id)
             habits_data = []
             
             for habit in habits:
@@ -335,7 +335,7 @@ class HabitsDatabase:
         
         try:
             # Export habits and their tracking data
-            habits = self.get_all_habits()
+            habits = self.get_habits_list()
             for habit in habits:
                 yield f'habit:,{habit["name"]}'
                 
@@ -385,6 +385,7 @@ class HabitsDatabase:
             
             current_habit_id = None
             mode = None  # Can be 'habit' or 'params'
+            habits_dict = {}  # Cache for habit name -> id mapping
             
             for line in csv_lines:
                 line = line.strip()
@@ -398,6 +399,7 @@ class HabitsDatabase:
                     # New habit section
                     _, habit_name = row
                     current_habit_id = self.add_habit(habit_name)
+                    habits_dict[habit_name] = current_habit_id
                     mode = 'habit'
                     
                 elif line.startswith('habit_params:'):
@@ -407,12 +409,9 @@ class HabitsDatabase:
                     if target == 'global':
                         current_habit_id = -1
                     else:
-                        # Find habit ID by name
-                        cursor.execute('SELECT id FROM habits_list WHERE name = ?', (target,))
-                        result = cursor.fetchone()
-                        if result:
-                            current_habit_id = result['id']
-                        else:
+                        # Find habit ID by name from our cache
+                        current_habit_id = habits_dict.get(target)
+                        if current_habit_id is None:
                             mode = None
                     
                 elif mode == 'habit':

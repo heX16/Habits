@@ -98,7 +98,7 @@ def api_get_all_habits():
 
     :return: A dictionary containing a list of all habits.
     """
-    habits_list = database.get_all_habits()
+    habits_list = database.get_habits_list()
 
     return {'habits': habits_list}
 
