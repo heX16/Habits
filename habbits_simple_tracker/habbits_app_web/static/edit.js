@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
  * Fetches all habits from the backend and renders them.
  */
 function loadHabits() {
-    fetch('../api/habits/list')
+    fetch('./api/habits/list')
         .then(response => response.json())
         .then(data => {
             renderHabitsList(data.habits);
@@ -50,6 +50,13 @@ function renderHabitsList(habits) {
         const li = document.createElement('li');
         li.textContent = habit.name + ' ';
 
+        // Create options button
+        const optionsButton = document.createElement('button');
+        optionsButton.textContent = 'Options';
+        optionsButton.addEventListener('click', function() {
+            window.location.href = `../habit/${habit.id}/options`;
+        });
+
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Delete';
         deleteButton.dataset.habitId = habit.id;
@@ -57,6 +64,7 @@ function renderHabitsList(habits) {
             deleteHabit(this.dataset.habitId);
         });
 
+        li.appendChild(optionsButton);
         li.appendChild(deleteButton);
         habitsList.appendChild(li);
     });
@@ -67,7 +75,7 @@ function renderHabitsList(habits) {
  * @param {string} habitName - The name of the new habit.
  */
 function addHabit(habitName) {
-    fetch('../api/habits/add', {
+    fetch('./api/habits/add', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -88,7 +96,7 @@ function addHabit(habitName) {
  * @param {string} habitId - The ID of the habit to delete.
  */
 function deleteHabit(habitId) {
-    fetch('../api/habits/delete', {
+    fetch('./api/habits/delete', {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json'

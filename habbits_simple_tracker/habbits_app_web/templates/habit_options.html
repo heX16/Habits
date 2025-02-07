@@ -21,9 +21,9 @@
         </div>
 
         <div class="option-item">
-            <h3>Переименовать привычку</h3>
-            <input type="text" id="new-habit-name" placeholder="Новое название">
-            <button onclick="renameHabit()">Переименовать</button>
+            <h3>Rename Habit</h3>
+            <input type="text" id="new-habit-name" placeholder="New name">
+            <button onclick="renameHabit()">Rename</button>
             <div id="rename-status" style="margin-top: 10px;"></div>
         </div>
     </div>
@@ -67,7 +67,7 @@
         function renameHabit() {
             const newName = document.getElementById('new-habit-name').value.trim();
             if (!newName) {
-                showRenameStatus('Имя не может быть пустым', 'error');
+                showRenameStatus('Name cannot be empty', 'error');
                 return;
             }
 
@@ -86,13 +86,13 @@
                 if (data.error) {
                     showRenameStatus(data.error, 'error');
                 } else {
-                    showRenameStatus('Привычка успешно переименована', 'success');
+                    showRenameStatus('Habit renamed successfully', 'success');
                     document.getElementById('habit-name').textContent = newName;
                     document.getElementById('new-habit-name').value = '';
                 }
             })
             .catch(error => {
-                showRenameStatus('Произошла ошибка при переименовании', 'error');
+                showRenameStatus('Error occurred while renaming', 'error');
             });
         }
 
