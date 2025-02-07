@@ -176,3 +176,26 @@ button {
 .calendar-table td.current-day {
     border: 2px solid #333;  /* Жирная темная рамка */
 }
+
+.floating-menu {
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 5px;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+.menu-item {
+    padding: 4px 8px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+.menu-item:hover {
+    background-color: #f5f5f5;
+}

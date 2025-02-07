@@ -23,6 +23,8 @@ let lastClickedCell = null;
 let lastClickedStatus = null;
 let lastClickTime = 0;
 
+const statusMenu = new FloatingMenu();
+
 document.addEventListener('DOMContentLoaded', function () {
     // Calculate the date range ending with Sunday
     const now = new Date();
@@ -277,44 +279,11 @@ function createHabitRow(habit, dates, today) {
  * @param {MouseEvent} event - The mouse event (used for positioning).
  */
 function showStatusMenu(cell, event) {
-    // Remove any existing menu first.
-    removeStatusMenu();
-
-    // Create the menu container.
-    const menu = document.createElement('div');
-    menu.style.position = 'absolute';
-    menu.style.backgroundColor = 'white';
-    menu.style.border = '1px solid #ccc';
-    menu.style.padding = '5px';
-    menu.style.zIndex = 1000;
-    menu.style.boxShadow = '2px 2px 6px rgba(0,0,0,0.2)';
-
-    // Create a table for the menu items.
-    const menuTable = document.createElement('table');
-    menuTable.style.borderCollapse = 'collapse';
-
-    getStatusOptions().forEach(option => {
-        const row = document.createElement('tr');
-        row.style.cursor = 'pointer';
-        row.style.borderBottom = '1px solid #ddd';
-
-        // Create the icon cell.
-        const iconCell = document.createElement('td');
-        iconCell.textContent = option.icon;
-        iconCell.style.padding = '4px 8px';
-        row.appendChild(iconCell);
-
-        // Create the label cell.
-        const labelCell = document.createElement('td');
-        labelCell.textContent = option.label;
-        labelCell.style.padding = '4px 8px';
-        row.appendChild(labelCell);
-
-        // When a menu option is clicked, update the cell accordingly.
-        row.addEventListener('click', function (e) {
-            e.stopPropagation();
-            const newStatus = option.value;
-            cell.dataset.status = newStatus;
+    const items = getStatusOptions().map(option => ({
+        icon: option.icon || option.as_char,
+        label: option.label,
+        onClick: () => {
+            cell.dataset.status = option.value;
             cell.textContent = option.icon;
             
             if (cell.pendingUpdateTimer) {
@@ -323,7 +292,6 @@ function showStatusMenu(cell, event) {
             
             cell.pendingUpdateTimer = setTimeout(() => {
                 const status = parseInt(cell.dataset.status);
-                // Play animation at the same time as sending update
                 if (status === 3) {
                     playFireworkAnimation(cell, true);
                 } else if (status === 2) {
@@ -332,22 +300,10 @@ function showStatusMenu(cell, event) {
                 sendUpdate(cell.dataset.habitId, cell.dataset.date, status, cell);
                 cell.pendingUpdateTimer = null;
             }, 2000);
-            
-            removeStatusMenu();
-        });
+        }
+    }));
 
-        menuTable.appendChild(row);
-    });
-
-    menu.appendChild(menuTable);
-
-    // Position the menu relative to the cell.
-    const rect = cell.getBoundingClientRect();
-    menu.style.top = (rect.bottom + window.scrollY) + 'px';
-    menu.style.left = (rect.left + window.scrollX) + 'px';
-
-    document.body.appendChild(menu);
-    openStatusMenu = menu;
+    statusMenu.show(cell, items);
 }
 
 /**
