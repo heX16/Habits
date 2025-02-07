@@ -157,7 +157,7 @@ class HabitsDatabase:
         finally:
             conn.close()
 
-    def status_mapping(self, value: int, habit_id: int, fail_by_default: str = '0') -> int:
+    def status_mapping(self, value: int, habit_id: int, fail_by_default: bool = False) -> int:
         '''
         Maps database status values to client-side values.
         Takes into account habit's fail_by_default parameter.
@@ -168,7 +168,7 @@ class HabitsDatabase:
         :return: Mapped status value for client
         '''
         if value == 0:
-            return 9 if fail_by_default == '1' else 0
+            return 9 if fail_by_default else 0
         return value
 
     def fetch_habits(self, start_date, end_date, habit_id=None):
@@ -208,7 +208,7 @@ class HabitsDatabase:
             habit_name = habit['name']
             
             # Get fail_by_default parameter for this habit
-            fail_by_default = self.get_param(habit_id_val, 'fail_by_default', '0')
+            fail_by_default: bool = self.get_param(habit_id_val, 'fail_by_default', '0') == '1'
             
             # Get all records for habit in date range
             cursor.execute('''SELECT date, status 
