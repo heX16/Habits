@@ -1,23 +1,26 @@
 import sqlite3
 from datetime import datetime, timedelta
 import csv
+import os
 
 class HabitsDatabase:
     '''
     Database class for managing habits, habit tracking, and special parameters.
     '''
-    def __init__(self, db_name='database.db'):
+    def __init__(self, db_path):
         '''
         Initialize the Database object and create tables if they do not exist.
+        
+        :param db_path: Path to the SQLite database file
         '''
-        self.db_name = db_name
+        self.db_path = db_path
         self.init_db()
 
     def connect(self):
         '''
         Create and return a new database connection.
         '''
-        conn = sqlite3.connect(self.db_name)
+        conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
 
@@ -54,21 +57,20 @@ class HabitsDatabase:
             
             cursor.execute('CREATE TABLE habits_list ('
                          'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                         'name TEXT NOT NULL)')
+                         'name TEXT NOT NULL UNIQUE)')
             
             cursor.execute('CREATE TABLE habit_tracking ('
-                         'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                         'habit_id INTEGER NOT NULL, '
+                         'habit_id INTEGER, '
                          'date TEXT NOT NULL, '
-                         'status INTEGER NOT NULL DEFAULT 0, '
-                         'UNIQUE(habit_id, date))')
+                         'status INTEGER DEFAULT 0, '
+                         'PRIMARY KEY (habit_id, date), '
+                         'FOREIGN KEY (habit_id) REFERENCES habits_list(id))')
             
             cursor.execute('CREATE TABLE habit_params ('
-                         'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                         'habit_id INTEGER NOT NULL, '  # -1 for global/user-level params
+                         'habit_id INTEGER, '
                          'param_name TEXT NOT NULL, '
                          'value TEXT NOT NULL, '
-                         'UNIQUE(habit_id, param_name))')
+                         'PRIMARY KEY (habit_id, param_name))')
             
             conn.commit()
             

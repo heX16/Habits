@@ -1,6 +1,8 @@
 # flask_backend_core.py
-from flask import Flask, jsonify, request, render_template, send_file
+import os
+from flask import Flask, jsonify, request, render_template, send_file, Response
 from habits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits
+from habits_database import HabitsDatabase
 
 def create_app():
     """
@@ -8,9 +10,13 @@ def create_app():
     """
     app = Flask(__name__, static_folder='static', template_folder='templates')
 
+    # Get database path from environment variable or use default
+    db_path = os.environ.get('HABITS_WEB_DB_PATH', 'habits.db')
+    db = HabitsDatabase(db_path)
+
     # Initialize the database on app startup.
     with app.app_context():
-        init_db()
+        init_db(db)
 
     @app.route('/')
     def index():
@@ -32,7 +38,7 @@ def create_app():
         API endpoint to retrieve habits and their tracking data.
         Delegates argument parsing to habits_core.api_fetch_habits.
         """
-        result = api_fetch_habits(request.args)
+        result = api_fetch_habits(request.args, db)
         # If an error is returned as a tuple, unpack the error message and status code.
         if isinstance(result, tuple):
             return jsonify(result[0]), result[1]
@@ -44,7 +50,7 @@ def create_app():
         API endpoint to update a habit's status.
         Delegates JSON parsing to habits_core.api_update_habit.
         """
-        result = api_update_habit(request.get_json())
+        result = api_update_habit(request.get_json(), db)
         if isinstance(result, tuple):
             return jsonify(result[0]), result[1]
         return jsonify(result)
@@ -53,9 +59,8 @@ def create_app():
     def api_add():
         """
         API endpoint to add a new habit.
-        Delegates JSON parsing to habits_core.api_add_habit.
         """
-        result = api_add_habit(request.get_json())
+        result = api_add_habit(request.get_json(), db)
         if isinstance(result, tuple):
             return jsonify(result[0]), result[1]
         return jsonify(result)
@@ -64,20 +69,18 @@ def create_app():
     def api_delete():
         """
         API endpoint to delete a habit.
-        Delegates JSON parsing to habits_core.api_delete_habit.
         """
-        result = api_delete_habit(request.get_json())
+        result = api_delete_habit(request.get_json(), db)
         if isinstance(result, tuple):
             return jsonify(result[0]), result[1]
         return jsonify(result)
 
-    @app.route('/api/habits/all', methods=['GET'])
-    def api_all():
+    @app.route('/api/habits/list', methods=['GET'])
+    def api_list():
         """
-        API endpoint to retrieve all habits.
+        API endpoint to list all habits.
         """
-        result = api_get_all_habits()
-        return jsonify(result)
+        return jsonify(api_get_all_habits(db))
 
     @app.route('/habit/<int:habit_id>')
     def habit_page(habit_id):
@@ -90,30 +93,28 @@ def create_app():
     def backup_page():
         return render_template('backup.html')
 
-    @app.route('/api/habits/export')
-    def export_habits():
-        return api_export_habits()
+    @app.route('/api/habits/export', methods=['GET'])
+    def api_export():
+        """
+        API endpoint to export habits data.
+        """
+        csv_data = api_export_habits(db)
+        return Response(csv_data, mimetype='text/csv')
 
     @app.route('/api/habits/import', methods=['POST'])
-    def import_habits():
-        try:
-            csv_data = request.get_data(as_text=True)
-            if not csv_data:
-                return jsonify({'error': 'No data received'}), 400
-
-            api_import_habits(csv_data)
-            return jsonify({'message': 'Import completed successfully'})
-
-        except Exception as e:
-            return jsonify({'error': str(e)}), 400
+    def api_import():
+        """
+        API endpoint to import habits data.
+        """
+        csv_data = request.get_data(as_text=True)
+        api_import_habits(csv_data, db)
+        return jsonify({'status': 'success'})
 
     @app.route('/js/constants.js')
     def js_constants():
         """
         Generate JavaScript constants dynamically with caching headers
         """
-        from habits_core import database
-
         cache_duration_sec = 60 * 60 * 1
 
         constants = {
@@ -121,7 +122,7 @@ def create_app():
             'tableDaysCount': 10
         }
 
-        status_options = database.get_status_options()
+        status_options = db.get_status_options()
         formatted_options = []
         for option in status_options:
             formatted_items = []
