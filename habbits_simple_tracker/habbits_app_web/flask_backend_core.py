@@ -163,7 +163,7 @@ def create_app():
         """
         Render the options page.
         """
-        return render_template('options.html')
+        return render_template('options.html', db_path=db.db_path)
 
     @app.route('/api/param/<param_name>', methods=['GET'])
     @app.route('/api/param/<param_name>/<int:habit_id>', methods=['GET'])
