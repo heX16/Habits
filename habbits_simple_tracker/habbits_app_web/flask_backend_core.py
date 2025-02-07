@@ -150,6 +150,45 @@ def create_app():
         
         return response.make_conditional(request)
 
+    @app.route('/options')
+    def options_page():
+        """
+        Render the options page.
+        """
+        return render_template('options.html')
+
+    @app.route('/api/param/<param_name>', methods=['GET'])
+    @app.route('/api/param/<param_name>/<int:habit_id>', methods=['GET'])
+    def get_param(param_name, habit_id=-1):
+        """
+        Get parameter value.
+        If habit_id is not provided, returns global parameter (habit_id = -1)
+
+        :param param_name: Name of the parameter
+        :param habit_id: Optional habit ID (default: -1 for global parameters)
+        """
+        from habbits_core import database
+        value = database.get_param(habit_id, param_name) or 'false'
+        return jsonify({'value': value})
+
+    @app.route('/api/param/<param_name>', methods=['POST'])
+    @app.route('/api/param/<param_name>/<int:habit_id>', methods=['POST'])
+    def set_param(param_name, habit_id=-1):
+        """
+        Set parameter value.
+        If habit_id is not provided, sets global parameter (habit_id = -1)
+
+        :param param_name: Name of the parameter
+        :param habit_id: Optional habit ID (default: -1 for global parameters)
+        """
+        from habbits_core import database
+        data = request.get_json()
+        if 'value' not in data:
+            return jsonify({'error': 'value is required'}), 400
+        
+        database.set_param(habit_id, param_name, data['value'])
+        return jsonify({'message': 'Parameter updated successfully'})
+
     return app
 
 if __name__ == '__main__':

@@ -11,6 +11,7 @@ class Database:
         Initialize the Database object and create tables if they do not exist.
         '''
         self.db_name = db_name
+        self.fail_by_default = 0  # Default value
         self.init_db()
 
     def connect(self):
@@ -24,8 +25,28 @@ class Database:
     def init_db(self):
         '''
         Initialize the database with the required tables.
+        If any required table is missing, clear database and create all tables.
         '''
-        self.create_tables()
+        conn = self.connect()
+        cursor = conn.cursor()
+        
+        # Check if all required tables exist
+        cursor.execute('''SELECT name FROM sqlite_master 
+                         WHERE type='table' AND 
+                         name IN ('habits_list', 'habit_tracking', 'habit_params')''')
+        existing_tables = {row['name'] for row in cursor.fetchall()}
+        required_tables = {'habits_list', 'habit_tracking', 'habit_params'}
+        
+        conn.close()
+        
+        # If any table is missing, clear DB and create all tables
+        if not required_tables.issubset(existing_tables):
+            self.clear_db()
+            self.create_tables()
+        
+        # Load fail_by_default parameter (0 or 1)
+        value = self.get_param(-1, 'fail_by_default', '0')
+        self.fail_by_default = int(value)
 
     def create_tables(self):
         '''
@@ -36,23 +57,23 @@ class Database:
         try:
             conn.execute('BEGIN TRANSACTION')
             
-            cursor.execute('CREATE TABLE IF NOT EXISTS habits ('
-                          'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                          'name TEXT NOT NULL)')
+            cursor.execute('CREATE TABLE habits_list ('
+                         'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                         'name TEXT NOT NULL)')
             
-            cursor.execute('CREATE TABLE IF NOT EXISTS habit_tracking ('
-                          'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                          'habit_id INTEGER NOT NULL, '
-                          'date TEXT NOT NULL, '
-                          'status INTEGER NOT NULL DEFAULT 0, '
-                          'UNIQUE(habit_id, date))')
+            cursor.execute('CREATE TABLE habit_tracking ('
+                         'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                         'habit_id INTEGER NOT NULL, '
+                         'date TEXT NOT NULL, '
+                         'status INTEGER NOT NULL DEFAULT 0, '
+                         'UNIQUE(habit_id, date))')
             
-            cursor.execute('CREATE TABLE IF NOT EXISTS habit_params ('
-                          'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                          'habit_id INTEGER NOT NULL, '  # -1 for global/user-level params
-                          'param_name TEXT NOT NULL, '
-                          'value TEXT NOT NULL, '
-                          'UNIQUE(habit_id, param_name))')
+            cursor.execute('CREATE TABLE habit_params ('
+                         'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                         'habit_id INTEGER NOT NULL, '  # -1 for global/user-level params
+                         'param_name TEXT NOT NULL, '
+                         'value TEXT NOT NULL, '
+                         'UNIQUE(habit_id, param_name))')
             
             conn.commit()
             
@@ -75,7 +96,7 @@ class Database:
             # Drop all tables
             cursor.execute('DROP TABLE IF EXISTS habit_tracking')
             cursor.execute('DROP TABLE IF EXISTS habit_params')
-            cursor.execute('DROP TABLE IF EXISTS habits')
+            cursor.execute('DROP TABLE IF EXISTS habits_list')
             
             conn.commit()
             
@@ -95,7 +116,7 @@ class Database:
         '''
         conn = self.connect()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO habits (name) VALUES (?)', (name,))
+        cursor.execute('INSERT INTO habits_list (name) VALUES (?)', (name,))
         conn.commit()
         habit_id = cursor.lastrowid
         conn.close()
@@ -111,7 +132,7 @@ class Database:
         cursor = conn.cursor()
         cursor.execute('DELETE FROM habit_tracking WHERE habit_id = ?', (habit_id,))
         cursor.execute('DELETE FROM habit_params WHERE habit_id = ?', (habit_id,))
-        cursor.execute('DELETE FROM habits WHERE id = ?', (habit_id,))
+        cursor.execute('DELETE FROM habits_list WHERE id = ?', (habit_id,))
         conn.commit()
         conn.close()
 
@@ -176,9 +197,9 @@ class Database:
         cursor = conn.cursor()
         
         if habit_id:
-            cursor.execute('SELECT id, name FROM habits WHERE id = ?', (habit_id,))
+            cursor.execute('SELECT id, name FROM habits_list WHERE id = ?', (habit_id,))
         else:
-            cursor.execute('SELECT id, name FROM habits')
+            cursor.execute('SELECT id, name FROM habits_list')
             
         habits = cursor.fetchall()
         habits_data = []
@@ -221,19 +242,20 @@ class Database:
         '''
         conn = self.connect()
         cursor = conn.cursor()
-        cursor.execute('SELECT id, name FROM habits')
+        cursor.execute('SELECT id, name FROM habits_list')
         habits = cursor.fetchall()
         habits_list = [{'id': habit['id'], 'name': habit['name']} for habit in habits]
         conn.close()
         return habits_list
 
-    def get_param(self, habit_id, param_name):
+    def get_param(self, habit_id, param_name, default_value=None):
         '''
         Get the value of a specific parameter for a habit or globally.
 
         :param habit_id: The habit ID (-1 for global parameters).
         :param param_name: The name of the parameter.
-        :return: The value of the parameter, or None if not found.
+        :param default_value: Value to return if parameter is not found.
+        :return: The value of the parameter, or default_value if not found.
         '''
         conn = self.connect()
         cursor = conn.cursor()
@@ -241,7 +263,7 @@ class Database:
                        (habit_id, param_name))
         row = cursor.fetchone()
         conn.close()
-        return row['value'] if row else None
+        return row['value'] if row else default_value
 
     def set_param(self, habit_id, param_name, value):
         '''
@@ -270,7 +292,7 @@ class Database:
         cursor = conn.cursor()
         
         # Export habits and their tracking data
-        cursor.execute('SELECT id, name FROM habits')
+        cursor.execute('SELECT id, name FROM habits_list')
         habits = cursor.fetchall()
         for habit in habits:
             yield f'habit:,{habit["name"]}'
@@ -339,7 +361,7 @@ class Database:
                 if line.startswith('habit:'):
                     # New habit section
                     _, habit_name = row
-                    cursor.execute('INSERT INTO habits (name) VALUES (?)', (habit_name,))
+                    cursor.execute('INSERT INTO habits_list (name) VALUES (?)', (habit_name,))
                     current_habit_id = cursor.lastrowid
                     current_habit_name = habit_name
                     mode = 'habit'
@@ -352,7 +374,7 @@ class Database:
                         current_habit_id = -1
                     else:
                         # Find habit ID by name
-                        cursor.execute('SELECT id FROM habits WHERE name = ?', (target,))
+                        cursor.execute('SELECT id FROM habits_list WHERE name = ?', (target,))
                         result = cursor.fetchone()
                         if result:
                             current_habit_id = result['id']

@@ -114,3 +114,15 @@ button {
 .nav-link-container {
     margin-bottom: 1rem;
 }
+
+.options-container {
+    margin: 2rem;
+}
+
+.option-item {
+    margin: 1rem 0;
+}
+
+.option-item label {
+    cursor: pointer;
+}

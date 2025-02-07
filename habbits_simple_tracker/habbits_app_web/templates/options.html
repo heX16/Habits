@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Options</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Options</h1>
+    <div class="nav-link-container">
+        <a href="{{ url_for('index') }}">Back to Main Page</a>
+    </div>
+
+    <div class="options-container">
+        <div class="option-item">
+            <label>
+                <input type="checkbox" id="test-option"> Test option
+            </label>
+        </div>
+        <div class="option-item">
+            <label>
+                <input type="checkbox" id="fail-by-default"> Fail by default (empty cell is a fail)
+            </label>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial states
+            const options = [
+                { id: 'test-option', param: 'test_option', type: 'bool' },
+                { id: 'fail-by-default', param: 'fail_by_default', type: 'number' }
+            ];
+
+            // Load all options
+            options.forEach(option => {
+                fetch(`/api/param/${option.param}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (option.type === 'bool') {
+                            document.getElementById(option.id).checked = data.value === 'true';
+                        } else if (option.type === 'number') {
+                            document.getElementById(option.id).checked = data.value === '1';
+                        }
+                    });
+            });
+
+            // Handle checkbox changes
+            options.forEach(option => {
+                document.getElementById(option.id).addEventListener('change', function(e) {
+                    let value;
+                    if (option.type === 'bool') {
+                        value = e.target.checked.toString();
+                    } else if (option.type === 'number') {
+                        value = e.target.checked ? '1' : '0';
+                    }
+                    
+                    fetch(`/api/param/${option.param}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            value: value
+                        })
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html> 
