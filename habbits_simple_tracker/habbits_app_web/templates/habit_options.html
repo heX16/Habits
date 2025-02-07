@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Habit Options</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Options for <span id="habit-name"></span></h1>
+    <div class="nav-link-container">
+        <a href="{{ url_for('index') }}">Back to Main Page</a>
+        <a href="{{ url_for('habit_page', habit_id=habit_id) }}">Back to Habit Page</a>
+    </div>
+
+    <div class="options-container">
+        <div class="option-item">
+            <label>
+                <input type="checkbox" id="fail-by-default"> Fail by default (empty cell is a fail)
+            </label>
+        </div>
+    </div>
+
+    <script>
+        const habitId = {{ habit_id }};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load habit name
+            fetch(`/api/habits/all`)
+                .then(response => response.json())
+                .then(data => {
+                    const habit = data.habits.find(h => h.id === habitId);
+                    if (habit) {
+                        document.getElementById('habit-name').textContent = habit.name;
+                    }
+                });
+
+            // Load fail_by_default parameter
+            fetch(`/api/param/fail_by_default/${habitId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('fail-by-default').checked = data.value === '1';
+                });
+
+            // Handle checkbox change
+            document.getElementById('fail-by-default').addEventListener('change', function(e) {
+                const value = e.target.checked ? '1' : '0';
+                fetch(`/api/param/fail_by_default/${habitId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        value: value
+                    })
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

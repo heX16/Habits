@@ -189,6 +189,13 @@ def create_app():
         database.set_param(habit_id, param_name, data['value'])
         return jsonify({'message': 'Parameter updated successfully'})
 
+    @app.route('/habit/<int:habit_id>/options')
+    def habit_options(habit_id):
+        """
+        Render the options page for a specific habit.
+        """
+        return render_template('habit_options.html', habit_id=habit_id)
+
     return app
 
 if __name__ == '__main__':

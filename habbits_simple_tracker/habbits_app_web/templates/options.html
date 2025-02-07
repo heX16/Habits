@@ -17,19 +17,13 @@
                 <input type="checkbox" id="test-option"> Test option
             </label>
         </div>
-        <div class="option-item">
-            <label>
-                <input type="checkbox" id="fail-by-default"> Fail by default (empty cell is a fail)
-            </label>
-        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Load initial states
             const options = [
-                { id: 'test-option', param: 'test_option', type: 'bool' },
-                { id: 'fail-by-default', param: 'fail_by_default', type: 'number' }
+                { id: 'test-option', param: 'test_option', type: 'bool' }
             ];
 
             // Load all options
