@@ -18,14 +18,21 @@
                 <input type="checkbox" id="fail-by-default"> Fail by default (empty cell is a fail)
             </label>
         </div>
+
+        <div class="option-item">
+            <h3>Переименовать привычку</h3>
+            <input type="text" id="new-habit-name" placeholder="Новое название">
+            <button onclick="renameHabit()">Переименовать</button>
+            <div id="rename-status" style="margin-top: 10px;"></div>
+        </div>
     </div>
 
     <script>
-        const habitId = "{{ habit_id }}";
+        const habitId = parseInt("{{ habit_id }}");
 
         document.addEventListener('DOMContentLoaded', function() {
             // Load habit name
-            fetch(`./api/habits/list`)
+            fetch(`../../api/habits/list`)
                 .then(response => response.json())
                 .then(data => {
                     const habit = data.habits.find(h => h.id === habitId);
@@ -35,7 +42,7 @@
                 });
 
             // Load fail_by_default parameter
-            fetch(`./api/param/fail_by_default/${habitId}`)
+            fetch(`../../api/param/fail_by_default/${habitId}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('fail-by-default').checked = data.value === '1';
@@ -44,7 +51,7 @@
             // Handle checkbox change
             document.getElementById('fail-by-default').addEventListener('change', function(e) {
                 const value = e.target.checked ? '1' : '0';
-                fetch(`./api/param/fail_by_default/${habitId}`, {
+                fetch(`../../api/param/fail_by_default/${habitId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -55,6 +62,66 @@
                 });
             });
         });
+
+        function renameHabit() {
+            const newName = document.getElementById('new-habit-name').value.trim();
+            if (!newName) {
+                showRenameStatus('Имя не может быть пустым', 'error');
+                return;
+            }
+
+            fetch(`../../api/habits/rename`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    habit_id: parseInt(habitId),
+                    new_name: newName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showRenameStatus(data.error, 'error');
+                } else {
+                    showRenameStatus('Привычка успешно переименована', 'success');
+                    document.getElementById('habit-name').textContent = newName;
+                    document.getElementById('new-habit-name').value = '';
+                }
+            })
+            .catch(error => {
+                showRenameStatus('Произошла ошибка при переименовании', 'error');
+            });
+        }
+
+        function showRenameStatus(message, type) {
+            const statusDiv = document.getElementById('rename-status');
+            statusDiv.textContent = message;
+            statusDiv.className = type;
+        }
     </script>
+
+    <style>
+        .option-item {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        #new-habit-name {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        
+        .error {
+            color: red;
+        }
+        
+        .success {
+            color: green;
+        }
+    </style>
 </body>
 </html> 

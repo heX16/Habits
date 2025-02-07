@@ -446,3 +446,33 @@ class HabitsDatabase:
             {'value': 3, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W'},
             {'value': 9, 'label': 'fail', 'icon': '❌', 'color': 'red', 'as_char': 'X'}
         ]
+
+    def rename_habit(self, habit_id, new_name):
+        '''
+        Rename a habit.
+
+        :param habit_id: The ID of the habit to rename
+        :param new_name: New name for the habit
+        :raises Exception: If habit not found or name already exists
+        '''
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            # Check if habit exists
+            cursor.execute('SELECT id FROM habits_list WHERE id = ?', (habit_id,))
+            if not cursor.fetchone():
+                raise Exception(f'Habit with id {habit_id} not found')
+            
+            # Check if new name already exists
+            cursor.execute('SELECT id FROM habits_list WHERE name = ? AND id != ?', 
+                          (new_name, habit_id))
+            if cursor.fetchone():
+                raise Exception(f'Habit with name "{new_name}" already exists')
+            
+            # Update habit name
+            cursor.execute('UPDATE habits_list SET name = ? WHERE id = ?',
+                          (new_name, habit_id))
+            conn.commit()
+            
+        finally:
+            conn.close()

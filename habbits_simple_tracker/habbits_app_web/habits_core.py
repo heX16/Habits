@@ -102,3 +102,31 @@ def api_import_habits(csv_data, database):
     :return: List of status messages
     """
     database.import_from_csv(csv_data.splitlines())
+
+def api_rename_habit(json_data, database):
+    """
+    Process JSON data to rename a habit.
+
+    :param json_data: A dictionary with JSON data from the request
+    :param database: Database instance
+    :return: On success, a dictionary with a confirmation message; on error, a tuple (error dict, status code)
+    """
+    habit_id = json_data.get('habit_id')
+    new_name = json_data.get('new_name')
+    
+    if habit_id is None or new_name is None:
+        return {'error': 'habit_id and new_name are required'}, 400
+        
+    try:
+        habit_id = int(habit_id)
+    except ValueError:
+        return {'error': 'Invalid habit_id'}, 400
+        
+    if not new_name.strip():
+        return {'error': 'New name cannot be empty'}, 400
+        
+    try:
+        database.rename_habit(habit_id, new_name)
+        return {'message': 'Habit renamed successfully'}
+    except Exception as e:
+        return {'error': str(e)}, 400

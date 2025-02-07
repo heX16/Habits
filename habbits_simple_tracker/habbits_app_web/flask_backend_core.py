@@ -1,7 +1,7 @@
 # flask_backend_core.py
 import os
 from flask import Flask, jsonify, request, render_template, send_file, Response
-from habits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits
+from habits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits, api_rename_habit
 from habits_database import HabitsDatabase
 
 def create_app():
@@ -89,6 +89,19 @@ def create_app():
         """
         return render_template('habit.html', habit_id=habit_id)
 
+    @app.route('/habit/<int:habit_id>/api/habits', methods=['GET'])
+    def api_get_habit_data(habit_id):
+        """
+        API endpoint to retrieve habit data for a specific habit.
+        Delegates to the main habits API with the habit_id parameter.
+        """
+        args = dict(request.args)
+        args['habit_id'] = habit_id
+        result = api_fetch_habits(args, db)
+        if isinstance(result, tuple):
+            return jsonify(result[0]), result[1]
+        return jsonify(result)
+
     @app.route('/backup')
     def backup_page():
         return render_template('backup.html')
@@ -132,7 +145,7 @@ def create_app():
                 else:
                     formatted_items.append(f"'{k}': {v}")
             formatted_options.append('{' + ', '.join(formatted_items) + '}')
-        
+
         status_options_js_str = ',\n        '.join(formatted_options)
 
         js_content =  f"// This file is generated automatically\n"
@@ -175,8 +188,7 @@ def create_app():
         :param param_name: Name of the parameter
         :param habit_id: Optional habit ID (default: -1 for global parameters)
         """
-        from habits_core import database
-        value = database.get_param(habit_id, param_name) or 'false'
+        value = db.get_param(habit_id, param_name) or 'false'
         return jsonify({'value': value})
 
     @app.route('/api/param/<param_name>', methods=['POST'])
@@ -189,12 +201,11 @@ def create_app():
         :param param_name: Name of the parameter
         :param habit_id: Optional habit ID (default: -1 for global parameters)
         """
-        from habits_core import database
         data = request.get_json()
         if 'value' not in data:
             return jsonify({'error': 'value is required'}), 400
 
-        database.set_param(habit_id, param_name, data['value'])
+        db.set_param(habit_id, param_name, data['value'])
         return jsonify({'message': 'Parameter updated successfully'})
 
     @app.route('/habit/<int:habit_id>/options')
@@ -203,6 +214,16 @@ def create_app():
         Render the options page for a specific habit.
         """
         return render_template('habit_options.html', habit_id=habit_id)
+
+    @app.route('/api/habits/rename', methods=['POST'])
+    def api_rename():
+        """
+        API endpoint to rename a habit.
+        """
+        result = api_rename_habit(request.get_json(), db)
+        if isinstance(result, tuple):
+            return jsonify(result[0]), result[1]
+        return jsonify(result)
 
     return app
 

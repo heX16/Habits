@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
     // Fetch data for the specified habit.
-    fetch(`./api/habits?start_date=${startDate}&end_date=${endDate}&habit_id=${habitId}`)
+    fetch(`../api/habits?start_date=${startDate}&end_date=${endDate}`)
         .then(response => response.json())
         .then(data => {
             if(data.habits && data.habits.length > 0) {
@@ -178,15 +178,4 @@ function renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMont
     calendarsDiv.appendChild(prevMonthCalendar);
     calendarsDiv.appendChild(currentMonthCalendar);
     container.appendChild(calendarsDiv);
-}
-
-/**
- * Returns the background color based on status.
- * @param {number} status - The status code.
- * @returns {string} The corresponding background color.
- */
-function getStatusColor(status) {
-    const options = getStatusOptions();
-    const statusOption = options.find(opt => opt.value === status);
-    return statusOption ? statusOption.color : 'transparent';
 }
