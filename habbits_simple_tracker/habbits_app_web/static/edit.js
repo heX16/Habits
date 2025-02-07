@@ -1,4 +1,6 @@
 // edit.js
+// URL: http://server.test/habits/static/edit.js
+// Used on: http://server.test/habits/edit
 
 /**
  * This script handles the functionality for the habit editing page.

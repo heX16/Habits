@@ -1,4 +1,5 @@
-// habit.js
+// URL: http://server.test/habits/static/habit.js
+// Used on: http://server.test/habits/habit/2
 
 /**
  * This script renders the statistics table for a given habit.

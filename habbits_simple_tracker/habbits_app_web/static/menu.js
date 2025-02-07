@@ -107,4 +107,7 @@ class FloatingMenu {
         document.removeEventListener('click', this.handleDocumentClick);
         this.remove();
     }
-} 
+}
+
+// URL: http://server.test/habits/static/menu.js
+// Used on: http://server.test/habits/ 

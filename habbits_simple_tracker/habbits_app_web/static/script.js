@@ -1,4 +1,5 @@
-// script.js
+// URL: http://server.test/habits/static/script.js
+// Used on: http://server.test/habits/
 
 /**
  * This script handles the functionality for the main habit tracker page.
