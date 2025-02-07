@@ -21,11 +21,11 @@
     </div>
 
     <script>
-        const habitId = {{ habit_id }};
+        const habitId = "{{ habit_id }}";
 
         document.addEventListener('DOMContentLoaded', function() {
             // Load habit name
-            fetch(`/api/habits/all`)
+            fetch(`./api/habits/list`)
                 .then(response => response.json())
                 .then(data => {
                     const habit = data.habits.find(h => h.id === habitId);
@@ -35,7 +35,7 @@
                 });
 
             // Load fail_by_default parameter
-            fetch(`/api/param/fail_by_default/${habitId}`)
+            fetch(`./api/param/fail_by_default/${habitId}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('fail-by-default').checked = data.value === '1';
@@ -44,7 +44,7 @@
             // Handle checkbox change
             document.getElementById('fail-by-default').addEventListener('change', function(e) {
                 const value = e.target.checked ? '1' : '0';
-                fetch(`/api/param/fail_by_default/${habitId}`, {
+                fetch(`./api/param/fail_by_default/${habitId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

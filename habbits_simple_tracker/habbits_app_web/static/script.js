@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const endDateStr = formatDate(endDate);
 
     // Fetch habits and tracking data from the backend.
-    fetch(`/api/habits?start_date=${startDateStr}&end_date=${endDateStr}`)
+    fetch(`./api/habits?start_date=${startDateStr}&end_date=${endDateStr}`)
         .then(response => response.json())
         .then(data => {
             renderTable(data, startDateStr, endDateStr);
@@ -242,7 +242,7 @@ function createHabitRow(habit, dates, today) {
     // Create the habit name cell.
     const habitCell = document.createElement('td');
     const habitLink = document.createElement('a');
-    habitLink.href = '/habit/' + habit.id;
+    habitLink.href = './habit/' + habit.id;
     habitLink.textContent = habit.name;
     habitCell.appendChild(habitLink);
     row.appendChild(habitCell);
@@ -324,7 +324,7 @@ function removeStatusMenu() {
  * @param {HTMLElement} cell - The table cell element (for logging purposes).
  */
 function sendUpdate(habitId, date, status, cell) {
-    fetch('/api/habits/update', {
+    fetch('./api/habits/update', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
