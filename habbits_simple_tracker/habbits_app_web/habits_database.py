@@ -171,23 +171,51 @@ class HabitsDatabase:
             return 9 if fail_by_default else 0
         return value
 
-    def fetch_habit(self, habit_id, date_list, cursor):
+    def get_all_habits(self, habit_id=None):
+        '''
+        Retrieve a list of all habits or a specific habit.
+
+        :param habit_id: Optional habit ID to fetch a specific habit
+        :return: A list of dictionaries, each containing the habit ID and name.
+        :raises: Exception if habit_id provided but not found
+        '''
+        conn = self.connect()
+        cursor = conn.cursor()
+        
+        if habit_id:
+            cursor.execute('SELECT id, name FROM habits_list WHERE id = ?', (habit_id,))
+            habits = cursor.fetchall()
+            if not habits:
+                conn.close()
+                raise Exception(f'Habit with id {habit_id} not found')
+        else:
+            cursor.execute('SELECT id, name FROM habits_list')
+            habits = cursor.fetchall()
+            
+        habits_list = [{'id': habit['id'], 'name': habit['name']} for habit in habits]
+        conn.close()
+        return habits_list
+
+    def fetch_habit(self, habit, date_list, cursor):
         '''
         Fetch tracking data for a single habit.
         
-        :param habit_id: The ID of the habit
+        :param habit: Dictionary containing habit info (id and name) or habit ID
         :param date_list: List of dates to fetch data for
         :param cursor: Database cursor
         :return: Dictionary with habit data and tracking
         '''
-        # Get habit info
-        cursor.execute('SELECT id, name FROM habits_list WHERE id = ?', (habit_id,))
-        habit = cursor.fetchone()
-        if not habit:
-            return None
-            
-        habit_id_val = habit['id']
-        habit_name = habit['name']
+        # Handle both habit dict and habit id
+        if isinstance(habit, dict):
+            habit_id_val = habit['id']
+            habit_name = habit['name']
+        else:
+            # Backwards compatibility - if habit ID is passed
+            habits = self.get_all_habits(habit)
+            if not habits:
+                return None
+            habit_id_val = habits[0]['id']
+            habit_name = habits[0]['name']
         
         # Get fail_by_default parameter for this habit
         fail_by_default: bool = self.get_param(habit_id_val, 'fail_by_default', '0') == '1'
@@ -203,7 +231,6 @@ class HabitsDatabase:
         
         tracking = []
         for date in date_list:
-            # Get status from tracking dict, default to 0 if not found
             status = tracking_dict.get(date, 0)
             status = self.status_mapping(status, habit_id_val, fail_by_default=fail_by_default)
             tracking.append(status)
@@ -217,9 +244,7 @@ class HabitsDatabase:
     def fetch_habits(self, start_date, end_date, habit_id=None):
         '''
         Fetch habits and their tracking data within a specified date range.
-        Status 0 is returned for dates with no records in the database.
-        All status values are mapped through status_mapping() before return.
-
+        
         :param start_date: The start date as 'YYYY-MM-DD'.
         :param end_date: The end date as 'YYYY-MM-DD'.
         :param habit_id: Optional habit ID to fetch a specific habit.
@@ -238,41 +263,24 @@ class HabitsDatabase:
         conn = self.connect()
         cursor = conn.cursor()
         
-        # Fetch habits list (name and id)
-        if habit_id:
-            cursor.execute('SELECT id FROM habits_list WHERE id = ?', (habit_id,))
-        else:
-            cursor.execute('SELECT id FROM habits_list')
+        # Get habits list using get_all_habits
+        try:
+            habits = self.get_all_habits(habit_id)
+            habits_data = []
             
-        habit_ids = [row['id'] for row in cursor.fetchall()]
-        habits_data = []
-        
-        for habit_id_val in habit_ids:
-            habit_data = self.fetch_habit(habit_id_val, date_list, cursor)
-            if habit_data:
-                habits_data.append(habit_data)
-            
-        conn.close()
+            for habit in habits:
+                habit_data = self.fetch_habit(habit, date_list, cursor)
+                if habit_data:
+                    habits_data.append(habit_data)
+                
+        finally:
+            conn.close()
         
         return {
             'start_date': start_date,
             'end_date': end_date,
             'habits': habits_data
         }
-
-    def get_all_habits(self):
-        '''
-        Retrieve a list of all habits.
-
-        :return: A list of dictionaries, each containing the habit ID and name.
-        '''
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, name FROM habits_list')
-        habits = cursor.fetchall()
-        habits_list = [{'id': habit['id'], 'name': habit['name']} for habit in habits]
-        conn.close()
-        return habits_list
 
     def get_param(self, habit_id, param_name, default_value=None):
         '''
