@@ -126,3 +126,12 @@ button {
 .option-item label {
     cursor: pointer;
 }
+
+/* Habit page styles */
+.calendars-container {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 2rem 0;
+}

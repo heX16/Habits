@@ -240,7 +240,7 @@ function createHabitRow(habit, dates, today) {
     // Create the habit name cell.
     const habitCell = document.createElement('td');
     const habitLink = document.createElement('a');
-    habitLink.href = '/stat/' + habit.id;
+    habitLink.href = '/habit/' + habit.id;
     habitLink.textContent = habit.name;
     habitCell.appendChild(habitLink);
     row.appendChild(habitCell);

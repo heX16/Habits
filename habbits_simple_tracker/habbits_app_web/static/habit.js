@@ -1,4 +1,4 @@
-// stat.js
+// habit.js
 
 /**
  * This script renders the statistics table for a given habit.
@@ -74,15 +74,15 @@ document.addEventListener('DOMContentLoaded', function() {
 function renderMonth(tracking, year, month, trackingOffset) {
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                        'July', 'August', 'September', 'October', 'November', 'December'];
-    
+
     const table = document.createElement('table');
     table.className = 'calendar-table';
-    
+
     // Month header
     const caption = document.createElement('caption');
     caption.textContent = `${monthNames[month]} ${year}`;
     table.appendChild(caption);
-    
+
     // Week days header
     const headerRow = document.createElement('tr');
     weekDays.forEach(day => {
@@ -91,19 +91,19 @@ function renderMonth(tracking, year, month, trackingOffset) {
         headerRow.appendChild(th);
     });
     table.appendChild(headerRow);
-    
+
     // Get first day of month and total days
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     // Create calendar grid
     let date = 1;
     for (let i = 0; i < 6; i++) {
         const row = document.createElement('tr');
-        
+
         for (let j = 0; j < 7; j++) {
             const cell = document.createElement('td');
-            
+
             if (i === 0 && j < firstDay) {
                 // Empty cells before first day
                 cell.className = 'empty';
@@ -120,11 +120,11 @@ function renderMonth(tracking, year, month, trackingOffset) {
             }
             row.appendChild(cell);
         }
-        
+
         table.appendChild(row);
         if (date > daysInMonth) break;
     }
-    
+
     return table;
 }
 
@@ -134,17 +134,17 @@ function renderMonth(tracking, year, month, trackingOffset) {
 function renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth) {
     const container = document.getElementById('stat-container');
     container.innerHTML = '';
-    
+
     const calendarsDiv = document.createElement('div');
     calendarsDiv.className = 'calendars-container';
-    
+
     // Previous month calendar
     const prevMonthDays = new Date(prevYear, prevMonth + 1, 0).getDate();
     const prevMonthCalendar = renderMonth(tracking, prevYear, prevMonth, 0);
-    
+
     // Current month calendar
     const currentMonthCalendar = renderMonth(tracking, currentYear, currentMonth, prevMonthDays);
-    
+
     calendarsDiv.appendChild(prevMonthCalendar);
     calendarsDiv.appendChild(currentMonthCalendar);
     container.appendChild(calendarsDiv);

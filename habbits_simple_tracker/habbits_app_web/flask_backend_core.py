@@ -79,12 +79,12 @@ def create_app():
         result = api_get_all_habits()
         return jsonify(result)
 
-    @app.route('/stat/<int:habit_id>')
-    def stat_page(habit_id):
+    @app.route('/habit/<int:habit_id>')
+    def habit_page(habit_id):
         """
-        Render the statistics page for a specific habit.
+        Render the habit page for a specific habit.
         """
-        return render_template('stat.html', habit_id=habit_id)
+        return render_template('habit.html', habit_id=habit_id)
 
     @app.route('/backup')
     def backup_page():
