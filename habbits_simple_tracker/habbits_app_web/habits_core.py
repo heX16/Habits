@@ -1,6 +1,6 @@
-# habbits_core.py
+# habits_core.py
 from datetime import datetime, timedelta
-from habbits_database import Database
+from habits_database import Database
 
 # Global variable to hold the Database instance.
 database = None
@@ -105,7 +105,7 @@ def api_get_all_habits():
 def api_export_habits():
     """
     Export all habits data to CSV format.
-    
+
     :return: CSV data as string
     """
     return '\n'.join(database.export_to_csv())
@@ -113,7 +113,7 @@ def api_export_habits():
 def api_import_habits(csv_data):
     """
     Import habits from CSV data.
-    
+
     :param csv_data: CSV data as string
     :return: List of status messages
     """

@@ -1,6 +1,6 @@
 # flask_backend_core.py
 from flask import Flask, jsonify, request, render_template, send_file
-from habbits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits
+from habits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits
 
 def create_app():
     """
@@ -30,7 +30,7 @@ def create_app():
     def api_get_habits():
         """
         API endpoint to retrieve habits and their tracking data.
-        Delegates argument parsing to habbits_core.api_fetch_habits.
+        Delegates argument parsing to habits_core.api_fetch_habits.
         """
         result = api_fetch_habits(request.args)
         # If an error is returned as a tuple, unpack the error message and status code.
@@ -42,7 +42,7 @@ def create_app():
     def api_update():
         """
         API endpoint to update a habit's status.
-        Delegates JSON parsing to habbits_core.api_update_habit.
+        Delegates JSON parsing to habits_core.api_update_habit.
         """
         result = api_update_habit(request.get_json())
         if isinstance(result, tuple):
@@ -53,7 +53,7 @@ def create_app():
     def api_add():
         """
         API endpoint to add a new habit.
-        Delegates JSON parsing to habbits_core.api_add_habit.
+        Delegates JSON parsing to habits_core.api_add_habit.
         """
         result = api_add_habit(request.get_json())
         if isinstance(result, tuple):
@@ -64,7 +64,7 @@ def create_app():
     def api_delete():
         """
         API endpoint to delete a habit.
-        Delegates JSON parsing to habbits_core.api_delete_habit.
+        Delegates JSON parsing to habits_core.api_delete_habit.
         """
         result = api_delete_habit(request.get_json())
         if isinstance(result, tuple):
@@ -100,10 +100,10 @@ def create_app():
             csv_data = request.get_data(as_text=True)
             if not csv_data:
                 return jsonify({'error': 'No data received'}), 400
-            
+
             api_import_habits(csv_data)
             return jsonify({'message': 'Import completed successfully'})
-        
+
         except Exception as e:
             return jsonify({'error': str(e)}), 400
 
@@ -112,21 +112,21 @@ def create_app():
         """
         Generate JavaScript constants dynamically with caching headers
         """
-        from habbits_core import database
-        
+        from habits_core import database
+
         cache_duration_sec = 60 * 60 * 1
-        
+
         constants = {
             'singleClickMaxStatus': 3,
             'tableDaysCount': 10
         }
-        
+
         status_options = database.get_status_options()
         status_options_js = ',\n        '.join(
             f"{{value: {opt['value']}, label: '{opt['label']}', icon: '{opt['icon']}'}}"
             for opt in status_options
         )
-        
+
         js_content =  f"// This file is generated automatically\n"
         js_content += f"const {list(constants.keys())[0]} = {list(constants.values())[0]};\n"
         js_content += f"const {list(constants.keys())[1]} = {list(constants.values())[1]};\n"
@@ -135,19 +135,19 @@ def create_app():
         js_content += f"\n"
         js_content += f"function getStatusOptions() {{\n"
         js_content += f"    return [\n"
-        js_content += f"        {status_options_js}\n" 
+        js_content += f"        {status_options_js}\n"
         js_content += f"    ];\n"
         js_content += f"}}\n"
-        
+
         response = app.response_class(
             response=js_content,
             status=200,
             mimetype='application/javascript'
         )
-        
+
         response.headers['Cache-Control'] = f'public, max-age={cache_duration_sec}'
         response.add_etag()
-        
+
         return response.make_conditional(request)
 
     @app.route('/options')
@@ -167,7 +167,7 @@ def create_app():
         :param param_name: Name of the parameter
         :param habit_id: Optional habit ID (default: -1 for global parameters)
         """
-        from habbits_core import database
+        from habits_core import database
         value = database.get_param(habit_id, param_name) or 'false'
         return jsonify({'value': value})
 
@@ -181,11 +181,11 @@ def create_app():
         :param param_name: Name of the parameter
         :param habit_id: Optional habit ID (default: -1 for global parameters)
         """
-        from habbits_core import database
+        from habits_core import database
         data = request.get_json()
         if 'value' not in data:
             return jsonify({'error': 'value is required'}), 400
-        
+
         database.set_param(habit_id, param_name, data['value'])
         return jsonify({'message': 'Parameter updated successfully'})
 
