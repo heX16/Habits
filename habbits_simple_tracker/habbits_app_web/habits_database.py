@@ -196,12 +196,13 @@ class HabitsDatabase:
         conn.close()
         return habits_list
 
-    def fetch_habit(self, habit, date_list, cursor):
+    def fetch_habit(self, habit, start_date, end_date, cursor):
         '''
         Fetch tracking data for a single habit.
         
         :param habit: Dictionary containing habit info (id and name) or habit ID
-        :param date_list: List of dates to fetch data for
+        :param start_date: The start date as 'YYYY-MM-DD'
+        :param end_date: The end date as 'YYYY-MM-DD'
         :param cursor: Database cursor
         :return: Dictionary with habit data and tracking
         '''
@@ -217,14 +218,21 @@ class HabitsDatabase:
             habit_id_val = habits[0]['id']
             habit_name = habits[0]['name']
         
+        # Generate date list
+        start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+        end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+        num_days = (end_dt - start_dt).days + 1
+        date_list = [(start_dt + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(num_days)]
+        
         # Get fail_by_default parameter for this habit
         fail_by_default: bool = self.get_param(habit_id_val, 'fail_by_default', '0') == '1'
         
-        # Get all records for habit in date range
+        # Get all records for habit in date range, ordered by date
         cursor.execute('''SELECT date, status 
                         FROM habit_tracking 
-                        WHERE habit_id = ? AND date BETWEEN ? AND ?''',
-                     (habit_id_val, date_list[0], date_list[-1]))
+                        WHERE habit_id = ? AND date BETWEEN ? AND ?
+                        ORDER BY date''',
+                     (habit_id_val, start_date, end_date))
                      
         tracking_rows = cursor.fetchall()
         tracking_dict = {row['date']: row['status'] for row in tracking_rows}
@@ -263,13 +271,12 @@ class HabitsDatabase:
         conn = self.connect()
         cursor = conn.cursor()
         
-        # Get habits list using get_all_habits
         try:
             habits = self.get_all_habits(habit_id)
             habits_data = []
             
             for habit in habits:
-                habit_data = self.fetch_habit(habit, date_list, cursor)
+                habit_data = self.fetch_habit(habit, start_date, end_date, cursor)
                 if habit_data:
                     habits_data.append(habit_data)
                 
@@ -319,49 +326,45 @@ class HabitsDatabase:
     def export_to_csv(self):
         '''
         Generate CSV data for all habits in a human-readable format.
+        Uses existing functions to get habits and parameters.
         
         :yield: Each line of CSV data as a string
         '''
         conn = self.connect()
         cursor = conn.cursor()
         
-        # Export habits and their tracking data
-        cursor.execute('SELECT id, name FROM habits_list')
-        habits = cursor.fetchall()
-        for habit in habits:
-            yield f'habit:,{habit["name"]}'
-            
-            # Export tracking data for this habit
-            cursor.execute('SELECT date, status FROM habit_tracking WHERE habit_id = ? ORDER BY date', 
-                          (habit['id'],))
-            tracking = cursor.fetchall()
-            for track in tracking:
-                yield f'{track["date"]},{track["status"]}'
-            
-            # Add empty line between habits
-            yield ''
-        
-        # Export global parameters
-        cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = -1')
-        global_params = cursor.fetchall()
-        if global_params:  # If there are any global params
-            yield 'habit_params:,global'
-            for param in global_params:
-                yield f'{param["param_name"]},{param["value"]}'
-            yield ''
-        
-        # Export habit-specific parameters
-        for habit in habits:
-            cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = ?', 
-                          (habit['id'],))
-            params = cursor.fetchall()
-            if params:  # Only output section if habit has params
-                yield f'habit_params:,{habit["name"]}'
-                for param in params:
-                    yield f'{param["param_name"]},{param["value"]}'
+        try:
+            # Export habits and their tracking data
+            habits = self.get_all_habits()
+            for habit in habits:
+                yield f'habit:,{habit["name"]}'
+                
+                # Export tracking data for this habit - direct database query
+                cursor.execute('''SELECT date, status 
+                                FROM habit_tracking 
+                                WHERE habit_id = ? 
+                                ORDER BY date''', 
+                             (habit['id'],))
+                for track in cursor:
+                    yield f'{track["date"]},{track["status"]}'
+                
                 yield ''
-        
-        conn.close()
+            
+            # Export all parameters (global and habit-specific)
+            habits_with_global = [{'id': -1, 'name': 'global'}] + habits
+            for habit in habits_with_global:
+                cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = ?', 
+                             (habit['id'],))
+                first_param = cursor.fetchone()
+                if first_param:
+                    yield f'habit_params:,{habit["name"]}'
+                    yield f'{first_param["param_name"]},{first_param["value"]}'
+                    for param in cursor:
+                        yield f'{param["param_name"]},{param["value"]}'
+                    yield ''
+                
+        finally:
+            conn.close()
 
     def import_from_csv(self, csv_lines):
         '''
@@ -381,7 +384,6 @@ class HabitsDatabase:
             self.create_tables()
             
             current_habit_id = None
-            current_habit_name = None
             mode = None  # Can be 'habit' or 'params'
             
             for line in csv_lines:
@@ -395,9 +397,7 @@ class HabitsDatabase:
                 if line.startswith('habit:'):
                     # New habit section
                     _, habit_name = row
-                    cursor.execute('INSERT INTO habits_list (name) VALUES (?)', (habit_name,))
-                    current_habit_id = cursor.lastrowid
-                    current_habit_name = habit_name
+                    current_habit_id = self.add_habit(habit_name)
                     mode = 'habit'
                     
                 elif line.startswith('habit_params:'):
@@ -418,16 +418,12 @@ class HabitsDatabase:
                 elif mode == 'habit':
                     # Tracking data line
                     date, status = row
-                    cursor.execute('''INSERT INTO habit_tracking (habit_id, date, status) 
-                                    VALUES (?, ?, ?)''', 
-                                 (current_habit_id, date, int(status)))
+                    self.update_habit(current_habit_id, date, int(status))
                     
                 elif mode == 'params':
                     # Parameter line
                     param_name, value = row
-                    cursor.execute('''INSERT INTO habit_params (habit_id, param_name, value) 
-                                    VALUES (?, ?, ?)''', 
-                                 (current_habit_id, param_name, value))
+                    self.set_param(current_habit_id, param_name, value)
             
             conn.commit()
             
