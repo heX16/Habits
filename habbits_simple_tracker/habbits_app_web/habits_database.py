@@ -11,7 +11,6 @@ class HabitsDatabase:
         Initialize the Database object and create tables if they do not exist.
         '''
         self.db_name = db_name
-        self.fail_by_default = 0  # Default value
         self.init_db()
 
     def connect(self):
@@ -43,10 +42,6 @@ class HabitsDatabase:
         if not required_tables.issubset(existing_tables):
             self.clear_db()
             self.create_tables()
-        
-        # Load fail_by_default parameter (0 or 1)
-        value = self.get_param(-1, 'fail_by_default', '0')
-        self.fail_by_default = int(value)
 
     def create_tables(self):
         '''
@@ -162,14 +157,18 @@ class HabitsDatabase:
         finally:
             conn.close()
 
-    def status_mapping(self, value: int) -> int:
+    def status_mapping(self, value: int, habit_id: int, fail_by_default: str = '0') -> int:
         '''
         Maps database status values to client-side values.
-        By default returns value unchanged.
+        Takes into account habit's fail_by_default parameter.
 
         :param value: The status value from database
+        :param habit_id: The ID of the habit
+        :param fail_by_default: The fail_by_default parameter value ('0' or '1')
         :return: Mapped status value for client
         '''
+        if value == 0:
+            return 9 if fail_by_default == '1' else 0
         return value
 
     def fetch_habits(self, start_date, end_date, habit_id=None):
@@ -208,6 +207,9 @@ class HabitsDatabase:
             habit_id_val = habit['id']
             habit_name = habit['name']
             
+            # Get fail_by_default parameter for this habit
+            fail_by_default = self.get_param(habit_id_val, 'fail_by_default', '0')
+            
             # Get all records for habit in date range
             cursor.execute('''SELECT date, status 
                             FROM habit_tracking 
@@ -217,8 +219,12 @@ class HabitsDatabase:
             tracking_rows = cursor.fetchall()
             tracking_dict = {row['date']: row['status'] for row in tracking_rows}
             
-            # Return 0 for dates with no records and map all values through status_mapping
-            tracking = [self.status_mapping(tracking_dict.get(date, 0)) for date in date_list]
+            tracking = []
+            for date in date_list:
+                # Get status from tracking dict, default to 0 if not found
+                status = tracking_dict.get(date, 0)
+                status = self.status_mapping(status, habit_id_val, fail_by_default=fail_by_default)
+                tracking.append(status)
             
             habits_data.append({
                 'id': habit_id_val,
