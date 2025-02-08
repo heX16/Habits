@@ -9,32 +9,28 @@ from kivy.uix.scrollview import ScrollView
 from kivy.properties import NumericProperty
 from datetime import datetime, timedelta
 import calendar
-from habbits_database import Database
+from database import Database
 
-# Initialize the database
+# Initialize the database (database.py remains unchanged)
 db = Database()
 
 class TrackerScreen(Screen):
-    '''
-    Screen for displaying the habit tracker table.
-    '''
+    """
+    Screen for displaying the habit tracker table using images for status.
+    """
     def on_enter(self):
-        '''
-        Refresh the tracker table when the screen is entered.
-        '''
         self.refresh_table()
 
     def refresh_table(self):
-        '''
+        """
         Build and display the habit tracker table with habits and their statuses.
-        '''
+        """
         self.clear_widgets()
         layout = BoxLayout(orientation='vertical')
 
         # Navigation bar with button to switch to the Edit screen
         nav_bar = BoxLayout(size_hint_y=0.1)
         btn_edit = Button(text='Edit Habits')
-        ## btn_edit.bind(on_release=lambda x: self.manager.current='edit')
         btn_edit.bind(on_release=lambda x: setattr(self.manager, 'current', 'edit'))
         nav_bar.add_widget(btn_edit)
         layout.add_widget(nav_bar)
@@ -45,7 +41,7 @@ class TrackerScreen(Screen):
         date_list = [(start_date + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7)]
 
         # Create header row for the table
-        table = GridLayout(cols=2+len(date_list), size_hint_y=None)
+        table = GridLayout(cols=2 + len(date_list), size_hint_y=None)
         table.bind(minimum_height=table.setter('height'))
         table.add_widget(Label(text='Habit', size_hint_y=None, height=40))
         for date in date_list:
@@ -60,12 +56,16 @@ class TrackerScreen(Screen):
             table.add_widget(Label(text=habit_name, size_hint_y=None, height=40))
 
             # Fetch tracking data for this habit over the date range
-            data = db.fetch_habits(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'), habit_id)
-            tracking = data['habits'][0]['tracking'] if data['habits'] else [0]*7
+            data = db.fetch_habits(start_date.strftime('%Y-%m-%d'),
+                                   end_date.strftime('%Y-%m-%d'),
+                                   habit_id)
+            tracking = data['habits'][0]['tracking'] if data['habits'] else [0] * 7
 
-            # Create a button for each day that cycles the habit status when pressed
+            # Create a button for each day that cycles the status when pressed
             for i, status in enumerate(tracking):
-                btn = Button(text=self.get_status_text(status), size_hint_y=None, height=40)
+                btn = Button(size_hint_y=None, height=40)
+                btn.background_normal = self.get_status_image(status)
+                btn.background_down = self.get_status_image(status)
                 btn.habit_id = habit_id
                 btn.date = date_list[i]
                 btn.status = status
@@ -84,62 +84,55 @@ class TrackerScreen(Screen):
         self.add_widget(layout)
 
     def cycle_status(self, instance):
-        '''
+        """
         Cycle the status of a habit (0 -> 1 -> 2 -> 0) and update the database.
-
-        :param instance: The button instance representing a cell in the tracker table.
-        '''
+        """
         new_status = (instance.status + 1) % 3
         instance.status = new_status
-        instance.text = self.get_status_text(new_status)
+        instance.background_normal = self.get_status_image(new_status)
+        instance.background_down = self.get_status_image(new_status)
         db.update_habit(instance.habit_id, instance.date, new_status)
 
-    def get_status_text(self, status):
-        '''
-        Return an emoji representing the habit status.
+    def get_status_image(self, status):
+        """
+        Return the image file path corresponding to the habit status.
 
-        :param status: The status code.
-        :return: An emoji string corresponding to the status.
-        '''
+        :param status: The status code (0, 1, or 2).
+        :return: A string representing the image file path.
+        """
         if status == 0:
-            return ''
+            return 'empty.png'
         elif status == 1:
-            return '✅'
+            return 'tick.png'
         elif status == 2:
-            return '❌'
-        return ''
+            return 'cross.png'
+        return 'empty.png'
 
     def show_stats(self, instance):
-        '''
+        """
         Switch to the statistics screen for the selected habit.
-
-        :param instance: The Stats button instance.
-        '''
+        """
         stat_screen = self.manager.get_screen('stat')
         stat_screen.habit_id = instance.habit_id
         self.manager.current = 'stat'
 
 class EditScreen(Screen):
-    '''
+    """
     Screen for editing habits: adding new habits and deleting existing ones.
-    '''
+    """
     def on_enter(self):
-        '''
-        Refresh the list of habits when the screen is entered.
-        '''
         self.refresh_list()
 
     def refresh_list(self):
-        '''
+        """
         Build and display the list of habits with options to add or delete habits.
-        '''
+        """
         self.clear_widgets()
         layout = BoxLayout(orientation='vertical')
 
         # Navigation bar with button to go back to the Tracker screen
         nav_bar = BoxLayout(size_hint_y=0.1)
         btn_tracker = Button(text='Back to Tracker')
-        ## btn_tracker.bind(on_release=lambda x: self.manager.current='tracker')
         btn_tracker.bind(on_release=lambda x: setattr(self.manager, 'current', 'tracker'))
         nav_bar.add_widget(btn_tracker)
         layout.add_widget(nav_bar)
@@ -170,11 +163,9 @@ class EditScreen(Screen):
         self.add_widget(layout)
 
     def add_habit(self, instance):
-        '''
+        """
         Add a new habit to the database.
-
-        :param instance: The Add Habit button instance.
-        '''
+        """
         name = self.habit_input.text.strip()
         if name:
             db.add_habit(name)
@@ -182,38 +173,32 @@ class EditScreen(Screen):
             self.refresh_list()
 
     def delete_habit(self, instance):
-        '''
+        """
         Delete a habit from the database.
-
-        :param instance: The Delete button instance.
-        '''
+        """
         db.delete_habit(instance.habit_id)
         self.refresh_list()
 
 class StatScreen(Screen):
-    '''
-    Screen for displaying detailed statistics for a specific habit.
-    '''
+    """
+    Screen for displaying detailed statistics for a specific habit using images.
+    """
     habit_id = NumericProperty(0)
 
     def on_enter(self):
-        '''
-        Refresh the statistics view when the screen is entered.
-        '''
         self.refresh_stats()
 
     def refresh_stats(self):
-        '''
+        """
         Build and display a statistics table for the selected habit.
         The table shows two rows: Previous Month and Current Month.
-        '''
+        """
         self.clear_widgets()
         layout = BoxLayout(orientation='vertical')
 
         # Navigation bar with button to go back to the Tracker screen
         nav_bar = BoxLayout(size_hint_y=0.1)
         btn_tracker = Button(text='Back to Tracker')
-        ## btn_tracker.bind(on_release=lambda x: self.manager.current='tracker')
         btn_tracker.bind(on_release=lambda x: setattr(self.manager, 'current', 'tracker'))
         nav_bar.add_widget(btn_tracker)
         layout.add_widget(nav_bar)
@@ -257,20 +242,28 @@ class StatScreen(Screen):
         # Previous Month row
         table.add_widget(Label(text='Previous Month'))
         for i in range(1, 32):
-            btn = Button(text='', size_hint_y=None, height=30)
+            btn = Button(size_hint_y=None, height=30)
             if i <= days_in_prev:
-                status = tracking[i-1] if len(tracking) >= i else 0
-                btn.background_color = self.get_status_color(status)
+                status = tracking[i - 1] if len(tracking) >= i else 0
+                btn.background_normal = self.get_status_image(status)
+                btn.background_down = self.get_status_image(status)
+            else:
+                btn.background_normal = 'empty.png'
+                btn.background_down = 'empty.png'
             table.add_widget(btn)
 
         # Current Month row
         table.add_widget(Label(text='Current Month'))
         for i in range(1, 32):
-            btn = Button(text='', size_hint_y=None, height=30)
+            btn = Button(size_hint_y=None, height=30)
             if i <= days_in_current:
                 index = days_in_prev + i - 1
                 status = tracking[index] if len(tracking) > index else 0
-                btn.background_color = self.get_status_color(status)
+                btn.background_normal = self.get_status_image(status)
+                btn.background_down = self.get_status_image(status)
+            else:
+                btn.background_normal = 'empty.png'
+                btn.background_down = 'empty.png'
             table.add_widget(btn)
 
         scroll = ScrollView()
@@ -278,28 +271,26 @@ class StatScreen(Screen):
         layout.add_widget(scroll)
         self.add_widget(layout)
 
-    def get_status_color(self, status):
-        '''
-        Return a background color based on the status.
+    def get_status_image(self, status):
+        """
+        Return the image file path for the given status.
 
-        :param status: The status code.
-        :return: A list representing the RGBA color.
-        '''
-        if status == 1:
-            return [0.5, 1, 0.5, 1]  # light green
+        :param status: The status code (0, 1, or 2).
+        :return: A string representing the image file path.
+        """
+        if status == 0:
+            return 'empty.png'
+        elif status == 1:
+            return 'tick.png'
         elif status == 2:
-            return [1, 0.5, 0.5, 1]  # light coral
-        else:
-            return [1, 1, 1, 1]  # white
+            return 'cross.png'
+        return 'empty.png'
 
 class HabitTrackerApp(App):
-    '''
+    """
     Main application class for the Habit Tracker.
-    '''
+    """
     def build(self):
-        '''
-        Build and return the root widget.
-        '''
         sm = ScreenManager()
         sm.add_widget(TrackerScreen(name='tracker'))
         sm.add_widget(EditScreen(name='edit'))
