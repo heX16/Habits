@@ -1,7 +1,8 @@
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import csv
 import os
+from typing import Optional
 
 class HabitsDatabase:
     '''
@@ -476,3 +477,30 @@ class HabitsDatabase:
             
         finally:
             conn.close()
+
+    def get_first_tracking_date(self, habit_id, last_date: bool = False) -> Optional[date]:
+        '''
+        Get first or last tracking date for habit
+        :return: date object or None
+        '''
+        conn = self.connect()
+        cursor = conn.cursor()
+        sort_order = 'DESC' if last_date else 'ASC'
+        try:
+            cursor.execute(f'''SELECT date FROM habit_tracking 
+                            WHERE habit_id = ? 
+                            ORDER BY date {sort_order}
+                            LIMIT 1''', (habit_id,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+            try:
+                return datetime.strptime(row['date'], '%Y-%m-%d').date()
+            except ValueError:
+                return None
+        finally:
+            conn.close()
+
+    def get_last_tracking_date(self, habit_id) -> Optional[date]:
+        '''Get last tracking date'''
+        return self.get_first_tracking_date(habit_id, last_date=True)
