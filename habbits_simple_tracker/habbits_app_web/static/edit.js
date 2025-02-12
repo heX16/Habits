@@ -54,7 +54,7 @@ function renderHabitsList(habits) {
         const optionsButton = document.createElement('button');
         optionsButton.textContent = 'Options';
         optionsButton.addEventListener('click', function() {
-            window.location.href = `../habit/${habit.id}/options`;
+            window.location.href = `habit/${habit.id}/options`;
         });
 
         const deleteButton = document.createElement('button');

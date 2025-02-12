@@ -10,6 +10,10 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Get habit ID from URL
+    const pathParts = window.location.pathname.split('/');
+    const habitId = pathParts[pathParts.length - 1];
+
     // Compute previous and current month boundaries.
     let now = new Date();
     let currentYear = now.getFullYear();
@@ -47,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
     // Fetch data for the specified habit.
-    fetch(`../api/habits?start_date=${startDate}&end_date=${endDate}`)
+    fetch(`../api/habits?start_date=${startDate}&end_date=${endDate}&habit_id=${habitId}`)
         .then(response => response.json())
         .then(data => {
             if(data.habits && data.habits.length > 0) {
