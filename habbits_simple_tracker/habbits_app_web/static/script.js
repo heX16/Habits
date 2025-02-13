@@ -26,47 +26,92 @@ let lastClickTime = 0;
 
 const statusMenu = new FloatingMenu();
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Calculate the date range ending with Sunday
+/**
+ * Calculate date range for the table, ending with Sunday
+ * @returns {Object} Object containing start and end dates in 'YYYY-MM-DD' format
+ */
+function calculateDateRange() {
     const now = new Date();
-    const currentDay = now.getDay(); // 0 (Sun) to 6 (Sat)
-    const endDate = new Date(now); // Clone current date
+    const currentDay = now.getDay();
+    const endDate = new Date(now);
     
-    // Adjust to next Sunday if not already Sunday
     const daysToSunday = currentDay === 0 ? 0 : 7 - currentDay;
     endDate.setDate(now.getDate() + daysToSunday);
     
-    // Set start date by going back from end date
     const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - (tableDaysCount - 1));
 
-    const formatDate = (date) => {
-        const year = date.getFullYear();
-        const month = ('0' + (date.getMonth() + 1)).slice(-2);
-        const day = ('0' + date.getDate()).slice(-2);
-        return `${year}-${month}-${day}`;
+    return {
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate)
     };
+}
 
-    const startDateStr = formatDate(startDate);
-    const endDateStr = formatDate(endDate);
+/**
+ * Format date to YYYY-MM-DD string
+ * @param {Date} date - Date object to format
+ * @returns {string} Formatted date string
+ */
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+    const day = ('0' + date.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+}
 
-    // Fetch habits and tracking data from the backend.
-    fetch(`./api/habits?start_date=${startDateStr}&end_date=${endDateStr}`)
+/**
+ * Fetch habits data from the server
+ * @param {string} startDate - Start date in YYYY-MM-DD format
+ * @param {string} endDate - End date in YYYY-MM-DD format
+ */
+function fetchHabitsData(startDate, endDate) {
+    fetch(`./api/habits?start_date=${startDate}&end_date=${endDate}`)
         .then(response => response.json())
         .then(data => {
-            renderTable(data, startDateStr, endDateStr);
+            renderTable(data, startDate, endDate);
         })
         .catch(error => {
             console.error('Error fetching habits:', error);
         });
+}
 
-    // Listen for clicks on the document to dismiss the status menu.
-    document.addEventListener('click', function (e) {
+/**
+ * Schedule page refresh for the next day
+ */
+function scheduleNextDayRefresh() {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    
+    const msUntilMidnight = tomorrow - now;
+    // Add random delay (0-60 seconds) to prevent simultaneous refresh by all users
+    const randomDelay = Math.random() * 60000;
+    
+    setTimeout(() => {
+        window.location.reload();
+    }, msUntilMidnight + randomDelay);
+}
+
+/**
+ * Initialize the habit tracker
+ */
+function initHabitTracker() {
+    const { startDate, endDate } = calculateDateRange();
+    fetchHabitsData(startDate, endDate);
+    
+    // Setup status menu dismissal
+    document.addEventListener('click', function(e) {
         if (openStatusMenu && !openStatusMenu.contains(e.target)) {
             removeStatusMenu();
         }
     });
-});
+
+    scheduleNextDayRefresh();
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', initHabitTracker);
 
 /**
  * Returns a display string (emoji) based on the habit status.
