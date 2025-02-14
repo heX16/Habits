@@ -41,7 +41,7 @@
         }
 
         function exportHabits() {
-            fetch('{{ url_for("export_habits") }}')
+            fetch('{{ url_for("api_export") }}')
                 .then(response => response.text())
                 .then(csv => {
                     const blob = new Blob([csv], { type: 'text/csv' });
@@ -73,7 +73,7 @@
                     return;
                 }
                 
-                fetch('{{ url_for("import_habits") }}', {
+                fetch('{{ url_for("api_import") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'text/plain'

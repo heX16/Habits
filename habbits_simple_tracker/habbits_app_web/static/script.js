@@ -4,7 +4,7 @@
 /**
  * This script handles the functionality for the main habit tracker page.
  * It fetches habits and tracking data for the last 7 days and renders a table.
- * Single clicks cycle the status (0→1→2→0) and schedule a backend update after 2 seconds.
+ * Single clicks cycle the status (0→1→...→0) and schedule a backend update after N seconds.
  * Double-clicking a cell shows a floating menu for explicit status selection.
  */
 
@@ -172,8 +172,7 @@ function handleCellClick(cell, e) {
                 newStatus = 0;
         }
         
-        cell.dataset.status = newStatus;
-        cell.textContent = getStatusEmoji(newStatus);
+        updateCellContent(cell, newStatus);
 
         if (cell.pendingUpdateTimer) {
             clearTimeout(cell.pendingUpdateTimer);
@@ -296,21 +295,29 @@ function createHabitRow(habit, dates, today) {
     // Create cells for each tracking status.
     habit.tracking.forEach((status, index) => {
         const cell = document.createElement('td');
-        cell.textContent = getStatusEmoji(status);
-        cell.style.cursor = 'pointer';
         cell.dataset.habitId = habit.id;
         cell.dataset.date = dates[index];
         cell.dataset.status = status;
+        cell.style.cursor = 'pointer';
         
-        // Проверяем, является ли дата будущей
+        // Check if this is current day
         const cellDate = new Date(dates[index]);
         cellDate.setHours(0, 0, 0, 0);
+        
         if (cellDate > today) {
             cell.classList.add('future-day');
-            // Отключаем интерактивность для будущих дней
             cell.style.cursor = 'default';
         } else {
+            if (cellDate.getTime() === today.getTime()) {
+                cell.classList.add('current-day');
+            }
             attachCellListeners(cell);
+        }
+        
+        cell.textContent = getStatusEmoji(status);
+        
+        if (cellDate.getTime() === today.getTime() && status === 0) {
+            createCellMenuButton(cell);
         }
         
         row.appendChild(cell);
@@ -329,8 +336,7 @@ function showStatusMenu(cell, event) {
         icon: option.icon || option.as_char,
         label: option.label,
         onClick: () => {
-            cell.dataset.status = option.value;
-            cell.textContent = option.icon;
+            updateCellContent(cell, option.value);
             
             if (cell.pendingUpdateTimer) {
                 clearTimeout(cell.pendingUpdateTimer);
@@ -445,5 +451,41 @@ function playFireworkAnimation(cell, isElite = false) {
         setTimeout(() => {
             firework.remove();
         }, (delay + duration) * 1000);
+    }
+}
+
+/**
+ * Creates menu button for empty cell
+ * @param {HTMLElement} cell - The table cell element
+ */
+function createCellMenuButton(cell) {
+    const button = document.createElement('button');
+    button.textContent = '...';
+    button.className = 'cell-menu-button';
+    button.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent cell click
+        showStatusMenu(cell, e);
+    });
+    cell.appendChild(button);
+}
+
+/**
+ * Updates cell content and manages menu button
+ * @param {HTMLElement} cell - The table cell element
+ * @param {number} status - New status value
+ */
+function updateCellContent(cell, status) {
+    cell.dataset.status = status;
+    cell.textContent = getStatusEmoji(status);
+    
+    // Remove existing menu button if status is not 0
+    const existingButton = cell.querySelector('.cell-menu-button');
+    if (existingButton) {
+        existingButton.remove();
+    }
+    
+    // Add menu button only for empty status on current day
+    if (status === 0 && cell.classList.contains('current-day')) {
+        createCellMenuButton(cell);
     }
 }
