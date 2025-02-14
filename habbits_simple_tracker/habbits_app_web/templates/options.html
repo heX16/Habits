@@ -5,6 +5,28 @@
     <meta charset="UTF-8">
     <title>Options</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        .habits-list button {
+            margin-left: 10px;
+        }
+        
+        .backup-controls {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .option-item {
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
     <h1>Options</h1>
@@ -12,7 +34,38 @@
         <a href="{{ url_for('index') }}">Back to Main Page</a>
     </div>
 
-    <div class="options-container">
+    <!-- Habits Management Section -->
+    <div id="habits" class="section">
+        <h2>Habits Management</h2>
+        <div id="add-habit-section">
+            <h3>Add New Habit</h3>
+            <form id="add-habit-form">
+                <input type="text" id="habit-name" placeholder="Enter habit name" required>
+                <button type="submit">Add Habit</button>
+            </form>
+        </div>
+        
+        <div id="existing-habits-section">
+            <h3>Existing Habits</h3>
+            <ul id="habits-list" class="habits-list">
+                <!-- List of habits will be dynamically generated -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Backup/Restore Section -->
+    <div id="backup" class="section">
+        <h2>Backup & Restore</h2>
+        <div class="backup-controls">
+            <button onclick="exportHabits()">Export Habits</button>
+            <input type="file" id="import-file" accept=".csv" style="display: none">
+            <button onclick="document.getElementById('import-file').click()">Import Habits</button>
+        </div>
+    </div>
+
+    <!-- Global Options Section -->
+    <div id="settings" class="section">
+        <h2>Global Options</h2>
         <div class="option-item">
             <strong>Database path:</strong> {{ db_path }}
         </div>
@@ -24,7 +77,9 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='edit.js') }}"></script>
     <script>
+        // Global options handling
         document.addEventListener('DOMContentLoaded', function() {
             // Load initial states
             const options = [
@@ -33,7 +88,7 @@
 
             // Load all options
             options.forEach(option => {
-                fetch(`../api/param/${option.param}`)
+                fetch(`./api/param/${option.param}`)
                     .then(response => response.json())
                     .then(data => {
                         if (option.type === 'bool') {
@@ -54,7 +109,7 @@
                         value = e.target.checked ? '1' : '0';
                     }
                     
-                    fetch(`../api/param/${option.param}`, {
+                    fetch(`./api/param/${option.param}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -65,7 +120,60 @@
                     });
                 });
             });
+
+            // Setup import file handler
+            document.getElementById('import-file').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        importHabits(e.target.result);
+                    };
+                    reader.readAsText(file);
+                }
+            });
         });
+
+        // Handle anchor links
+        function scrollToAnchor() {
+            const hash = window.location.hash;
+            if (hash) {
+                const section = document.querySelector(hash);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        }
+
+        // Scroll to anchor on page load
+        document.addEventListener('DOMContentLoaded', scrollToAnchor);
+        // Scroll to anchor when hash changes
+        window.addEventListener('hashchange', scrollToAnchor);
+
+        // Export/Import functions
+        function exportHabits() {
+            window.location.href = './api/habits/export';
+        }
+
+        function importHabits(csvData) {
+            fetch('./api/habits/import', {
+                method: 'POST',
+                body: csvData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Habits imported successfully');
+                    location.reload();
+                } else {
+                    alert('Error importing habits');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error importing habits');
+            });
+        }
     </script>
 </body>
 </html> 

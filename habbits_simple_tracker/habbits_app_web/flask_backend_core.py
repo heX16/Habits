@@ -31,7 +31,7 @@ http://server.test/habits/static/style.css   - Styles
 http://server.test/habits/js/constants.js    - Generated constants
 """
 import os
-from flask import Flask, jsonify, request, render_template, send_file, Response
+from flask import Flask, jsonify, request, render_template, send_file, Response, redirect, url_for
 from habits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits, api_rename_habit
 from habits_database import HabitsDatabase
 
@@ -55,13 +55,6 @@ def create_app():
         Render the main habit tracker page.
         """
         return render_template('index.html')
-
-    @app.route('/edit')
-    def edit():
-        """
-        Render the habit editing page.
-        """
-        return render_template('edit.html')
 
     @app.route('/api/habits', methods=['GET'])
     def api_get_habits():
@@ -133,10 +126,6 @@ def create_app():
             return jsonify(result[0]), result[1]
         return jsonify(result)
 
-    @app.route('/backup')
-    def backup_page():
-        return render_template('backup.html')
-
     @app.route('/api/habits/export', methods=['GET'])
     def api_export():
         """
@@ -205,7 +194,7 @@ def create_app():
     @app.route('/options')
     def options_page():
         """
-        Render the options page.
+        Render the combined options page.
         """
         return render_template('options.html', db_path=db.db_path)
 
