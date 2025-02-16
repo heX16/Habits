@@ -12,18 +12,7 @@
         <a href="{{ url_for('options_page') }}">Options & Management</a>
     </div>
     <table id="habits-table" border="1">
-        <tr>
-            <th>Habit / Date</th>
-            {% for i in range(10) %}
-            <th class="date-header"></th>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td></td>
-            {% for i in range(10) %}
-            <td></td>
-            {% endfor %}
-        </tr>
+        <!-- Table content will be dynamically generated -->
     </table>
     <script src="{{ url_for('js_constants') }}"></script>
     <script src="{{ url_for('static', filename='menu.js') }}"></script>

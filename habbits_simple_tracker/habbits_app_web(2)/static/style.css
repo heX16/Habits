@@ -201,12 +201,6 @@ button {
     background-color: #f5f5f5;
 }
 
-/* Стиль для всех ячеек таблицы */
-td {
-    position: relative;  /* Для правильного позиционирования кнопок */
-}
-
-/* Стиль для кнопки меню в ячейке */
 .cell-menu-button {
     position: absolute;
     right: 2px;
@@ -223,15 +217,4 @@ td {
 
 .cell-menu-button:hover {
     opacity: 1;
-}
-
-/* Только заголовок текущего дня должен быть выделен */
-th.current-day {
-    background-color: #e0e0e0;
-}
-
-/* Будущие дни */
-.future-day {
-    background-color: #f5f5f5;
-    cursor: default !important;
 }

@@ -98,56 +98,6 @@ function scheduleNextDayRefresh() {
  */
 function initHabitTracker() {
     const { startDate, endDate } = calculateDateRange();
-    
-    // Initialize table headers with dates
-    const headerRow = document.querySelector('#habits-table tr:first-child');
-    const dates = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // Skip first header (it's "Habit / Date")
-    const dateHeaders = headerRow.querySelectorAll('th.date-header');
-    
-    for (let i = 0; i < tableDaysCount; i++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(new Date(startDate).getDate() + i);
-        const dateStr = currentDate.toISOString().split('T')[0];
-        dates.push(dateStr);
-
-        const th = dateHeaders[i];
-        const dayOfMonth = currentDate.getDate();
-        const dayOfWeek = weekDays[currentDate.getDay()];
-        th.textContent = `${dayOfMonth} ${dayOfWeek}`;
-        th.dataset.date = dateStr;  // Сохраняем дату в dataset
-        
-        if (currentDate.getFullYear() === today.getFullYear() &&
-            currentDate.getMonth() === today.getMonth() &&
-            currentDate.getDate() === today.getDate()) {
-            th.classList.add('current-day');
-        } else if (currentDate > today) {
-            th.classList.add('future-day');
-        }
-    }
-    
-    // Initialize empty rows based on approximateHabitsCount
-    const table = document.getElementById('habits-table');
-    const currentRows = table.querySelectorAll('tr').length - 1; // -1 for header
-    const neededRows = approximateHabitsCount;
-    
-    // Add or remove rows to match approximateHabitsCount
-    if (currentRows < neededRows) {
-        for (let i = currentRows; i < neededRows; i++) {
-            const row = document.createElement('tr');
-            row.innerHTML = '<td></td>' + '<td></td>'.repeat(tableDaysCount);
-            table.appendChild(row);
-        }
-    } else if (currentRows > neededRows) {
-        for (let i = currentRows; i > neededRows; i--) {
-            table.deleteRow(-1);
-        }
-    }
-    
-    // Fetch actual data
     fetchHabitsData(startDate, endDate);
     
     // Setup status menu dismissal
@@ -280,77 +230,100 @@ function handleCellDblClick(cell, e) {
  */
 function renderTable(data, startDateStr, endDateStr) {
     const table = document.getElementById('habits-table');
+    table.innerHTML = '';
+
+    const headerRow = document.createElement('tr');
+    const emptyHeaderCell = document.createElement('th');
+    emptyHeaderCell.textContent = 'Habit / Date';
+    headerRow.appendChild(emptyHeaderCell);
+
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // Get dates from headers
-    const dateHeaders = table.querySelectorAll('th.date-header');
-    const dates = Array.from(dateHeaders).map(th => th.dataset.date);
-    
-    // Adjust number of rows if needed
-    const currentRows = table.querySelectorAll('tr').length - 1; // -1 for header
-    const neededRows = data.habits.length;
-    
-    if (currentRows < neededRows) {
-        for (let i = currentRows; i < neededRows; i++) {
-            const row = document.createElement('tr');
-            row.innerHTML = '<td></td>' + '<td></td>'.repeat(tableDaysCount);
-            table.appendChild(row);
+    today.setHours(0, 0, 0, 0); // Reset time part for correct comparison
+
+    const dates = [];
+    for (let i = 0; i < tableDaysCount; i++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + i);
+        const dateStr = currentDate.toISOString().split('T')[0];
+        dates.push(dateStr);
+
+        const th = document.createElement('th');
+        const dayOfMonth = currentDate.getDate();
+        const dayOfWeek = weekDays[currentDate.getDay()];
+        th.textContent = `${dayOfMonth} ${dayOfWeek}`;
+        
+        // Подсветка текущего дня и будущих дней
+        if (currentDate.getFullYear() === today.getFullYear() &&
+            currentDate.getMonth() === today.getMonth() &&
+            currentDate.getDate() === today.getDate()) {
+            th.classList.add('current-day');
+        } else if (currentDate > today) {
+            th.classList.add('future-day');
         }
-    } else if (currentRows > neededRows) {
-        for (let i = currentRows; i > neededRows; i--) {
-            table.deleteRow(-1);
-        }
+        
+        headerRow.appendChild(th);
     }
-    
-    // Fill data into rows
-    const rows = table.querySelectorAll('tr');
-    data.habits.forEach((habit, index) => {
-        const row = rows[index + 1]; // +1 to skip header row
-        
-        // Set habit name in first cell
-        const habitCell = row.cells[0];
-        const habitLink = document.createElement('a');
-        habitLink.href = './habit/' + habit.id;
-        habitLink.textContent = habit.name;
-        habitCell.innerHTML = ''; // Clear cell
-        habitCell.appendChild(habitLink);
-        
-        // Fill tracking data
-        habit.tracking.forEach((status, cellIndex) => {
-            const cell = row.cells[cellIndex + 1];
-            
-            cell.className = '';
-            cell.style.cursor = 'pointer';
-            
-            cell.dataset.habitId = habit.id;
-            cell.dataset.date = dates[cellIndex];
-            cell.dataset.status = status;
-            
-            const cellDate = new Date(dates[cellIndex]);
-            cellDate.setHours(0, 0, 0, 0);
-            
-            // Handle future dates only
-            if (cellDate > today) {
-                cell.classList.add('future-day');
-                cell.style.cursor = 'default';
-            } else {
-                attachCellListeners(cell);
-            }
-            
-            cell.textContent = getStatusEmoji(status);
-            
-            // Сравниваем только даты, игнорируя время
-            const isSameDay = cellDate.getFullYear() === today.getFullYear() &&
-                             cellDate.getMonth() === today.getMonth() &&
-                             cellDate.getDate() === today.getDate();
-            
-            // Add menu button for empty status on current day
-            if (isSameDay && parseInt(status) === 0) {
-                createCellMenuButton(cell);
-            }
-        });
+    table.appendChild(headerRow);
+
+    // Create a row for each habit using createHabitRow().
+    data.habits.forEach(habit => {
+        const row = createHabitRow(habit, dates, today);
+        table.appendChild(row);
     });
+}
+
+/**
+ * Creates a table row for a given habit.
+ * @param {Object} habit - The habit object containing 'id', 'name', and 'tracking' array.
+ * @param {Array} dates - Array of date strings corresponding to the tracking data.
+ * @param {Date} today - The current date.
+ * @returns {HTMLElement} The table row element.
+ */
+function createHabitRow(habit, dates, today) {
+    const row = document.createElement('tr');
+
+    // Create the habit name cell.
+    const habitCell = document.createElement('td');
+    const habitLink = document.createElement('a');
+    habitLink.href = './habit/' + habit.id;
+    habitLink.textContent = habit.name;
+    habitCell.appendChild(habitLink);
+    row.appendChild(habitCell);
+
+    // Create cells for each tracking status.
+    habit.tracking.forEach((status, index) => {
+        const cell = document.createElement('td');
+        cell.dataset.habitId = habit.id;
+        cell.dataset.date = dates[index];
+        cell.dataset.status = status;
+        cell.style.cursor = 'pointer';
+        
+        // Check if this is current day
+        const cellDate = new Date(dates[index]);
+        cellDate.setHours(0, 0, 0, 0);
+        
+        if (cellDate > today) {
+            cell.classList.add('future-day');
+            cell.style.cursor = 'default';
+        } else {
+            if (cellDate.getTime() === today.getTime()) {
+                cell.classList.add('current-day');
+            }
+            attachCellListeners(cell);
+        }
+        
+        cell.textContent = getStatusEmoji(status);
+        
+        if (cellDate.getTime() === today.getTime() && status === 0) {
+            createCellMenuButton(cell);
+        }
+        
+        row.appendChild(cell);
+    });
+
+    return row;
 }
 
 /**
