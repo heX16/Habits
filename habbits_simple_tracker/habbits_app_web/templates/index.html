@@ -7,10 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Habit Tracker</h1>
-    <div>
-        <a href="{{ url_for('options_page') }}">Options & Management</a>
-    </div>
+    <h1>Habit Tracker <button onclick="window.location.href='{{ url_for('options_page') }}'" title="Options & Management" class="settings-icon">⚙️</button></h1>
     <table id="habits-table" border="1">
         <tr>
             <th>Habit / Date</th>

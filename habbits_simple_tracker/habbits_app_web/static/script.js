@@ -307,44 +307,64 @@ function renderTable(data, startDateStr, endDateStr) {
     const rows = table.querySelectorAll('tr');
     data.habits.forEach((habit, index) => {
         const row = rows[index + 1]; // +1 to skip header row
-        
-        // Set habit name in first cell
-        const habitCell = row.cells[0];
-        const habitLink = document.createElement('a');
-        habitLink.href = './habit/' + habit.id;
-        habitLink.textContent = habit.name;
-        habitCell.innerHTML = ''; // Clear cell
-        habitCell.appendChild(habitLink);
-        
-        // Fill tracking data
-        habit.tracking.forEach((status, cellIndex) => {
-            const cell = row.cells[cellIndex + 1];
-            
-            cell.className = '';
-            cell.style.cursor = 'pointer';
-            
-            cell.dataset.habitId = habit.id;
-            cell.dataset.date = dates[cellIndex];
-            cell.dataset.status = status;
-            
-            const cellDate = new Date(dates[cellIndex]);
-            cellDate.setHours(0, 0, 0, 0);
-            
-            // Handle future dates only
-            if (cellDate > today) {
-                cell.classList.add('future-day');
-                cell.style.cursor = 'default';
-            } else {
-                attachCellListeners(cell);
-                // Add menu button for any empty status (except future dates)
-                if (parseInt(status) === 0) {
-                    createCellMenuButton(cell);
-                }
-            }
-            
-            cell.textContent = getStatusEmoji(status);
-        });
+        updateHabitRow(row, habit, dates, today);
     });
+}
+
+/**
+ * Updates a table row with habit data
+ * @param {HTMLTableRowElement} row - Table row to update
+ * @param {Object} habit - Habit data object
+ * @param {Array<string>} dates - Array of dates in YYYY-MM-DD format
+ * @param {Date} today - Current date (with time set to 00:00:00)
+ */
+function updateHabitRow(row, habit, dates, today) {
+    // Set habit name in first cell
+    const habitCell = row.cells[0];
+    const habitLink = document.createElement('a');
+    habitLink.href = './habit/' + habit.id;
+    habitLink.textContent = habit.name;
+    habitCell.innerHTML = ''; // Clear cell
+    habitCell.appendChild(habitLink);
+    
+    // Fill tracking data
+    habit.tracking.forEach((status, cellIndex) => {
+        const cell = row.cells[cellIndex + 1];
+        updateHabitCell(cell, status, habit.id, dates[cellIndex], today);
+    });
+}
+
+/**
+ * Updates a single cell in the habit tracking table
+ * @param {HTMLTableCellElement} cell - The table cell to update
+ * @param {number} status - Status value for the cell
+ * @param {string} habitId - ID of the habit
+ * @param {string} date - Date string in YYYY-MM-DD format
+ * @param {Date} today - Current date (with time set to 00:00:00)
+ */
+function updateHabitCell(cell, status, habitId, date, today) {
+    cell.style.cursor = 'pointer';
+    
+    cell.dataset.habitId = habitId;
+    cell.dataset.date = date;
+    cell.dataset.status = status;
+    
+    const cellDate = new Date(date);
+    cellDate.setHours(0, 0, 0, 0);
+    
+    cell.textContent = getStatusEmoji(status);
+
+    // Handle future dates only
+    if (cellDate > today) {
+        cell.classList.add('future-day');
+        cell.style.cursor = 'default';
+    } else {
+        attachCellListeners(cell);
+        // Add menu button for any empty status (except future dates)
+        if (parseInt(status) === 0) {
+            createCellMenuButton(cell);
+        }
+    }
 }
 
 /**
@@ -499,14 +519,15 @@ function updateCellContent(cell, status) {
     cell.dataset.status = status;
     cell.textContent = getStatusEmoji(status);
     
-    // Remove existing menu button if status is not 0
-    const existingButton = cell.querySelector('.cell-menu-button');
-    if (existingButton) {
-        existingButton.remove();
-    }
+    const hasButton = cell.querySelector('.cell-menu-button') !== null;
+    const needsButton = parseInt(status) === 0 && !cell.classList.contains('future-day');
     
-    // Add menu button only for empty status on current day
-    if (status === 0 && cell.classList.contains('current-day')) {
+    // Remove existing button if status is not 0 or it's a future date
+    if (hasButton && !needsButton) {
+        cell.querySelector('.cell-menu-button').remove();
+    }
+    // Add button if status is 0 and it's not a future date
+    else if (!hasButton && needsButton) {
         createCellMenuButton(cell);
     }
 }
