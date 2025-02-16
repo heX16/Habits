@@ -336,19 +336,13 @@ function renderTable(data, startDateStr, endDateStr) {
                 cell.style.cursor = 'default';
             } else {
                 attachCellListeners(cell);
+                // Add menu button for any empty status (except future dates)
+                if (parseInt(status) === 0) {
+                    createCellMenuButton(cell);
+                }
             }
             
             cell.textContent = getStatusEmoji(status);
-            
-            // Сравниваем только даты, игнорируя время
-            const isSameDay = cellDate.getFullYear() === today.getFullYear() &&
-                             cellDate.getMonth() === today.getMonth() &&
-                             cellDate.getDate() === today.getDate();
-            
-            // Add menu button for empty status on current day
-            if (isSameDay && parseInt(status) === 0) {
-                createCellMenuButton(cell);
-            }
         });
     });
 }
