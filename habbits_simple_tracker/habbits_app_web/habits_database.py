@@ -160,7 +160,8 @@ class HabitsDatabase:
         finally:
             conn.close()
 
-    def status_mapping(self, value: int, habit_id: int, fail_by_default: bool = False) -> int:
+    def status_mapping(self, value: int, habit_id: int, fail_by_default: bool = False, 
+                      first_tracking_date: Optional[date] = None, current_date: Optional[date] = None) -> int:
         '''
         Maps database status values to client-side values.
         Takes into account habit's fail_by_default parameter.
@@ -168,9 +169,15 @@ class HabitsDatabase:
         :param value: The status value from database
         :param habit_id: The ID of the habit
         :param fail_by_default: The fail_by_default parameter value ('0' or '1')
+        :param first_tracking_date: first tracking date for the habit
+        :param current_date: Current date being processed
         :return: Mapped status value for client
         '''
-        if value == 0:
+        if value == 0 and fail_by_default and first_tracking_date and current_date:
+            # Return fail status for dates up to first tracking date
+            # Return 0 for dates before first tracking date
+            return 9 if current_date > first_tracking_date else 0
+        elif value == 0:
             return 9 if fail_by_default else 0
         return value
 
@@ -222,13 +229,19 @@ class HabitsDatabase:
             habit_name = habits[0]['name']
         
         # Generate date list
-        start_dt = datetime.strptime(start_date, '%Y-%m-%d')
-        end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+        start_dt = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
         num_days = (end_dt - start_dt).days + 1
-        date_list = [(start_dt + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(num_days)]
+        date_list = [start_dt + timedelta(days=i) for i in range(num_days)]
         
         # Get fail_by_default parameter for this habit
         fail_by_default: bool = self.get_param(habit_id_val, 'fail_by_default', '0') == '1'
+        
+        # Get last tracking date if fail_by_default is enabled
+        first_tracking_date = None
+        if fail_by_default:
+            first_tracking_date = self.get_first_tracking_date(habit_id_val)
+            print(f'first_tracking_date: {first_tracking_date}')
         
         # Get all records for habit in date range, ordered by date
         cursor.execute('''SELECT date, status 
@@ -238,12 +251,19 @@ class HabitsDatabase:
                      (habit_id_val, start_date, end_date))
                      
         tracking_rows = cursor.fetchall()
-        tracking_dict = {row['date']: row['status'] for row in tracking_rows}
+        tracking_dict = {datetime.strptime(row['date'], '%Y-%m-%d').date(): row['status'] 
+                        for row in tracking_rows}
         
         tracking = []
-        for date in date_list:
-            status = tracking_dict.get(date, 0)
-            status = self.status_mapping(status, habit_id_val, fail_by_default=fail_by_default)
+        for current_date in date_list:
+            status = tracking_dict.get(current_date, 0)
+            status = self.status_mapping(
+                status, 
+                habit_id_val, 
+                fail_by_default=fail_by_default,
+                first_tracking_date=first_tracking_date,
+                current_date=current_date
+            )
             tracking.append(status)
         
         return {
