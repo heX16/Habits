@@ -321,3 +321,24 @@ th.current-day {
         opacity: 0;
     }
 }
+
+table#habits-table td {
+    min-height: 2em;
+    /* Minimum height */
+    height: 2em;
+    /* Fixed height */
+    padding: 0.5em;
+    /* Cell padding */
+    vertical-align: middle;
+    /* Vertical content alignment */
+    box-sizing: border-box;
+    /* Include padding in height calculation */
+}
+
+/* Headers should have the same height */
+table#habits-table th {
+    height: 2em;
+    padding: 0.5em;
+    vertical-align: middle;
+    box-sizing: border-box;
+}
