@@ -183,3 +183,37 @@ def prepare_js_constants(database):
         'constants': constants,
         'status_options': formatted_options
     }
+
+def api_get_param(param_name, habit_id=-1, database=None):
+    """
+    Get parameter value through API.
+
+    :param param_name: Name of the parameter
+    :param habit_id: Habit ID or -1 for global parameters
+    :param database: Database instance
+    :return: JSON response
+    """
+    try:
+        value = database.get_param(habit_id, param_name)
+        return {'value': value}
+    except ValueError as e:
+        return {'error': str(e)}, 400
+
+def api_set_param(param_name, data, habit_id=-1, database=None):
+    """
+    Set parameter value through API.
+
+    :param param_name: Name of the parameter
+    :param data: Request data containing new value
+    :param habit_id: Habit ID or -1 for global parameters
+    :param database: Database instance
+    :return: JSON response
+    """
+    if 'value' not in data:
+        return {'error': 'value is required'}, 400
+
+    try:
+        database.set_param(habit_id, param_name, data['value'])
+        return {'message': 'Parameter updated successfully'}
+    except ValueError as e:
+        return {'error': str(e)}, 400

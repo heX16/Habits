@@ -8,6 +8,18 @@ class HabitsDatabase:
     '''
     Database class for managing habits, habit tracking, and special parameters.
     '''
+    # Special habit_id value for global parameters
+    GLOBAL_PARAMS_ID = -1
+
+    # Parameters that can be set for individual habits
+    VALID_HABIT_PARAMS = {'fail_by_default'}
+
+    # Parameters that can only be set globally
+    VALID_GLOBAL_PARAMS = {
+        'theme',        # UI theme (light/dark) (work in progress)
+        'test_option'   # Test parameter used in options page (test, will be removed)
+    }
+
     def __init__(self, db_path):
         '''
         Initialize the Database object and create tables if they do not exist.
@@ -312,31 +324,54 @@ class HabitsDatabase:
             'habits': habits_data
         }
 
+    def validate_param(self, param_name: str, habit_id: int, value: str = None) -> None:
+        """
+        Validate parameter name and check if it can be used with given habit_id.
+
+        :param param_name: Name of the parameter
+        :param habit_id: Habit ID or GLOBAL_PARAMS_ID for global parameters
+        :param value: Parameter value
+        :raises ValueError: If parameter name is invalid for given habit_id
+        """
+        if habit_id == self.GLOBAL_PARAMS_ID:
+            if param_name not in self.VALID_GLOBAL_PARAMS:
+                raise ValueError(f"Unknown global parameter: {param_name}")
+        else:
+            if param_name not in self.VALID_HABIT_PARAMS:
+                raise ValueError(f"Unknown habit parameter: {param_name}")
+
     def get_param(self, habit_id, param_name, default_value=None):
         '''
         Get the value of a specific parameter for a habit or globally.
 
-        :param habit_id: The habit ID (-1 for global parameters).
+        :param habit_id: The habit ID (HabitsDatabase.GLOBAL_PARAMS_ID for global parameters).
         :param param_name: The name of the parameter.
         :param default_value: Value to return if parameter is not found.
         :return: The value of the parameter, or default_value if not found.
+        :raises ValueError: If parameter name is invalid for given habit_id
         '''
+        self.validate_param(param_name, habit_id)
+
         conn = self.connect()
         cursor = conn.cursor()
         cursor.execute('SELECT value FROM habit_params WHERE habit_id = ? AND param_name = ?',
                        (habit_id, param_name))
         row = cursor.fetchone()
         conn.close()
+
         return row['value'] if row else default_value
 
     def set_param(self, habit_id, param_name, value):
         '''
         Set or update the value of a specific parameter for a habit or globally.
 
-        :param habit_id: The habit ID (-1 for global parameters).
+        :param habit_id: The habit ID (HabitsDatabase.GLOBAL_PARAMS_ID for global parameters).
         :param param_name: The name of the parameter.
         :param value: The value to store.
+        :raises ValueError: If parameter name is invalid for given habit_id
         '''
+        self.validate_param(param_name, habit_id, value)
+
         conn = self.connect()
         cursor = conn.cursor()
         cursor.execute('''INSERT INTO habit_params (habit_id, param_name, value)
