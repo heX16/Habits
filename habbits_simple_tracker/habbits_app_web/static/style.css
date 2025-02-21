@@ -7,7 +7,8 @@ body {
     margin: 20px;
 }
 
-h1, h2 {
+h1,
+h2 {
     color: #333;
 }
 
@@ -17,7 +18,9 @@ table {
     margin-top: 20px;
 }
 
-table, th, td {
+table,
+th,
+td {
     border: 1px solid #ccc;
     text-align: center;
     padding: 5px;
@@ -35,7 +38,8 @@ button {
 .current-day {
     background-color: #fff3cd;
     font-weight: bold;
-    position: relative;  /* for the cell menu button "..." */
+    position: relative;
+    /* for the cell menu button "..." */
 }
 
 .future-day {
@@ -107,9 +111,11 @@ button {
         transform: translate(0, 0) scale(0.5) rotate(0deg);
         opacity: 1;
     }
+
     50% {
         opacity: 1;
     }
+
     100% {
         transform: translate(var(--final-x), var(--final-y)) scale(1) rotate(360deg);
         opacity: 0;
@@ -175,14 +181,15 @@ button {
 }
 
 .calendar-table td.current-day {
-    border: 2px solid #333;  /* Жирная темная рамка */
+    border: 2px solid #333;
+    /* Bold dark border */
 }
 
 .floating-menu {
     background-color: white;
     border: 1px solid #ccc;
     padding: 5px;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
     z-index: 1000;
 }
 
@@ -203,7 +210,8 @@ button {
 
 /* Стиль для всех ячеек таблицы */
 td {
-    position: relative;  /* Для правильного позиционирования кнопок */
+    position: relative;
+    /* For correct button positioning */
 }
 
 /* Стиль для кнопки меню в ячейке */
@@ -240,4 +248,76 @@ th.current-day {
     font-size: 0.4em;
     vertical-align: middle;
     margin-left: 8px;
+}
+
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notification {
+    padding: 15px 40px 15px 20px;
+    border-radius: 4px;
+    color: white;
+    position: relative;
+    min-width: 280px;
+    animation: notification-slide-in 0.3s ease-out;
+}
+
+.notification-error {
+    background-color: #ff4444;
+}
+
+.notification-success {
+    background-color: #00C851;
+}
+
+.notification-warning {
+    background-color: #ffbb33;
+}
+
+.notification-close {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.notification-hiding {
+    animation: notification-slide-out 0.3s ease-in forwards;
+}
+
+@keyframes notification-slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes notification-slide-out {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
 }

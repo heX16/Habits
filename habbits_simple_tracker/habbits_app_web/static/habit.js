@@ -9,7 +9,7 @@
  * 0 - transparent, 1 - lightgreen, 2 - lightcoral.
  */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Get habit ID from URL
     const pathParts = window.location.pathname.split('/');
     const habitId = pathParts[pathParts.length - 1];
@@ -50,21 +50,33 @@ document.addEventListener('DOMContentLoaded', function() {
     let daysInPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
     let daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
+    // Add at the beginning after DOMContentLoaded
+    const notifications = new NotificationManager();
+
     // Fetch data for the specified habit.
     fetch(`../api/habits?start_date=${startDate}&end_date=${endDate}&habit_id=${habitId}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Error loading habit data');
+                });
+            }
+            return response.json();
+        })
         .then(data => {
-            if(data.habits && data.habits.length > 0) {
+            if (data.habits && data.habits.length > 0) {
                 let habit = data.habits[0];
                 document.getElementById('habit-name').textContent = habit.name;
                 let tracking = habit.tracking;
                 renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth);
             } else {
-                document.getElementById('stat-container').textContent = 'No data available for this habit.';
+                throw new Error('Data for this habit is not available');
             }
         })
         .catch(error => {
             console.error('Error fetching habit statistics:', error);
+            notifications.show(error.message);
+            document.getElementById('stat-container').textContent = 'Error loading data.';
         });
 });
 
@@ -78,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function renderMonth(tracking, year, month, trackingOffset) {
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                       'July', 'August', 'September', 'October', 'November', 'December'];
+        'July', 'August', 'September', 'October', 'November', 'December'];
 
     const table = document.createElement('table');
     table.className = 'calendar-table';
@@ -119,26 +131,26 @@ function renderMonth(tracking, year, month, trackingOffset) {
                 if (date <= daysInMonth) {
                     const status = tracking[trackingOffset + date - 1];
                     const statusOption = getStatusOptions().find(opt => opt.value === status);
-                    
+
                     // Create wrapper for content
                     const contentDiv = document.createElement('div');
                     contentDiv.style.display = 'inline-block';
-                    
+
                     // Add date number
                     contentDiv.textContent = date;
-                    
+
                     // Check if date is in future
                     const cellDate = new Date(year, month, date);
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
-                    
+
                     // Add current-day class if date matches today
                     if (cellDate.getTime() === today.getTime()) {
                         cell.classList.add('current-day');
                     }
-                    
+
                     if (cellDate > today && (!statusOption || statusOption.value === 0 || statusOption.value === 9)) {
-                        cell.style.backgroundColor = '#f5f5f5';  // Серый цвет только для будущих дат со статусом 0 или 9
+                        cell.style.backgroundColor = '#f5f5f5';  // Gray color only for future dates with status 0 or 9
                     } else if (statusOption) {
                         // Add status indicator
                         if (statusOption.icon) {
@@ -148,7 +160,7 @@ function renderMonth(tracking, year, month, trackingOffset) {
                         }
                         cell.style.backgroundColor = statusOption.color === 'none' ? 'transparent' : statusOption.color;
                     }
-                    
+
                     cell.appendChild(contentDiv);
                     date++;
                 }

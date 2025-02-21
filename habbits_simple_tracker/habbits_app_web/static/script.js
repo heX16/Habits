@@ -26,6 +26,9 @@ let lastClickTime = 0;
 
 const statusMenu = new FloatingMenu();
 
+// Add at the beginning of the file
+const notifications = new NotificationManager();
+
 /**
  * Calculate date range for the table, ending with Sunday
  * @returns {Object} Object containing start and end dates in 'YYYY-MM-DD' format
@@ -34,10 +37,10 @@ function calculateDateRange() {
     const now = new Date();
     const currentDay = now.getDay();
     const endDate = new Date(now);
-    
+
     const daysToSunday = currentDay === 0 ? 0 : 7 - currentDay;
     endDate.setDate(now.getDate() + daysToSunday);
-    
+
     const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - (tableDaysCount - 1));
 
@@ -66,12 +69,20 @@ function formatDate(date) {
  */
 function fetchHabitsData(startDate, endDate) {
     fetch(`./api/habits?start_date=${startDate}&end_date=${endDate}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Error loading habits');
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             renderTable(data, startDate, endDate);
         })
         .catch(error => {
             console.error('Error fetching habits:', error);
+            notifications.show(error.message);
         });
 }
 
@@ -83,11 +94,11 @@ function scheduleNextDayRefresh() {
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
-    
+
     const msUntilMidnight = tomorrow - now;
     // Add random delay (0-60 seconds) to prevent simultaneous refresh by all users
     const randomDelay = Math.random() * 60000;
-    
+
     setTimeout(() => {
         window.location.reload();
     }, msUntilMidnight + randomDelay);
@@ -98,16 +109,16 @@ function scheduleNextDayRefresh() {
  */
 function initHabitTracker() {
     const { startDate, endDate } = calculateDateRange();
-    
+
     // Initialize table headers with dates
     const headerRow = document.querySelector('#habits-table tr:first-child');
     const dates = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // Skip first header (it's "Habit / Date")
     const dateHeaders = headerRow.querySelectorAll('th.date-header');
-    
+
     for (let i = 0; i < tableDaysCount; i++) {
         const currentDate = new Date(startDate);
         currentDate.setDate(new Date(startDate).getDate() + i);
@@ -119,7 +130,7 @@ function initHabitTracker() {
         const dayOfWeek = weekDays[currentDate.getDay()];
         th.textContent = `${dayOfMonth} ${dayOfWeek}`;
         th.dataset.date = dateStr;  // Сохраняем дату в dataset
-        
+
         if (currentDate.getFullYear() === today.getFullYear() &&
             currentDate.getMonth() === today.getMonth() &&
             currentDate.getDate() === today.getDate()) {
@@ -128,12 +139,12 @@ function initHabitTracker() {
             th.classList.add('future-day');
         }
     }
-    
+
     // Initialize empty rows based on approximateHabitsCount
     const table = document.getElementById('habits-table');
     const currentRows = table.querySelectorAll('tr').length - 1; // -1 for header
     const neededRows = approximateHabitsCount;
-    
+
     // Add or remove rows to match approximateHabitsCount
     if (currentRows < neededRows) {
         for (let i = currentRows; i < neededRows; i++) {
@@ -146,12 +157,12 @@ function initHabitTracker() {
             table.deleteRow(-1);
         }
     }
-    
+
     // Fetch actual data
     fetchHabitsData(startDate, endDate);
-    
+
     // Setup status menu dismissal
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (openStatusMenu && !openStatusMenu.contains(e.target)) {
             removeStatusMenu();
         }
@@ -194,15 +205,15 @@ function attachCellListeners(cell) {
  */
 function handleCellClick(cell, e) {
     const currentTime = new Date().getTime();
-    
+
     if (lastClickedCell !== cell || (currentTime - lastClickTime) > 300) {
         lastClickedCell = cell;
         lastClickedStatus = parseInt(cell.dataset.status);
         lastClickTime = currentTime;
-        
+
         let currentStatus = parseInt(cell.dataset.status);
         let newStatus;
-        switch(currentStatus) {
+        switch (currentStatus) {
             case 0:
                 newStatus = 1; // not set -> done mini
                 break;
@@ -221,13 +232,13 @@ function handleCellClick(cell, e) {
             default:
                 newStatus = 0;
         }
-        
+
         updateCellContent(cell, newStatus);
 
         if (cell.pendingUpdateTimer) {
             clearTimeout(cell.pendingUpdateTimer);
         }
-        
+
         cell.pendingUpdateTimer = setTimeout(() => {
             const status = parseInt(cell.dataset.status);
             // Play animation at the same time as sending update
@@ -250,24 +261,24 @@ function handleCellClick(cell, e) {
  */
 function handleCellDblClick(cell, e) {
     e.stopPropagation();
-    
+
     // Cancel update timer if exists
     if (cell.pendingUpdateTimer) {
         clearTimeout(cell.pendingUpdateTimer);
         cell.pendingUpdateTimer = null;
     }
-    
+
     // Restore previous state
     if (lastClickedCell === cell && lastClickedStatus !== null) {
         cell.dataset.status = lastClickedStatus;
         cell.textContent = getStatusEmoji(lastClickedStatus);
     }
-    
+
     // Clear last click information
     lastClickedCell = null;
     lastClickedStatus = null;
     lastClickTime = 0;
-    
+
     // Show menu
     showStatusMenu(cell, e);
 }
@@ -282,15 +293,15 @@ function renderTable(data, startDateStr, endDateStr) {
     const table = document.getElementById('habits-table');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // Get dates from headers
     const dateHeaders = table.querySelectorAll('th.date-header');
     const dates = Array.from(dateHeaders).map(th => th.dataset.date);
-    
+
     // Adjust number of rows if needed
     const currentRows = table.querySelectorAll('tr').length - 1; // -1 for header
     const neededRows = data.habits.length;
-    
+
     if (currentRows < neededRows) {
         for (let i = currentRows; i < neededRows; i++) {
             const row = document.createElement('tr');
@@ -302,7 +313,7 @@ function renderTable(data, startDateStr, endDateStr) {
             table.deleteRow(-1);
         }
     }
-    
+
     // Fill data into rows
     const rows = table.querySelectorAll('tr');
     data.habits.forEach((habit, index) => {
@@ -326,7 +337,7 @@ function updateHabitRow(row, habit, dates, today) {
     habitLink.textContent = habit.name;
     habitCell.innerHTML = ''; // Clear cell
     habitCell.appendChild(habitLink);
-    
+
     // Fill tracking data
     habit.tracking.forEach((status, cellIndex) => {
         const cell = row.cells[cellIndex + 1];
@@ -344,14 +355,14 @@ function updateHabitRow(row, habit, dates, today) {
  */
 function updateHabitCell(cell, status, habitId, date, today) {
     cell.style.cursor = 'pointer';
-    
+
     cell.dataset.habitId = habitId;
     cell.dataset.date = date;
     cell.dataset.status = status;
-    
+
     const cellDate = new Date(date);
     cellDate.setHours(0, 0, 0, 0);
-    
+
     cell.textContent = getStatusEmoji(status);
 
     // Handle future dates only
@@ -378,11 +389,11 @@ function showStatusMenu(cell, event) {
         label: option.label,
         onClick: () => {
             updateCellContent(cell, option.value);
-            
+
             if (cell.pendingUpdateTimer) {
                 clearTimeout(cell.pendingUpdateTimer);
             }
-            
+
             cell.pendingUpdateTimer = setTimeout(() => {
                 const status = parseInt(cell.dataset.status);
                 if (status === 3) {
@@ -428,13 +439,23 @@ function sendUpdate(habitId, date, status, cell) {
             status: status
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Update successful for habit', habitId, 'on', date, ':', data);
-    })
-    .catch(error => {
-        console.error('Error updating habit status:', error);
-    });
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Error updating status');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Update successful for habit', habitId, 'on', date, ':', data);
+        })
+        .catch(error => {
+            console.error('Error updating habit status:', error);
+            notifications.show(error.message);
+            // Restore previous status
+            updateCellContent(cell, lastClickedStatus || 0);
+        });
 }
 
 /**
@@ -445,7 +466,7 @@ function sendUpdate(habitId, date, status, cell) {
 function playFireworkAnimation(cell, isElite = false) {
     const emojis = ['✨', '🌟', '⭐', '💫', '🎇'];
     const rect = cell.getBoundingClientRect();
-    
+
     // Add scroll offset to get absolute position
     const centerX = rect.left + rect.width / 2 + window.scrollX;
     const centerY = rect.top + rect.height / 2 + window.scrollY;
@@ -457,38 +478,38 @@ function playFireworkAnimation(cell, isElite = false) {
     for (let i = 0; i < particleCount; i++) {
         const firework = document.createElement('div');
         firework.className = 'firework';
-        
+
         // Calculate angle for circular distribution
         const angle = (i / particleCount) * 2 * Math.PI + Math.random() * 0.5;
         const distance = 25 + Math.random() * 75;
-        
+
         // Calculate final position using angle and distance
         const offsetX = Math.cos(angle) * distance;
         const offsetY = Math.sin(angle) * distance;
-        
+
         // Start from center, adjusting for element size
         firework.style.left = (centerX - 8) + 'px';
         firework.style.top = (centerY - 8) + 'px';
-        
+
         firework.style.setProperty('--final-x', `${offsetX}px`);
         firework.style.setProperty('--final-y', `${offsetY}px`);
-        
+
         // Randomize animation parameters
         const delay = Math.random() * 0.2;
         const duration = 1.8 + Math.random() * 0.4;
         // Slightly smaller scale for regular done status
         const scale = isElite ? (2.4 + Math.random() * 1.2) : (1.8 + Math.random() * 0.8);
-        
+
         firework.style.animationDelay = `${delay}s`;
         firework.style.animationDuration = `${duration}s`;
         firework.style.fontSize = `${16 * scale}px`;
-        
+
         // Randomly select emoji
         const emoji = emojis[Math.floor(Math.random() * emojis.length)];
         firework.setAttribute('data-emoji', emoji);
-        
+
         document.body.appendChild(firework);
-        
+
         setTimeout(() => {
             firework.remove();
         }, (delay + duration) * 1000);
@@ -518,10 +539,10 @@ function createCellMenuButton(cell) {
 function updateCellContent(cell, status) {
     cell.dataset.status = status;
     cell.textContent = getStatusEmoji(status);
-    
+
     const hasButton = cell.querySelector('.cell-menu-button') !== null;
     const needsButton = parseInt(status) === 0 && !cell.classList.contains('future-day');
-    
+
     // Remove existing button if status is not 0 or it's a future date
     if (hasButton && !needsButton) {
         cell.querySelector('.cell-menu-button').remove();

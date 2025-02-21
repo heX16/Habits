@@ -1,13 +1,16 @@
 {# URL: http://server.test/habits/ #}
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Habit Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
-    <h1>Habit Tracker <button onclick="window.location.href='{{ url_for('options_page') }}'" title="Options & Management" class="settings-icon">⚙️</button></h1>
+    <h1>Habit Tracker <button onclick="window.location.href='{{ url_for('options_page') }}'"
+            title="Options & Management" class="settings-icon">⚙️</button></h1>
     <table id="habits-table" border="1">
         <tr>
             <th>Habit / Date</th>
@@ -25,5 +28,7 @@
     <script src="{{ url_for('js_constants') }}"></script>
     <script src="{{ url_for('static', filename='menu.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='notifications.js') }}"></script>
 </body>
+
 </html>

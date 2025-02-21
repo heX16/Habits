@@ -1,8 +1,40 @@
 # habits_core.py
 from datetime import datetime, timedelta
 from habits_database import HabitsDatabase
+import json
+import os
 
-def init_db(database):
+def load_config(config_path='config.json'):
+    """
+    Load configuration from JSON file.
+
+    :param config_path: Path to configuration file
+    :return: Configuration dictionary
+    """
+    try:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}  # Return empty config if file doesn't exist
+    except Exception as e:
+        print(f"Error loading config: {e}")
+        return {}
+
+def get_database() -> HabitsDatabase:
+    """
+    Create and return database instance using configuration.
+
+    :return: Configured HabitsDatabase instance
+    """
+    config = load_config()
+    # Get database path from environment variable, config file, or use default
+    db_path = os.environ.get('HABITS_WEB_DB_PATH', None) or \
+              config.get('habits_web_db_path', None) or \
+              'habits.db'
+
+    return HabitsDatabase(db_path)
+
+def init_db(database: HabitsDatabase):
     """
     Initialize the database.
     """
@@ -15,13 +47,13 @@ def api_fetch_habits(args, database):
     start_date = args.get('start_date')
     end_date = args.get('end_date')
     habit_id = args.get('habit_id')
-    
+
     if habit_id:
         habit_id = int(habit_id)
-    
+
     if not start_date or not end_date:
         return {'error': 'Missing required parameters'}, 400
-        
+
     try:
         return database.fetch_habits(start_date, end_date, habit_id)
     except ValueError as e:
@@ -33,7 +65,7 @@ def api_update_habit(data, database):
     """
     if not all(k in data for k in ('habit_id', 'date', 'status')):
         return {'error': 'Missing required fields'}, 400
-        
+
     try:
         database.update_habit(data['habit_id'], data['date'], data['status'])
         return {'status': 'success'}
@@ -113,18 +145,18 @@ def api_rename_habit(json_data, database):
     """
     habit_id = json_data.get('habit_id')
     new_name = json_data.get('new_name')
-    
+
     if habit_id is None or new_name is None:
         return {'error': 'habit_id and new_name are required'}, 400
-        
+
     try:
         habit_id = int(habit_id)
     except ValueError:
         return {'error': 'Invalid habit_id'}, 400
-        
+
     if not new_name.strip():
         return {'error': 'New name cannot be empty'}, 400
-        
+
     try:
         database.rename_habit(habit_id, new_name)
         return {'message': 'Habit renamed successfully'}
@@ -134,12 +166,12 @@ def api_rename_habit(json_data, database):
 def prepare_js_constants(database):
     """
     Prepare data for JavaScript constants template.
-    
+
     :param database: Database instance
     :return: Dictionary with template variables
     """
     habits_list = database.get_habits_list()
-    
+
     constants = {
         'singleClickMaxStatus': 3,
         'tableDaysCount': 10,
