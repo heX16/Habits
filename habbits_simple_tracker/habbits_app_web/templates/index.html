@@ -9,8 +9,8 @@
 </head>
 
 <body>
-    <h1>Habit Tracker <button onclick="window.location.href='{{ url_for(\'options_page\') }}'"
-            title="Options & Management" class="settings-icon">⚙️</button></h1>
+    <h1>Habit Tracker <button onclick="window.location.href='{{ options_page_url }}'" title="Options & Management"
+            class="settings-icon">⚙️</button></h1>
     <table id="habits-table" border="1">
         <tr>
             <th>Habit / Date</th>
@@ -26,9 +26,9 @@
         </tr>
     </table>
     <script src="{{ url_for('js_constants') }}"></script>
+    <script src="{{ url_for('static', filename='notifications.js') }}"></script>
     <script src="{{ url_for('static', filename='menu.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script src="{{ url_for('static', filename='notifications.js') }}"></script>
 </body>
 
 </html>

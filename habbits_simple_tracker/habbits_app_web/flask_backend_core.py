@@ -53,7 +53,7 @@ def create_app():
         """
         Render the main habit tracker page.
         """
-        return render_template('index.html')
+        return render_template('index.html', options_page_url=url_for('options_page'))
 
     @app.route('/api/habits', methods=['GET'])
     def api_get_habits():
