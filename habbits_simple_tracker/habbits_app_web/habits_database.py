@@ -11,7 +11,7 @@ class HabitsDatabase:
     def __init__(self, db_path):
         '''
         Initialize the Database object and create tables if they do not exist.
-        
+
         :param db_path: Path to the SQLite database file
         '''
         self.db_path = db_path
@@ -32,16 +32,16 @@ class HabitsDatabase:
         '''
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         # Check if all required tables exist
-        cursor.execute('''SELECT name FROM sqlite_master 
-                         WHERE type='table' AND 
+        cursor.execute('''SELECT name FROM sqlite_master
+                         WHERE type='table' AND
                          name IN ('habits_list', 'habit_tracking', 'habit_params')''')
         existing_tables = {row['name'] for row in cursor.fetchall()}
         required_tables = {'habits_list', 'habit_tracking', 'habit_params'}
-        
+
         conn.close()
-        
+
         # If any table is missing, clear DB and create all tables
         if not required_tables.issubset(existing_tables):
             self.clear_db()
@@ -55,30 +55,30 @@ class HabitsDatabase:
         cursor = conn.cursor()
         try:
             conn.execute('BEGIN TRANSACTION')
-            
+
             cursor.execute('CREATE TABLE habits_list ('
                          'id INTEGER PRIMARY KEY AUTOINCREMENT, '
                          'name TEXT NOT NULL UNIQUE)')
-            
+
             cursor.execute('CREATE TABLE habit_tracking ('
                          'habit_id INTEGER, '
                          'date TEXT NOT NULL, '
                          'status INTEGER DEFAULT 0, '
                          'PRIMARY KEY (habit_id, date), '
                          'FOREIGN KEY (habit_id) REFERENCES habits_list(id))')
-            
+
             cursor.execute('CREATE TABLE habit_params ('
                          'habit_id INTEGER, '
                          'param_name TEXT NOT NULL, '
                          'value TEXT NOT NULL, '
                          'PRIMARY KEY (habit_id, param_name))')
-            
+
             conn.commit()
-            
+
         except Exception as e:
             conn.rollback()
             raise Exception(f'Error creating tables: {str(e)}')
-        
+
         finally:
             conn.close()
 
@@ -90,18 +90,18 @@ class HabitsDatabase:
         cursor = conn.cursor()
         try:
             conn.execute('BEGIN TRANSACTION')
-            
+
             # Drop all tables
             cursor.execute('DROP TABLE IF EXISTS habit_tracking')
             cursor.execute('DROP TABLE IF EXISTS habit_params')
             cursor.execute('DROP TABLE IF EXISTS habits_list')
-            
+
             conn.commit()
-            
+
         except Exception as e:
             conn.rollback()
             raise Exception(f'Error clearing database: {str(e)}')
-        
+
         finally:
             conn.close()
 
@@ -147,20 +147,20 @@ class HabitsDatabase:
         cursor = conn.cursor()
         try:
             if status == 0:
-                cursor.execute('''DELETE FROM habit_tracking 
+                cursor.execute('''DELETE FROM habit_tracking
                                 WHERE habit_id = ? AND date = ?''',
                              (habit_id, date))
             else:
                 cursor.execute('''INSERT INTO habit_tracking (habit_id, date, status)
                                 VALUES (?, ?, ?)
-                                ON CONFLICT(habit_id, date) 
+                                ON CONFLICT(habit_id, date)
                                 DO UPDATE SET status=excluded.status''',
                              (habit_id, date, status))
             conn.commit()
         finally:
             conn.close()
 
-    def status_mapping(self, value: int, habit_id: int, fail_by_default: bool = False, 
+    def status_mapping(self, value: int, habit_id: int, fail_by_default: bool = False,
                       first_tracking_date: Optional[date] = None, current_date: Optional[date] = None) -> int:
         '''
         Maps database status values to client-side values.
@@ -191,7 +191,7 @@ class HabitsDatabase:
         '''
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         if habit_id:
             cursor.execute('SELECT id, name FROM habits_list WHERE id = ?', (habit_id,))
             habits = cursor.fetchall()
@@ -201,7 +201,7 @@ class HabitsDatabase:
         else:
             cursor.execute('SELECT id, name FROM habits_list')
             habits = cursor.fetchall()
-            
+
         habits_list = [{'id': habit['id'], 'name': habit['name']} for habit in habits]
         conn.close()
         return habits_list
@@ -209,7 +209,7 @@ class HabitsDatabase:
     def fetch_habit(self, habit, start_date, end_date, cursor):
         '''
         Fetch tracking data for a single habit.
-        
+
         :param habit: Dictionary containing habit info (id and name) or habit ID
         :param start_date: The start date as 'YYYY-MM-DD'
         :param end_date: The end date as 'YYYY-MM-DD'
@@ -227,45 +227,45 @@ class HabitsDatabase:
                 return None
             habit_id_val = habits[0]['id']
             habit_name = habits[0]['name']
-        
+
         # Generate date list
         start_dt = datetime.strptime(start_date, '%Y-%m-%d').date()
         end_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
         num_days = (end_dt - start_dt).days + 1
         date_list = [start_dt + timedelta(days=i) for i in range(num_days)]
-        
+
         # Get fail_by_default parameter for this habit
         fail_by_default: bool = self.get_param(habit_id_val, 'fail_by_default', '0') == '1'
-        
+
         # Get last tracking date if fail_by_default is enabled
         first_tracking_date = None
         if fail_by_default:
             first_tracking_date = self.get_first_tracking_date(habit_id_val)
             print(f'first_tracking_date: {first_tracking_date}')
-        
+
         # Get all records for habit in date range, ordered by date
-        cursor.execute('''SELECT date, status 
-                        FROM habit_tracking 
+        cursor.execute('''SELECT date, status
+                        FROM habit_tracking
                         WHERE habit_id = ? AND date BETWEEN ? AND ?
                         ORDER BY date''',
                      (habit_id_val, start_date, end_date))
-                     
+
         tracking_rows = cursor.fetchall()
-        tracking_dict = {datetime.strptime(row['date'], '%Y-%m-%d').date(): row['status'] 
+        tracking_dict = {datetime.strptime(row['date'], '%Y-%m-%d').date(): row['status']
                         for row in tracking_rows}
-        
+
         tracking = []
         for current_date in date_list:
             status = tracking_dict.get(current_date, 0)
             status = self.status_mapping(
-                status, 
-                habit_id_val, 
+                status,
+                habit_id_val,
                 fail_by_default=fail_by_default,
                 first_tracking_date=first_tracking_date,
                 current_date=current_date
             )
             tracking.append(status)
-        
+
         return {
             'id': habit_id_val,
             'name': habit_name,
@@ -275,7 +275,7 @@ class HabitsDatabase:
     def fetch_habits(self, start_date, end_date, habit_id=None):
         '''
         Fetch habits and their tracking data within a specified date range.
-        
+
         :param start_date: The start date as 'YYYY-MM-DD'.
         :param end_date: The end date as 'YYYY-MM-DD'.
         :param habit_id: Optional habit ID to fetch a specific habit.
@@ -290,22 +290,22 @@ class HabitsDatabase:
 
         num_days = (end_dt - start_dt).days + 1
         date_list = [(start_dt + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(num_days)]
-        
+
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         try:
             habits = self.get_habits_list(habit_id)
             habits_data = []
-            
+
             for habit in habits:
                 habit_data = self.fetch_habit(habit, start_date, end_date, cursor)
                 if habit_data:
                     habits_data.append(habit_data)
-                
+
         finally:
             conn.close()
-        
+
         return {
             'start_date': start_date,
             'end_date': end_date,
@@ -350,33 +350,33 @@ class HabitsDatabase:
         '''
         Generate CSV data for all habits in a human-readable format.
         Uses existing functions to get habits and parameters.
-        
+
         :yield: Each line of CSV data as a string
         '''
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         try:
             # Export habits and their tracking data
             habits = self.get_habits_list()
             for habit in habits:
                 yield f'habit:,{habit["name"]}'
-                
+
                 # Export tracking data for this habit - direct database query
-                cursor.execute('''SELECT date, status 
-                                FROM habit_tracking 
-                                WHERE habit_id = ? 
-                                ORDER BY date''', 
+                cursor.execute('''SELECT date, status
+                                FROM habit_tracking
+                                WHERE habit_id = ?
+                                ORDER BY date''',
                              (habit['id'],))
                 for track in cursor:
                     yield f'{track["date"]},{track["status"]}'
-                
+
                 yield ''
-            
+
             # Export all parameters (global and habit-specific)
             habits_with_global = [{'id': -1, 'name': 'global'}] + habits
             for habit in habits_with_global:
-                cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = ?', 
+                cursor.execute('SELECT param_name, value FROM habit_params WHERE habit_id = ?',
                              (habit['id'],))
                 first_param = cursor.fetchone()
                 if first_param:
@@ -385,46 +385,46 @@ class HabitsDatabase:
                     for param in cursor:
                         yield f'{param["param_name"]},{param["value"]}'
                     yield ''
-                
+
         finally:
             conn.close()
 
     def import_from_csv(self, csv_lines):
         '''
         Import habits data from CSV lines in human-readable format.
-        
+
         :param csv_lines: Iterator of CSV lines
         :raises Exception: If there is an error during import
         '''
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         try:
             conn.execute('BEGIN TRANSACTION')
-            
+
             # Clear and recreate tables
             self.clear_db()
             self.create_tables()
-            
+
             current_habit_id = None
             mode = None  # Can be 'habit' or 'params'
             habits_dict = {}  # Cache for habit name -> id mapping
-            
+
             for line in csv_lines:
                 line = line.strip()
                 if not line:  # Skip empty lines
                     continue
-                
+
                 # Split CSV line manually to handle quoted values
                 row = next(csv.reader([line]))
-                
+
                 if line.startswith('habit:'):
                     # New habit section
                     _, habit_name = row
                     current_habit_id = self.add_habit(habit_name)
                     habits_dict[habit_name] = current_habit_id
                     mode = 'habit'
-                    
+
                 elif line.startswith('habit_params:'):
                     # New parameters section
                     _, target = row
@@ -436,23 +436,23 @@ class HabitsDatabase:
                         current_habit_id = habits_dict.get(target)
                         if current_habit_id is None:
                             mode = None
-                    
+
                 elif mode == 'habit':
                     # Tracking data line
                     date, status = row
                     self.update_habit(current_habit_id, date, int(status))
-                    
+
                 elif mode == 'params':
                     # Parameter line
                     param_name, value = row
                     self.set_param(current_habit_id, param_name, value)
-            
+
             conn.commit()
-            
+
         except Exception as e:
             conn.rollback()
             raise Exception(f'Error during import: {str(e)}')
-        
+
         finally:
             conn.close()
 
@@ -483,18 +483,18 @@ class HabitsDatabase:
             cursor.execute('SELECT id FROM habits_list WHERE id = ?', (habit_id,))
             if not cursor.fetchone():
                 raise Exception(f'Habit with id {habit_id} not found')
-            
+
             # Check if new name already exists
-            cursor.execute('SELECT id FROM habits_list WHERE name = ? AND id != ?', 
+            cursor.execute('SELECT id FROM habits_list WHERE name = ? AND id != ?',
                           (new_name, habit_id))
             if cursor.fetchone():
                 raise Exception(f'Habit with name "{new_name}" already exists')
-            
+
             # Update habit name
             cursor.execute('UPDATE habits_list SET name = ? WHERE id = ?',
                           (new_name, habit_id))
             conn.commit()
-            
+
         finally:
             conn.close()
 
@@ -507,8 +507,8 @@ class HabitsDatabase:
         cursor = conn.cursor()
         sort_order = 'DESC' if last_date else 'ASC'
         try:
-            cursor.execute(f'''SELECT date FROM habit_tracking 
-                            WHERE habit_id = ? 
+            cursor.execute(f'''SELECT date FROM habit_tracking
+                            WHERE habit_id = ?
                             ORDER BY date {sort_order}
                             LIMIT 1''', (habit_id,))
             row = cursor.fetchone()
@@ -524,3 +524,18 @@ class HabitsDatabase:
     def get_last_tracking_date(self, habit_id) -> Optional[date]:
         '''Get last tracking date'''
         return self.get_first_tracking_date(habit_id, last_date=True)
+
+    def get_tracking_count(self):
+        """
+        Get total number of tracking records.
+
+        :return: Number of records in habit_tracking table
+        """
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            cursor.execute('SELECT COUNT(*) as count FROM habit_tracking')
+            result = cursor.fetchone()
+            return result['count']
+        finally:
+            conn.close()

@@ -1,24 +1,8 @@
 # habits_core.py
 from datetime import datetime, timedelta
 from habits_database import HabitsDatabase
-import json
+from habits_config import Config
 import os
-
-def load_config(config_path='config.json'):
-    """
-    Load configuration from JSON file.
-
-    :param config_path: Path to configuration file
-    :return: Configuration dictionary
-    """
-    try:
-        with open(config_path, 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return {}  # Return empty config if file doesn't exist
-    except Exception as e:
-        print(f"Error loading config: {e}")
-        return {}
 
 def get_database() -> HabitsDatabase:
     """
@@ -26,12 +10,8 @@ def get_database() -> HabitsDatabase:
 
     :return: Configured HabitsDatabase instance
     """
-    config = load_config()
-    # Get database path from environment variable, config file, or use default
-    db_path = os.environ.get('HABITS_WEB_DB_PATH', None) or \
-              config.get('habits_web_db_path', None) or \
-              'habits.db'
-
+    # Get database path from environment variable or use default from config
+    db_path = os.environ.get('HABITS_WEB_DB_PATH') or Config.HABITS_WEB_DB_PATH
     return HabitsDatabase(db_path)
 
 def init_db(database: HabitsDatabase):
@@ -66,6 +46,11 @@ def api_update_habit(data, database):
     if not all(k in data for k in ('habit_id', 'date', 'status')):
         return {'error': 'Missing required fields'}, 400
 
+    total_records = database.get_tracking_count()
+
+    if total_records >= Config.MAX_RECORDS:
+        return {'error': f"Maximum number of tracking records ({Config.MAX_RECORDS}) reached"}, 400
+
     try:
         database.update_habit(data['habit_id'], data['date'], data['status'])
         return {'status': 'success'}
@@ -80,6 +65,11 @@ def api_add_habit(json_data, database):
     :param database: Database instance
     :return: On success, a dictionary with a confirmation message and habit_id; on error, a tuple (error dict, status code).
     """
+    habits_list = database.get_habits_list()
+
+    if len(habits_list) >= Config.MAX_HABITS:
+        return {'error': f"Maximum number of habits ({Config.MAX_HABITS}) reached"}, 400
+
     name = json_data.get('name')
     if not name:
         return {'error': 'Habit name is required'}, 400
