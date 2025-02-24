@@ -40,7 +40,7 @@ def api_fetch_main_page(args, database: HabitsDatabase):
         data = database.fetch_habits(start_date, end_date, today=today)
 
         if database.is_readonly():
-            data['message'] = 'Database is in read-only mode'
+            data['message'] = 'ERROR: Database is in read-only mode! ⚠️🚫'
 
         return data
     except ValueError as e:
