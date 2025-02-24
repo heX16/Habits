@@ -1,11 +1,13 @@
 {# URL: http://server.test/habits/habit/2/options #}
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Habit Options</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
     <h1>Options for <span id="habit-name"></span></h1>
     <div class="nav-link-container">
@@ -31,7 +33,7 @@
     <script>
         const habitId = parseInt("{{ habit_id }}");
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Load habit name
             fetch(`../../api/habits/list`)
                 .then(response => response.json())
@@ -50,7 +52,7 @@
                 });
 
             // Handle checkbox change
-            document.getElementById('fail-by-default').addEventListener('change', function(e) {
+            document.getElementById('fail-by-default').addEventListener('change', function (e) {
                 const value = e.target.checked ? '1' : '0';
                 fetch(`../../api/param/fail_by_default/${habitId}`, {
                     method: 'POST',
@@ -81,19 +83,19 @@
                     new_name: newName
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    showRenameStatus(data.error, 'error');
-                } else {
-                    showRenameStatus('Habit renamed successfully', 'success');
-                    document.getElementById('habit-name').textContent = newName;
-                    document.getElementById('new-habit-name').value = '';
-                }
-            })
-            .catch(error => {
-                showRenameStatus('Error occurred while renaming', 'error');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showRenameStatus(data.error, 'error');
+                    } else {
+                        showRenameStatus('Habit renamed successfully', 'success');
+                        document.getElementById('habit-name').textContent = newName;
+                        document.getElementById('new-habit-name').value = '';
+                    }
+                })
+                .catch(error => {
+                    showRenameStatus('Error occurred while renaming', 'error');
+                });
         }
 
         function showRenameStatus(message, type) {
@@ -110,19 +112,20 @@
             border: 1px solid #ddd;
             border-radius: 5px;
         }
-        
+
         #new-habit-name {
             padding: 5px;
             margin-right: 10px;
         }
-        
+
         .error {
             color: red;
         }
-        
+
         .success {
             color: green;
         }
     </style>
 </body>
-</html> 
+
+</html>

@@ -173,7 +173,8 @@ class HabitsDatabase:
             conn.close()
 
     def status_mapping(self, value: int, habit_id: int, fail_by_default: bool = False,
-                      first_tracking_date: Optional[date] = None, current_date: Optional[date] = None) -> int:
+                      first_tracking_date: Optional[date] = None, current_date: Optional[date] = None,
+                      today: Optional[date] = None) -> int:
         '''
         Maps database status values to client-side values.
         Takes into account habit's fail_by_default parameter.
@@ -183,14 +184,24 @@ class HabitsDatabase:
         :param fail_by_default: The fail_by_default parameter value ('0' or '1')
         :param first_tracking_date: first tracking date for the habit
         :param current_date: Current date being processed
+        :param today: Today's date (for future date checks)
         :return: Mapped status value for client
         '''
-        if value == 0 and fail_by_default and first_tracking_date and current_date:
-            # Return fail status for dates up to first tracking date
-            # Return 0 for dates before first tracking date
-            return 9 if current_date > first_tracking_date else 0
-        elif value == 0:
-            return 9 if fail_by_default else 0
+        if fail_by_default:
+            # Don't mark future dates as failed
+            if value == 0 and current_date and today and current_date >= today:
+                return 0
+
+            # Handle dates relative to first tracking
+            if value == 0 and first_tracking_date and current_date:
+                # Return fail status for dates up to first tracking date
+                # Return 0 for dates before first tracking date
+                return 9 if current_date > first_tracking_date else 0
+
+            # Default fail_by_default behavior
+            if value == 0:
+                return 9
+
         return value
 
     def get_habits_list(self, habit_id=None):
@@ -218,7 +229,7 @@ class HabitsDatabase:
         conn.close()
         return habits_list
 
-    def fetch_habit(self, habit, start_date, end_date, cursor):
+    def fetch_habit(self, habit, start_date, end_date, cursor, today=None):
         '''
         Fetch tracking data for a single habit.
 
@@ -226,6 +237,7 @@ class HabitsDatabase:
         :param start_date: The start date as 'YYYY-MM-DD'
         :param end_date: The end date as 'YYYY-MM-DD'
         :param cursor: Database cursor
+        :param today: Current date for status mapping
         :return: Dictionary with habit data and tracking
         '''
         # Handle both habit dict and habit id
@@ -274,7 +286,8 @@ class HabitsDatabase:
                 habit_id_val,
                 fail_by_default=fail_by_default,
                 first_tracking_date=first_tracking_date,
-                current_date=current_date
+                current_date=current_date,
+                today=today  # Pass today's date
             )
             tracking.append(status)
 
@@ -284,15 +297,16 @@ class HabitsDatabase:
             'tracking': tracking
         }
 
-    def fetch_habits(self, start_date, end_date, habit_id=None):
+    def fetch_habits(self, start_date, end_date, habit_id=None, today=None):
         '''
         Fetch habits and their tracking data within a specified date range.
 
-        :param start_date: The start date as 'YYYY-MM-DD'.
-        :param end_date: The end date as 'YYYY-MM-DD'.
-        :param habit_id: Optional habit ID to fetch a specific habit.
-        :return: A dictionary containing the start_date, end_date, and a list of habits with tracking data.
-        :raises ValueError: If the date format is invalid.
+        :param start_date: The start date as 'YYYY-MM-DD'
+        :param end_date: The end date as 'YYYY-MM-DD'
+        :param habit_id: Optional habit ID to fetch a specific habit
+        :param today: Current date for status mapping
+        :return: A dictionary containing the start_date, end_date, and a list of habits with tracking data
+        :raises ValueError: If the date format is invalid
         '''
         try:
             start_dt = datetime.strptime(start_date, '%Y-%m-%d')
@@ -311,7 +325,7 @@ class HabitsDatabase:
             habits_data = []
 
             for habit in habits:
-                habit_data = self.fetch_habit(habit, start_date, end_date, cursor)
+                habit_data = self.fetch_habit(habit, start_date, end_date, cursor, today=today)
                 if habit_data:
                     habits_data.append(habit_data)
 
@@ -574,3 +588,11 @@ class HabitsDatabase:
             return result['count']
         finally:
             conn.close()
+
+    def is_readonly(self) -> bool:
+        """
+        Check if database is in read-only mode by checking file permissions.
+
+        :return: True if database is read-only, False otherwise
+        """
+        return not os.access(self.db_path, os.W_OK)

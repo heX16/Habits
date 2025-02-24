@@ -68,7 +68,7 @@ function formatDate(date) {
  * @param {string} endDate - End date in YYYY-MM-DD format
  */
 function fetchHabitsData(startDate, endDate) {
-    fetch(`./api/habits?start_date=${startDate}&end_date=${endDate}`)
+    fetch(`./api/main_page?start_date=${startDate}&end_date=${endDate}`)
         .then(response => {
             if (!response.ok) {
                 return response.json().then(data => {
@@ -78,6 +78,10 @@ function fetchHabitsData(startDate, endDate) {
             return response.json();
         })
         .then(data => {
+            // Show message if present
+            if (data.message) {
+                showMessage(data.message);
+            }
             renderTable(data, startDate, endDate);
         })
         .catch(error => {
@@ -551,4 +555,21 @@ function updateCellContent(cell, status) {
     else if (!hasButton && needsButton) {
         createCellMenuButton(cell);
     }
+}
+
+function showMessage(message) {
+    // Remove existing message if any
+    const existingMessage = document.getElementById('page-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+
+    // Create new message element
+    const messageDiv = document.createElement('div');
+    messageDiv.id = 'page-message';
+    messageDiv.textContent = message;
+
+    // Insert before the table
+    const table = document.getElementById('habits-table');
+    table.parentNode.insertBefore(messageDiv, table);
 }

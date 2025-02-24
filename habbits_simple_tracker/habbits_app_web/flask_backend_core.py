@@ -21,6 +21,7 @@ http://server.test/habits/api/habits/export       - GET: export habits to CSV
 http://server.test/habits/api/habits/import       - POST: import habits from CSV
 http://server.test/habits/api/param/<name>        - GET/POST: get/set global parameter
 http://server.test/habits/api/param/<name>/<id>   - GET/POST: get/set habit parameter
+http://server.test/habits/api/main_page          - GET: fetch main page data
 
 Static files:
 http://server.test/habits/static/script.js   - Main page script
@@ -32,7 +33,7 @@ http://server.test/habits/js/constants.js    - Generated constants
 """
 import os
 from flask import Flask, jsonify, request, render_template, send_file, Response, redirect, url_for
-from habits_core import init_db, api_fetch_habits, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits, api_rename_habit, prepare_js_constants, get_database
+from habits_core import init_db, api_fetch_habits, api_fetch_main_page, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits, api_rename_habit, prepare_js_constants, get_database
 from habits_database import HabitsDatabase
 
 def create_app():
@@ -213,6 +214,17 @@ def create_app():
         API endpoint to rename a habit.
         """
         result = api_rename_habit(request.get_json(), db)
+        if isinstance(result, tuple):
+            return jsonify(result[0]), result[1]
+        return jsonify(result)
+
+    @app.route('/api/main_page', methods=['GET'])
+    def api_get_main_page():
+        """
+        API endpoint to retrieve main page data.
+        Currently returns the same data as /api/habits endpoint.
+        """
+        result = api_fetch_main_page(request.args, db)
         if isinstance(result, tuple):
             return jsonify(result[0]), result[1]
         return jsonify(result)

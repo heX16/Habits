@@ -1,6 +1,7 @@
 {# URL: http://server.test/habits/options #}
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Options</title>
@@ -12,22 +13,23 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-        
+
         .habits-list button {
             margin-left: 10px;
         }
-        
+
         .backup-controls {
             display: flex;
             gap: 10px;
             margin: 10px 0;
         }
-        
+
         .option-item {
             margin: 10px 0;
         }
     </style>
 </head>
+
 <body>
     <h1>Options</h1>
     <div class="nav-link-container">
@@ -44,7 +46,7 @@
                 <button type="submit">Add Habit</button>
             </form>
         </div>
-        
+
         <div id="existing-habits-section">
             <h3>Existing Habits</h3>
             <ul id="habits-list" class="habits-list">
@@ -80,7 +82,7 @@
     <script src="{{ url_for('static', filename='options_habit_edit.js') }}"></script>
     <script>
         // Global options handling
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Load initial states
             const options = [
                 { id: 'test-option', param: 'test_option', type: 'bool' }
@@ -101,14 +103,14 @@
 
             // Handle checkbox changes
             options.forEach(option => {
-                document.getElementById(option.id).addEventListener('change', function(e) {
+                document.getElementById(option.id).addEventListener('change', function (e) {
                     let value;
                     if (option.type === 'bool') {
                         value = e.target.checked.toString();
                     } else if (option.type === 'number') {
                         value = e.target.checked ? '1' : '0';
                     }
-                    
+
                     fetch(`./api/param/${option.param}`, {
                         method: 'POST',
                         headers: {
@@ -122,11 +124,11 @@
             });
 
             // Setup import file handler
-            document.getElementById('import-file').addEventListener('change', function(e) {
+            document.getElementById('import-file').addEventListener('change', function (e) {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = function(e) {
+                    reader.onload = function (e) {
                         importHabits(e.target.result);
                     };
                     reader.readAsText(file);
@@ -160,20 +162,21 @@
                 method: 'POST',
                 body: csvData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert('Habits imported successfully');
-                    location.reload();
-                } else {
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Habits imported successfully');
+                        location.reload();
+                    } else {
+                        alert('Error importing habits');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
                     alert('Error importing habits');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error importing habits');
-            });
+                });
         }
     </script>
 </body>
-</html> 
+
+</html>

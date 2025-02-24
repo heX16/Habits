@@ -1,5 +1,5 @@
 # habits_core.py
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from habits_database import HabitsDatabase
 from habits_config import Config
 import os
@@ -20,6 +20,32 @@ def init_db(database: HabitsDatabase):
     """
     database.init_db()
 
+def api_fetch_main_page(args, database: HabitsDatabase):
+    """
+    Fetch main page data based on request arguments.
+    Currently returns the same data as api_fetch_habits.
+
+    :param args: Request arguments
+    :param database: Database instance
+    :return: Main page data or error tuple
+    """
+    start_date = args.get('start_date')
+    end_date = args.get('end_date')
+    today = date.today()
+
+    if not start_date or not end_date:
+        return {'error': 'Missing required parameters'}, 400
+
+    try:
+        data = database.fetch_habits(start_date, end_date, today=today)
+
+        if database.is_readonly():
+            data['message'] = 'Database is in read-only mode'
+
+        return data
+    except ValueError as e:
+        return {'error': str(e)}, 400
+
 def api_fetch_habits(args, database):
     """
     Fetch habits data based on request arguments.
@@ -27,6 +53,7 @@ def api_fetch_habits(args, database):
     start_date = args.get('start_date')
     end_date = args.get('end_date')
     habit_id = args.get('habit_id')
+    today = date.today()
 
     if habit_id:
         habit_id = int(habit_id)
@@ -35,7 +62,7 @@ def api_fetch_habits(args, database):
         return {'error': 'Missing required parameters'}, 400
 
     try:
-        return database.fetch_habits(start_date, end_date, habit_id)
+        return database.fetch_habits(start_date, end_date, habit_id, today=today)
     except ValueError as e:
         return {'error': str(e)}, 400
 
@@ -217,3 +244,4 @@ def api_set_param(param_name, data, habit_id=-1, database=None):
         return {'message': 'Parameter updated successfully'}
     except ValueError as e:
         return {'error': str(e)}, 400
+
