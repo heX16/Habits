@@ -190,7 +190,6 @@ def prepare_js_constants(database):
     habits_list = database.get_habits_list()
 
     constants = {
-        'singleClickMaxStatus': 3,
         'tableDaysCount': 10,
         'approximateHabitsCount': len(habits_list)
     }

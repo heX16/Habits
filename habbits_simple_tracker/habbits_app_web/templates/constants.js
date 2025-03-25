@@ -1,5 +1,4 @@
 // This file is generated automatically
-const singleClickMaxStatus = {{ constants.singleClickMaxStatus }};
 const tableDaysCount = {{ constants.tableDaysCount }};
 const approximateHabitsCount = {{ constants.approximateHabitsCount }}; // Approximate number of habits
 
