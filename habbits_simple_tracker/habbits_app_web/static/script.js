@@ -26,6 +26,9 @@ let lastClickTime = 0;
 
 const statusMenu = new FloatingMenu();
 
+// Store the habits data for reference
+let habitsData = {};
+
 // Add at the beginning of the file
 const notifications = new NotificationManager();
 
@@ -78,6 +81,9 @@ function fetchHabitsData(startDate, endDate) {
             return response.json();
         })
         .then(data => {
+            // Store the habits data globally
+            habitsData = data;
+
             // Show message if present
             if (data.message) {
                 showMessage(data.message);
@@ -217,24 +223,50 @@ function handleCellClick(cell, e) {
 
         let currentStatus = parseInt(cell.dataset.status);
         let newStatus;
-        switch (currentStatus) {
-            case 0:
-                newStatus = 1; // not set -> done mini
-                break;
-            case 1:
-                newStatus = 2; // done mini -> done
-                break;
-            case 2:
-                newStatus = 3; // done -> done elite
-                break;
-            case 3:
-                newStatus = 9; // done elite -> fail
-                break;
-            case 9:
-                newStatus = 0; // fail -> not set
-                break;
-            default:
-                newStatus = 0;
+
+        // Get the habit_id from the cell
+        const habitId = cell.dataset.habitId;
+
+        // Get single_checkbox flag from the habit data
+        const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+        const isSingleCheckbox = habit && habit.single_checkbox;
+
+        if (isSingleCheckbox) {
+            // In single checkbox mode, toggle between 0, 2 and 9
+            switch (currentStatus) {
+                case 0:
+                    newStatus = 2; // not set -> done
+                    break;
+                case 2:
+                    newStatus = 9; // done -> fail
+                    break;
+                case 9:
+                    newStatus = 0; // fail -> not set
+                    break;
+                default:
+                    newStatus = 0;
+            }
+        } else {
+            // Normal mode with all statuses
+            switch (currentStatus) {
+                case 0:
+                    newStatus = 1; // not set -> done mini
+                    break;
+                case 1:
+                    newStatus = 2; // done mini -> done
+                    break;
+                case 2:
+                    newStatus = 3; // done -> done elite
+                    break;
+                case 3:
+                    newStatus = 9; // done elite -> fail
+                    break;
+                case 9:
+                    newStatus = 0; // fail -> not set
+                    break;
+                default:
+                    newStatus = 0;
+            }
         }
 
         updateCellContent(cell, newStatus);
@@ -388,7 +420,14 @@ function updateHabitCell(cell, status, habitId, date, today) {
  * @param {MouseEvent} event - The mouse event (used for positioning).
  */
 function showStatusMenu(cell, event) {
-    const items = getStatusOptions().map(option => ({
+    // Get the habit_id from the cell
+    const habitId = cell.dataset.habitId;
+
+    // Get single_checkbox flag from the habit data
+    const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+    const isSingleCheckbox = habit && habit.single_checkbox;
+
+    const items = getStatusOptions(isSingleCheckbox).map(option => ({
         icon: option.icon || option.as_char,
         label: option.label,
         onClick: () => {

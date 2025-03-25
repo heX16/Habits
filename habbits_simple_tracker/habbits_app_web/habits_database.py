@@ -303,7 +303,8 @@ class HabitsDatabase:
         return {
             'id': habit_id_val,
             'name': habit_name,
-            'tracking': tracking
+            'tracking': tracking,
+            'single_checkbox': single_checkbox
         }
 
     def fetch_habits(self, start_date, end_date, habit_id=None, today=None):
