@@ -244,6 +244,16 @@ class HabitsDatabase:
         :param cursor: Database cursor
         :param today: Current date for status mapping
         :return: Dictionary with habit data and tracking
+
+        Return dict:
+        ```
+        {
+        "id": 1,
+        "name": "Test",
+        "single_checkbox": false,
+        "tracking": [9,9,9,9,0,0,0,0,0,0]
+        }
+        ```
         '''
         # Handle both habit dict and habit id
         if isinstance(habit, dict):
@@ -303,8 +313,8 @@ class HabitsDatabase:
         return {
             'id': habit_id_val,
             'name': habit_name,
+            'single_checkbox': single_checkbox,
             'tracking': tracking,
-            'single_checkbox': single_checkbox
         }
 
     def fetch_habits(self, start_date, end_date, habit_id=None, today=None):
@@ -317,6 +327,22 @@ class HabitsDatabase:
         :param today: Current date for status mapping
         :return: A dictionary containing the start_date, end_date, and a list of habits with tracking data
         :raises ValueError: If the date format is invalid
+
+        Return dict:
+        ```
+        {
+        "end_date": "2025-03-30",
+        "start_date": "2025-03-21",
+        "habits": [
+            {
+            "id": 1,
+            "name": "Test",
+            "tracking": [9,9,9,9,0,0,0,0,0,0]
+            },
+            ...
+        ]
+        }
+        ```
         '''
         try:
             start_dt = datetime.strptime(start_date, '%Y-%m-%d')
