@@ -12,7 +12,7 @@ class HabitsDatabase:
     GLOBAL_PARAMS_ID = -1
 
     # Parameters that can be set for individual habits
-    VALID_HABIT_PARAMS = {'fail_by_default'}
+    VALID_HABIT_PARAMS = {'fail_by_default', 'single_checkbox'}
 
     # Parameters that can only be set globally
     VALID_GLOBAL_PARAMS = {
@@ -174,7 +174,7 @@ class HabitsDatabase:
 
     def status_mapping(self, value: int, habit_id: int, fail_by_default: bool = False,
                       first_tracking_date: Optional[date] = None, current_date: Optional[date] = None,
-                      today: Optional[date] = None) -> int:
+                      today: Optional[date] = None, single_checkbox: bool = False) -> int:
         '''
         Maps database status values to client-side values.
         Takes into account habit's fail_by_default parameter.
@@ -185,8 +185,13 @@ class HabitsDatabase:
         :param first_tracking_date: first tracking date for the habit
         :param current_date: Current date being processed
         :param today: Today's date (for future date checks)
+        :param single_checkbox: Whether the habit uses only a single checkbox
         :return: Mapped status value for client
         '''
+        # If single_checkbox is enabled, map all "done" statuses to 2 ("done")
+        if single_checkbox and value in [1, 3]:  # If status is "done mini" or "done elite"
+            return 2  # Return "done"
+
         if fail_by_default:
             # Don't mark future dates as failed
             if value == 0 and current_date and today and current_date >= today:
@@ -261,6 +266,9 @@ class HabitsDatabase:
         # Get fail_by_default parameter for this habit
         fail_by_default: bool = self.get_param(habit_id_val, 'fail_by_default', '0') == '1'
 
+        # Get single_checkbox parameter for this habit
+        single_checkbox: bool = self.get_param(habit_id_val, 'single_checkbox', '0') == '1'
+
         # Get last tracking date if fail_by_default is enabled
         first_tracking_date = None
         if fail_by_default:
@@ -287,7 +295,8 @@ class HabitsDatabase:
                 fail_by_default=fail_by_default,
                 first_tracking_date=first_tracking_date,
                 current_date=current_date,
-                today=today  # Pass today's date
+                today=today,  # Pass today's date
+                single_checkbox=single_checkbox
             )
             tracking.append(status)
 

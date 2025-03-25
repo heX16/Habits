@@ -23,6 +23,12 @@
         </div>
 
         <div class="option-item">
+            <label>
+                <input type="checkbox" id="single-checkbox"> Single checkbox mode (Only one "done" status available)
+            </label>
+        </div>
+
+        <div class="option-item">
             <h3>Rename Habit</h3>
             <input type="text" id="new-habit-name" placeholder="New name">
             <button onclick="renameHabit()">Rename</button>
@@ -51,10 +57,31 @@
                     document.getElementById('fail-by-default').checked = data.value === '1';
                 });
 
+            // Load single_checkbox parameter
+            fetch(`../../api/param/single_checkbox/${habitId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('single-checkbox').checked = data.value === '1';
+                });
+
             // Handle checkbox change
             document.getElementById('fail-by-default').addEventListener('change', function (e) {
                 const value = e.target.checked ? '1' : '0';
                 fetch(`../../api/param/fail_by_default/${habitId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        value: value
+                    })
+                });
+            });
+
+            // Handle single checkbox change
+            document.getElementById('single-checkbox').addEventListener('change', function (e) {
+                const value = e.target.checked ? '1' : '0';
+                fetch(`../../api/param/single_checkbox/${habitId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
