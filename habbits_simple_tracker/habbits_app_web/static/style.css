@@ -4,7 +4,7 @@
 
 body {
     font-family: Arial, sans-serif;
-    margin: 20px;
+    margin: 1.25rem;
 }
 
 h1,
@@ -15,7 +15,7 @@ h2 {
 table {
     border-collapse: collapse;
     width: 100%;
-    margin-top: 20px;
+    margin-top: 1.25rem;
 }
 
 table,
@@ -23,16 +23,22 @@ th,
 td {
     border: 1px solid #ccc;
     text-align: center;
-    padding: 5px;
+    padding: 0.3125rem;
 }
 
 th {
     background-color: #f2f2f2;
 }
 
+/* Global style for standard buttons in the application.
+   Used for buttons on pages:
+   - "Rename" button in habit_options.html
+   - "Add Habit", "Export Habits", "Import Habits" buttons in options.html
+*/
 button {
-    padding: 5px 10px;
-    margin-left: 5px;
+    padding: 0.3125rem 0.625rem;
+    margin-left: 0.0625rem;
+    margin-right: 0.0625rem;
 }
 
 .current-day {
@@ -58,7 +64,7 @@ button {
 
 .calendar-table {
     border-collapse: collapse;
-    min-width: 250px;
+    min-width: 15.625rem;
 }
 
 .calendar-table caption {
@@ -73,23 +79,23 @@ button {
 
 .calendar-table td {
     position: relative;
-    height: 26px;
-    width: 26px;
-    padding: 2px;
+    height: 1.625rem;
+    width: 1.625rem;
+    padding: 0.125rem;
     text-align: center;
     vertical-align: middle;
 }
 
 .calendar-table td span.status-indicator {
     position: absolute;
-    bottom: 1px;
-    right: 1px;
+    bottom: 0.0625rem;
+    right: 0.0625rem;
 }
 
 .calendar-table td span:first-child {
     position: absolute;
-    top: 1px;
-    left: 1px;
+    top: 0.0625rem;
+    left: 0.0625rem;
 }
 
 .calendar-table td.empty {
@@ -124,7 +130,7 @@ button {
 
 .firework {
     position: fixed;
-    font-size: 20px;
+    font-size: 1.25rem;
     animation: firework 1s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
     pointer-events: none;
     z-index: 1000;
@@ -169,25 +175,25 @@ button {
 
 .calendar-table td {
     position: relative;
-    height: 48px;
-    width: 48px;
+    height: 3rem;
+    width: 3rem;
     text-align: center;
     vertical-align: middle;
-    padding: 2px;
+    padding: 0.125rem;
     box-sizing: border-box;  /* Учитываем padding в размере ячейки */
 }
 
 .calendar-table td span.status-indicator {
     position: absolute;
-    bottom: 2px;
-    right: 2px;
+    bottom: 0.125rem;
+    right: 0.125rem;
     font-size: 0.8em;
 }
 
 .calendar-table td span:first-child {
     position: absolute;
-    top: 2px;
-    left: 2px;
+    top: 0.125rem;
+    left: 0.125rem;
 }
 
 .calendar-table td.current-day {
@@ -198,13 +204,13 @@ button {
 .floating-menu {
     background-color: white;
     border: 1px solid #ccc;
-    padding: 5px;
+    padding: 0.3125rem;
     box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
     z-index: 1000;
 }
 
 .menu-item {
-    padding: 4px 8px;
+    padding: 0.25rem 0.5rem;
     border-bottom: 1px solid #ddd;
     display: flex;
     align-items: center;
@@ -218,20 +224,20 @@ button {
     background-color: #f5f5f5;
 }
 
-/* Стиль для всех ячеек таблицы */
+/* Style for all table cells */
 td {
     position: relative;
     /* For correct button positioning */
 }
 
-/* Стиль для кнопки меню в ячейке */
+/* Style for the cell menu button */
 .cell-menu-button {
     position: absolute;
-    right: 2px;
-    top: 2px;
-    width: 24px;
-    height: 24px;
-    font-size: 10px;
+    right: 0.125rem;
+    top: 0.125rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.625rem;
     padding: 0;
     border: 1px solid #ccc;
     background: #fff;
@@ -257,25 +263,25 @@ th.current-day {
 .settings-icon {
     font-size: 0.4em;
     vertical-align: middle;
-    margin-left: 8px;
+    margin-left: 0.5rem;
 }
 
 #notification-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 1.25rem;
+    right: 1.25rem;
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.625rem;
 }
 
 .notification {
-    padding: 15px 40px 15px 20px;
-    border-radius: 4px;
+    padding: 0.9375rem 2.5rem 0.9375rem 1.25rem;
+    border-radius: 0.25rem;
     color: white;
     position: relative;
-    min-width: 280px;
+    min-width: 17.5rem;
     animation: notification-slide-in 0.3s ease-out;
 }
 
@@ -293,15 +299,15 @@ th.current-day {
 
 .notification-close {
     position: absolute;
-    right: 10px;
+    right: 0.625rem;
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     color: white;
-    font-size: 20px;
+    font-size: 1.25rem;
     cursor: pointer;
-    padding: 0 5px;
+    padding: 0 0.3125rem;
 }
 
 .notification-hiding {
@@ -361,15 +367,15 @@ table#habits-table th {
 
 /* Стили из habit_options.html */
 .habit-options-option-item {
-    margin: 20px 0;
-    padding: 15px;
+    margin: 1.25rem 0;
+    padding: 0.9375rem;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 0.3125rem;
 }
 
 #new-habit-name {
-    padding: 5px;
-    margin-right: 10px;
+    padding: 0.3125rem;
+    margin-right: 0.625rem;
 }
 
 .habit-options-error {
@@ -382,20 +388,20 @@ table#habits-table th {
 
 /* Стили из index.html */
 #index-page-message {
-    margin: 10px 0;
-    padding: 10px;
+    margin: 0.625rem 0;
+    padding: 0.625rem;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 0.3125rem;
     background-color: #f8f8f8;
     text-align: center;
 }
 
 /* Стили из options.html */
 .options-section {
-    margin: 20px 0;
-    padding: 20px;
+    margin: 1.25rem 0;
+    padding: 1.25rem;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 0.3125rem;
 }
 
 .options-habits-list {
@@ -406,35 +412,35 @@ table#habits-table th {
 .options-habits-list li {
     display: flex;
     align-items: center;
-    margin: 10px 0;
-    padding: 5px;
+    margin: 0.625rem 0;
+    padding: 0.3125rem;
     border: 1px solid #eee;
-    border-radius: 3px;
+    border-radius: 0.1875rem;
 }
 
 .options-habit-name {
     flex-grow: 1;
-    margin-right: 10px;
+    margin-right: 0.625rem;
 }
 
 .options-habit-buttons {
     display: flex;
-    gap: 5px;
-    min-width: 200px;
+    gap: 0.0625rem;
+    min-width: 12.5rem;
     justify-content: flex-end;
 }
 
 .options-habit-buttons button {
-    padding: 2px 8px;
-    min-width: 30px;
+    padding: 0.125rem 0.5rem;
+    min-width: 1.875rem;
 }
 
 .options-backup-controls {
     display: flex;
-    gap: 10px;
-    margin: 10px 0;
+    gap: 0.625rem;
+    margin: 0.625rem 0;
 }
 
 .options-option-item {
-    margin: 10px 0;
+    margin: 0.625rem 0;
 }
