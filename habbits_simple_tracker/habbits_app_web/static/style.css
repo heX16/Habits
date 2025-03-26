@@ -30,17 +30,6 @@ th {
     background-color: #f2f2f2;
 }
 
-/* Global style for standard buttons in the application.
-   Used for buttons on pages:
-   - "Rename" button in habit_options.html
-   - "Add Habit", "Export Habits", "Import Habits" buttons in options.html
-*/
-button {
-    padding: 0.3rem 0.6rem;
-    margin-left: 0.05rem;
-    margin-right: 0.05rem;
-}
-
 .current-day {
     background-color: #fff3cd;
     font-weight: bold;
@@ -432,8 +421,17 @@ table#habits-table th {
 
 /* Button styles for option areas */
 .option-button {
-    padding: 0.1rem 0.5rem;
-    min-width: 1.9rem;
+    padding: 0.3rem 0.6rem;
+    margin-left: 0.05rem;
+    margin-right: 0.05rem;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 0.2rem;
+    cursor: pointer;
+}
+
+.option-button:hover {
+    background-color: #e0e0e0;
 }
 
 .options-backup-controls {
