@@ -180,6 +180,34 @@ def api_rename_habit(json_data, database):
     except Exception as e:
         return {'error': str(e)}, 400
 
+def api_reorder_habit(json_data, database):
+    """
+    Process JSON data to reorder a habit.
+
+    :param json_data: A dictionary with JSON data from the request
+    :param database: Database instance
+    :return: On success, a dictionary with a confirmation message; on error, a tuple (error dict, status code)
+    """
+    habit_id = json_data.get('habit_id')
+    direction = json_data.get('direction')
+
+    if habit_id is None or direction is None:
+        return {'error': 'habit_id and direction are required'}, 400
+
+    if direction not in ['up', 'down']:
+        return {'error': 'direction must be "up" or "down"'}, 400
+
+    try:
+        habit_id = int(habit_id)
+    except ValueError:
+        return {'error': 'Invalid habit_id'}, 400
+
+    try:
+        database.reorder_habit(habit_id, direction)
+        return {'message': 'Habit reordered successfully'}
+    except Exception as e:
+        return {'error': str(e)}, 400
+
 def prepare_js_constants(database):
     """
     Prepare data for JavaScript constants template.

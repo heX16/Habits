@@ -127,11 +127,19 @@ class HabitsDatabase:
         '''
         conn = self.connect()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO habits_list (name) VALUES (?)', (name,))
-        conn.commit()
-        habit_id = cursor.lastrowid
-        conn.close()
-        return habit_id
+        try:
+            # Get maximum sequence
+            cursor.execute('SELECT MAX(sequence) as max_seq FROM habits_list')
+            max_seq = cursor.fetchone()['max_seq']
+            new_sequence = (max_seq or 0) + 10
+
+            cursor.execute('INSERT INTO habits_list (name, sequence) VALUES (?, ?)',
+                         (name, new_sequence))
+            conn.commit()
+            habit_id = cursor.lastrowid
+            return habit_id
+        finally:
+            conn.close()
 
     def delete_habit(self, habit_id):
         '''
@@ -659,3 +667,44 @@ class HabitsDatabase:
 
         finally:
             conn.close()
+
+    def reorder_habit(self, habit_id, direction):
+        '''
+        Change habit sequence by moving it up or down in the list.
+
+        :param habit_id: The ID of the habit to reorder
+        :param direction: Direction to move ('up' or 'down')
+        :raises Exception: If habit not found or cannot be moved in specified direction
+        '''
+        # Get ordered list of habits
+        habits = self.get_habits_list()
+
+        # Find current habit index
+        current_index = -1
+        for i, habit in enumerate(habits):
+            if habit['id'] == habit_id:
+                current_index = i
+                break
+
+        if current_index == -1:
+            raise Exception(f'Habit with id {habit_id} not found')
+
+        # Check if we can move in specified direction
+        if direction == 'up' and current_index == 0:
+            raise Exception('Cannot move first habit up')
+        if direction == 'down' and current_index == len(habits) - 1:
+            raise Exception('Cannot move last habit down')
+
+        # Calculate target index
+        target_index = current_index - 1 if direction == 'up' else current_index + 1
+
+        # Swap sequences
+        current_sequence = habits[current_index]['sequence']
+        target_sequence = habits[target_index]['sequence']
+
+        # Check if sequences are equal, try fix it (not ideal, but it works)
+        if current_sequence == target_sequence:
+            current_sequence += 1
+
+        self.set_habit_sequence(habit_id, target_sequence)
+        self.set_habit_sequence(habits[target_index]['id'], current_sequence)

@@ -46,9 +46,35 @@ function renderHabitsList(habits) {
     const habitsList = document.getElementById('habits-list');
     habitsList.innerHTML = '';
 
-    habits.forEach(habit => {
+    habits.forEach((habit, index) => {
         const li = document.createElement('li');
-        li.textContent = habit.name + ' ';
+
+        // Create name span
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'habit-name';
+        nameSpan.textContent = habit.name;
+        li.appendChild(nameSpan);
+
+        // Create buttons container
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.className = 'habit-buttons';
+
+        // Create reorder buttons
+        const upButton = document.createElement('button');
+        upButton.textContent = '↑';
+        upButton.title = 'Move up';
+        upButton.disabled = index === 0;
+        upButton.addEventListener('click', function() {
+            reorderHabit(habit.id, 'up');
+        });
+
+        const downButton = document.createElement('button');
+        downButton.textContent = '↓';
+        downButton.title = 'Move down';
+        downButton.disabled = index === habits.length - 1;
+        downButton.addEventListener('click', function() {
+            reorderHabit(habit.id, 'down');
+        });
 
         // Create options button
         const optionsButton = document.createElement('button');
@@ -64,8 +90,14 @@ function renderHabitsList(habits) {
             deleteHabit(this.dataset.habitId);
         });
 
-        li.appendChild(optionsButton);
-        li.appendChild(deleteButton);
+        // Add all buttons to container
+        buttonsContainer.appendChild(upButton);
+        buttonsContainer.appendChild(downButton);
+        buttonsContainer.appendChild(optionsButton);
+        buttonsContainer.appendChild(deleteButton);
+
+        // Add container to list item
+        li.appendChild(buttonsContainer);
         habitsList.appendChild(li);
     });
 }
@@ -112,4 +144,33 @@ function deleteHabit(habitId) {
             console.error('Error deleting habit:', error);
         });
     }
+}
+
+/**
+ * Sends a request to reorder a habit.
+ * @param {string} habitId - The ID of the habit to reorder.
+ * @param {string} direction - The direction to move ('up' or 'down').
+ */
+function reorderHabit(habitId, direction) {
+    fetch('./api/habits/reorder', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            habit_id: parseInt(habitId),
+            direction: direction
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Error reordering habit:', data.error);
+        } else {
+            loadHabits();
+        }
+    })
+    .catch(error => {
+        console.error('Error reordering habit:', error);
+    });
 }

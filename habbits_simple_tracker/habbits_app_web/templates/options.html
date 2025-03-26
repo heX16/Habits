@@ -14,8 +14,35 @@
             border-radius: 5px;
         }
 
-        .habits-list button {
-            margin-left: 10px;
+        .habits-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .habits-list li {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 5px;
+            border: 1px solid #eee;
+            border-radius: 3px;
+        }
+
+        .habit-name {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .habit-buttons {
+            display: flex;
+            gap: 5px;
+            min-width: 200px;
+            justify-content: flex-end;
+        }
+
+        .habit-buttons button {
+            padding: 2px 8px;
+            min-width: 30px;
         }
 
         .backup-controls {
