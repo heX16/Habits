@@ -142,11 +142,11 @@ button {
     margin: 2rem;
 }
 
-.option-item {
+.global-option-item {
     margin: 1rem 0;
 }
 
-.option-item label {
+.global-option-item label {
     cursor: pointer;
 }
 

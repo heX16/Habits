@@ -16,19 +16,19 @@
     </div>
 
     <div class="options-container">
-        <div class="option-item">
+        <div class="habit-options-option-item">
             <label>
                 <input type="checkbox" id="fail-by-default"> Fail by default (An empty cell is considered a failure)
             </label>
         </div>
 
-        <div class="option-item">
+        <div class="habit-options-option-item">
             <label>
                 <input type="checkbox" id="single-checkbox"> Single checkbox mode (Only one "done" status available)
             </label>
         </div>
 
-        <div class="option-item">
+        <div class="habit-options-option-item">
             <h3>Rename Habit</h3>
             <input type="text" id="new-habit-name" placeholder="New name">
             <button onclick="renameHabit()">Rename</button>
@@ -128,12 +128,12 @@
         function showRenameStatus(message, type) {
             const statusDiv = document.getElementById('rename-status');
             statusDiv.textContent = message;
-            statusDiv.className = type;
+            statusDiv.className = type === 'error' ? 'habit-options-error' : 'habit-options-success';
         }
     </script>
 
     <style>
-        .option-item {
+        .habit-options-option-item {
             margin: 20px 0;
             padding: 15px;
             border: 1px solid #ddd;
@@ -145,11 +145,11 @@
             margin-right: 10px;
         }
 
-        .error {
+        .habit-options-error {
             color: red;
         }
 
-        .success {
+        .habit-options-success {
             color: green;
         }
     </style>

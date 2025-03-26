@@ -51,13 +51,13 @@ function renderHabitsList(habits) {
 
         // Create name span
         const nameSpan = document.createElement('span');
-        nameSpan.className = 'habit-name';
+        nameSpan.className = 'options-habit-name';
         nameSpan.textContent = habit.name;
         li.appendChild(nameSpan);
 
         // Create buttons container
         const buttonsContainer = document.createElement('div');
-        buttonsContainer.className = 'habit-buttons';
+        buttonsContainer.className = 'options-habit-buttons';
 
         // Create reorder buttons
         const upButton = document.createElement('button');

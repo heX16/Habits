@@ -7,19 +7,19 @@
     <title>Options</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .section {
+        .options-section {
             margin: 20px 0;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
 
-        .habits-list {
+        .options-habits-list {
             list-style: none;
             padding: 0;
         }
 
-        .habits-list li {
+        .options-habits-list li {
             display: flex;
             align-items: center;
             margin: 10px 0;
@@ -28,30 +28,30 @@
             border-radius: 3px;
         }
 
-        .habit-name {
+        .options-habit-name {
             flex-grow: 1;
             margin-right: 10px;
         }
 
-        .habit-buttons {
+        .options-habit-buttons {
             display: flex;
             gap: 5px;
             min-width: 200px;
             justify-content: flex-end;
         }
 
-        .habit-buttons button {
+        .options-habit-buttons button {
             padding: 2px 8px;
             min-width: 30px;
         }
 
-        .backup-controls {
+        .options-backup-controls {
             display: flex;
             gap: 10px;
             margin: 10px 0;
         }
 
-        .option-item {
+        .options-option-item {
             margin: 10px 0;
         }
     </style>
@@ -64,7 +64,7 @@
     </div>
 
     <!-- Habits Management Section -->
-    <div id="habits" class="section">
+    <div id="habits" class="options-section">
         <h2>Habits Management</h2>
         <div id="add-habit-section">
             <h3>Add New Habit</h3>
@@ -76,16 +76,16 @@
 
         <div id="existing-habits-section">
             <h3>Existing Habits</h3>
-            <ul id="habits-list" class="habits-list">
+            <ul id="habits-list" class="options-habits-list">
                 <!-- List of habits will be dynamically generated -->
             </ul>
         </div>
     </div>
 
     <!-- Backup/Restore Section -->
-    <div id="backup" class="section">
+    <div id="backup" class="options-section">
         <h2>Backup & Restore</h2>
-        <div class="backup-controls">
+        <div class="options-backup-controls">
             <button onclick="exportHabits()">Export Habits</button>
             <input type="file" id="import-file" accept=".csv" style="display: none">
             <button onclick="document.getElementById('import-file').click()">Import Habits</button>
@@ -93,13 +93,13 @@
     </div>
 
     <!-- Global Options Section -->
-    <div id="settings" class="section">
+    <div id="settings" class="options-section">
         <h2>Global Options</h2>
-        <div class="option-item">
+        <div class="options-option-item">
             <strong>Database path:</strong> {{ db_path }}
         </div>
         <hr>
-        <div class="option-item">
+        <div class="options-option-item">
             <label>
                 <input type="checkbox" id="test-option"> Test option
             </label>

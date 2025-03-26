@@ -614,14 +614,14 @@ function updateCellContent(cell, status) {
 
 function showMessage(message) {
     // Remove existing message if any
-    const existingMessage = document.getElementById('page-message');
+    const existingMessage = document.getElementById('index-page-message');
     if (existingMessage) {
         existingMessage.remove();
     }
 
     // Create new message element
     const messageDiv = document.createElement('div');
-    messageDiv.id = 'page-message';
+    messageDiv.id = 'index-page-message';
     messageDiv.textContent = message;
 
     // Insert before the table
