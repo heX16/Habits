@@ -70,7 +70,8 @@ class HabitsDatabase:
 
             cursor.execute('CREATE TABLE habits_list ('
                          'id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                         'name TEXT NOT NULL UNIQUE)')
+                         'name TEXT NOT NULL UNIQUE, '
+                         'sequence INTEGER NOT NULL DEFAULT 0)')
 
             cursor.execute('CREATE TABLE habit_tracking ('
                          'habit_id INTEGER, '
@@ -221,16 +222,16 @@ class HabitsDatabase:
         cursor = conn.cursor()
 
         if habit_id:
-            cursor.execute('SELECT id, name FROM habits_list WHERE id = ?', (habit_id,))
+            cursor.execute('SELECT id, name, sequence FROM habits_list WHERE id = ?', (habit_id,))
             habits = cursor.fetchall()
             if not habits:
                 conn.close()
                 raise Exception(f'Habit with id {habit_id} not found')
         else:
-            cursor.execute('SELECT id, name FROM habits_list')
+            cursor.execute('SELECT id, name, sequence FROM habits_list ORDER BY sequence, id')
             habits = cursor.fetchall()
 
-        habits_list = [{'id': habit['id'], 'name': habit['name']} for habit in habits]
+        habits_list = [{'id': habit['id'], 'name': habit['name'], 'sequence': habit['sequence']} for habit in habits]
         conn.close()
         return habits_list
 
@@ -445,7 +446,7 @@ class HabitsDatabase:
             # Export habits and their tracking data
             habits = self.get_habits_list()
             for habit in habits:
-                yield f'habit:,{habit["name"]}'
+                yield f'habit:,{habit["name"]},{habit["sequence"]}'
 
                 # Export tracking data for this habit - direct database query
                 cursor.execute('''SELECT date, status
@@ -453,6 +454,7 @@ class HabitsDatabase:
                                 WHERE habit_id = ?
                                 ORDER BY date''',
                              (habit['id'],))
+
                 for track in cursor:
                     yield f'{track["date"]},{track["status"]}'
 
@@ -505,8 +507,9 @@ class HabitsDatabase:
 
                 if line.startswith('habit:'):
                     # New habit section
-                    _, habit_name = row
+                    _, habit_name, habit_sequence = row
                     current_habit_id = self.add_habit(habit_name)
+                    self.set_habit_sequence(current_habit_id, habit_sequence)
                     habits_dict[habit_name] = current_habit_id
                     mode = 'habit'
 
@@ -632,3 +635,27 @@ class HabitsDatabase:
         :return: True if database is read-only, False otherwise
         """
         return not os.access(self.db_path, os.W_OK)
+
+    def set_habit_sequence(self, habit_id, sequence):
+        '''
+        Set sequence number for a habit.
+
+        :param habit_id: The ID of the habit
+        :param sequence: New sequence number
+        :raises Exception: If habit not found
+        '''
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            # Check if habit exists
+            cursor.execute('SELECT id FROM habits_list WHERE id = ?', (habit_id,))
+            if not cursor.fetchone():
+                raise Exception(f'Habit with id {habit_id} not found')
+
+            # Update sequence
+            cursor.execute('UPDATE habits_list SET sequence = ? WHERE id = ?',
+                          (sequence, habit_id))
+            conn.commit()
+
+        finally:
+            conn.close()

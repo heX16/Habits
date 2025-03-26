@@ -96,18 +96,20 @@ function addHabit(habitName) {
  * @param {string} habitId - The ID of the habit to delete.
  */
 function deleteHabit(habitId) {
-    fetch('./api/habits/delete', {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ habit_id: parseInt(habitId) })
-    })
-    .then(response => response.json())
-    .then(data => {
-        loadHabits();
-    })
-    .catch(error => {
-        console.error('Error deleting habit:', error);
-    });
+    if (confirm('Are you sure you want to delete this habit?')) {
+        fetch('./api/habits/delete', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ habit_id: parseInt(habitId) })
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadHabits();
+        })
+        .catch(error => {
+            console.error('Error deleting habit:', error);
+        });
+    }
 }
