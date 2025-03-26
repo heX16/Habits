@@ -61,6 +61,7 @@ function renderHabitsList(habits) {
 
         // Create reorder buttons
         const upButton = document.createElement('button');
+        upButton.className = 'option-button';
         upButton.textContent = '↑';
         upButton.title = 'Move up';
         upButton.disabled = index === 0;
@@ -69,6 +70,7 @@ function renderHabitsList(habits) {
         });
 
         const downButton = document.createElement('button');
+        downButton.className = 'option-button';
         downButton.textContent = '↓';
         downButton.title = 'Move down';
         downButton.disabled = index === habits.length - 1;
@@ -78,12 +80,14 @@ function renderHabitsList(habits) {
 
         // Create options button
         const optionsButton = document.createElement('button');
+        optionsButton.className = 'option-button';
         optionsButton.textContent = 'Options';
         optionsButton.addEventListener('click', function() {
             window.location.href = `habit/${habit.id}/options`;
         });
 
         const deleteButton = document.createElement('button');
+        deleteButton.className = 'option-button';
         deleteButton.textContent = 'Delete';
         deleteButton.dataset.habitId = habit.id;
         deleteButton.addEventListener('click', function () {

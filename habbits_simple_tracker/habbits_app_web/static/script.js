@@ -203,22 +203,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (urlParams.has('date')) {
         // Create and add Today button
         const todayButton = document.createElement('button');
+        todayButton.className = 'option-button';
         todayButton.textContent = 'Today';
         todayButton.title = 'Go to today';
         todayButton.style.marginLeft = '10px';
-        todayButton.style.padding = '5px 10px';
-        todayButton.style.backgroundColor = '#f0f0f0';
-        todayButton.style.border = '1px solid #ccc';
-        todayButton.style.borderRadius = '3px';
-        todayButton.style.cursor = 'pointer';
-        todayButton.onmouseover = function() {
-            this.style.backgroundColor = '#e0e0e0';
-        };
-        todayButton.onmouseout = function() {
-            this.style.backgroundColor = '#f0f0f0';
-        };
         todayButton.onclick = function() {
-            window.location.href = window.location.pathname;
+            goToToday();
         };
 
         // Add button after settings icon
@@ -627,4 +617,11 @@ function showMessage(message) {
     // Insert before the table
     const table = document.getElementById('habits-table');
     table.parentNode.insertBefore(messageDiv, table);
+}
+
+/**
+ * Redirects to the current page (effectively refreshing to today's view)
+ */
+function goToToday() {
+    window.location.href = window.location.pathname;
 }
