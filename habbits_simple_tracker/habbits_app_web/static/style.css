@@ -23,7 +23,7 @@ th,
 td {
     border: 1px solid #ccc;
     text-align: center;
-    padding: 0.3125rem;
+    padding: 0.3rem;
 }
 
 th {
@@ -36,9 +36,9 @@ th {
    - "Add Habit", "Export Habits", "Import Habits" buttons in options.html
 */
 button {
-    padding: 0.3125rem 0.625rem;
-    margin-left: 0.0625rem;
-    margin-right: 0.0625rem;
+    padding: 0.3rem 0.6rem;
+    margin-left: 0.05rem;
+    margin-right: 0.05rem;
 }
 
 .current-day {
@@ -64,7 +64,7 @@ button {
 
 .calendar-table {
     border-collapse: collapse;
-    min-width: 15.625rem;
+    min-width: 15.5rem;
 }
 
 .calendar-table caption {
@@ -79,23 +79,23 @@ button {
 
 .calendar-table td {
     position: relative;
-    height: 1.625rem;
-    width: 1.625rem;
-    padding: 0.125rem;
+    height: 1.6rem;
+    width: 1.6rem;
+    padding: 0.1rem;
     text-align: center;
     vertical-align: middle;
 }
 
 .calendar-table td span.status-indicator {
     position: absolute;
-    bottom: 0.0625rem;
-    right: 0.0625rem;
+    bottom: 0.1rem;
+    right: 0.1rem;
 }
 
 .calendar-table td span:first-child {
     position: absolute;
-    top: 0.0625rem;
-    left: 0.0625rem;
+    top: 0.1rem;
+    left: 0.1rem;
 }
 
 .calendar-table td.empty {
@@ -179,21 +179,21 @@ button {
     width: 3rem;
     text-align: center;
     vertical-align: middle;
-    padding: 0.125rem;
+    padding: 0.1rem;
     box-sizing: border-box;  /* Учитываем padding в размере ячейки */
 }
 
 .calendar-table td span.status-indicator {
     position: absolute;
-    bottom: 0.125rem;
-    right: 0.125rem;
+    bottom: 0.1rem;
+    right: 0.1rem;
     font-size: 0.8em;
 }
 
 .calendar-table td span:first-child {
     position: absolute;
-    top: 0.125rem;
-    left: 0.125rem;
+    top: 0.1rem;
+    left: 0.1rem;
 }
 
 .calendar-table td.current-day {
@@ -204,7 +204,7 @@ button {
 .floating-menu {
     background-color: white;
     border: 1px solid #ccc;
-    padding: 0.3125rem;
+    padding: 0.3rem;
     box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
     z-index: 1000;
 }
@@ -233,11 +233,11 @@ td {
 /* Style for the cell menu button */
 .cell-menu-button {
     position: absolute;
-    right: 0.125rem;
-    top: 0.125rem;
+    right: 0.1rem;
+    top: 0.1rem;
     width: 1.5rem;
     height: 1.5rem;
-    font-size: 0.625rem;
+    font-size: 0.6rem;
     padding: 0;
     border: 1px solid #ccc;
     background: #fff;
@@ -273,11 +273,11 @@ th.current-day {
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
+    gap: 0.6rem;
 }
 
 .notification {
-    padding: 0.9375rem 2.5rem 0.9375rem 1.25rem;
+    padding: 0.9rem 2.5rem 0.9rem 1.25rem;
     border-radius: 0.25rem;
     color: white;
     position: relative;
@@ -299,7 +299,7 @@ th.current-day {
 
 .notification-close {
     position: absolute;
-    right: 0.625rem;
+    right: 0.6rem;
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -307,7 +307,7 @@ th.current-day {
     color: white;
     font-size: 1.25rem;
     cursor: pointer;
-    padding: 0 0.3125rem;
+    padding: 0 0.3rem;
 }
 
 .notification-hiding {
@@ -368,14 +368,14 @@ table#habits-table th {
 /* Стили из habit_options.html */
 .habit-options-option-item {
     margin: 1.25rem 0;
-    padding: 0.9375rem;
+    padding: 0.9rem;
     border: 1px solid #ddd;
-    border-radius: 0.3125rem;
+    border-radius: 0.3rem;
 }
 
 #new-habit-name {
-    padding: 0.3125rem;
-    margin-right: 0.625rem;
+    padding: 0.3rem;
+    margin-right: 0.6rem;
 }
 
 .habit-options-error {
@@ -388,10 +388,10 @@ table#habits-table th {
 
 /* Стили из index.html */
 #index-page-message {
-    margin: 0.625rem 0;
-    padding: 0.625rem;
+    margin: 0.6rem 0;
+    padding: 0.6rem;
     border: 1px solid #ccc;
-    border-radius: 0.3125rem;
+    border-radius: 0.3rem;
     background-color: #f8f8f8;
     text-align: center;
 }
@@ -401,7 +401,7 @@ table#habits-table th {
     margin: 1.25rem 0;
     padding: 1.25rem;
     border: 1px solid #ccc;
-    border-radius: 0.3125rem;
+    border-radius: 0.3rem;
 }
 
 .options-habits-list {
@@ -412,35 +412,35 @@ table#habits-table th {
 .options-habits-list li {
     display: flex;
     align-items: center;
-    margin: 0.625rem 0;
-    padding: 0.3125rem;
+    margin: 0.6rem 0;
+    padding: 0.3rem;
     border: 1px solid #eee;
-    border-radius: 0.1875rem;
+    border-radius: 0.2rem;
 }
 
 .options-habit-name {
     flex-grow: 1;
-    margin-right: 0.625rem;
+    margin-right: 0.6rem;
 }
 
 .options-habit-buttons {
     display: flex;
-    gap: 0.0625rem;
+    gap: 0.1rem;
     min-width: 12.5rem;
     justify-content: flex-end;
 }
 
 .options-habit-buttons button {
-    padding: 0.125rem 0.5rem;
-    min-width: 1.875rem;
+    padding: 0.1rem 0.5rem;
+    min-width: 1.9rem;
 }
 
 .options-backup-controls {
     display: flex;
-    gap: 0.625rem;
-    margin: 0.625rem 0;
+    gap: 0.6rem;
+    margin: 0.6rem 0;
 }
 
 .options-option-item {
-    margin: 0.625rem 0;
+    margin: 0.6rem 0;
 }
