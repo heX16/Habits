@@ -113,7 +113,7 @@ function renderMonth(tracking, year, month, trackingOffset) {
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    // Create calendar grid
+    // Create calendar grid - always 6 rows
     let date = 1;
     for (let i = 0; i < 6; i++) {
         const row = document.createElement('tr');
@@ -169,7 +169,6 @@ function renderMonth(tracking, year, month, trackingOffset) {
         }
 
         table.appendChild(row);
-        if (date > daysInMonth) break;
     }
 
     return table;

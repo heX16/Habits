@@ -37,12 +37,27 @@ const notifications = new NotificationManager();
  * @returns {Object} Object containing start and end dates in 'YYYY-MM-DD' format
  */
 function calculateDateRange() {
-    const now = new Date();
-    const currentDay = now.getDay();
-    const endDate = new Date(now);
+    // Get date from URL parameter if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const dateParam = urlParams.get('date');
+
+    let baseDate;
+    if (dateParam) {
+        // Parse date from URL parameter
+        baseDate = new Date(dateParam);
+        if (isNaN(baseDate.getTime())) {
+            console.error('Invalid date parameter:', dateParam);
+            baseDate = new Date(); // Fallback to current date if invalid
+        }
+    } else {
+        baseDate = new Date();
+    }
+
+    const currentDay = baseDate.getDay();
+    const endDate = new Date(baseDate);
 
     const daysToSunday = currentDay === 0 ? 0 : 7 - currentDay;
-    endDate.setDate(now.getDate() + daysToSunday);
+    endDate.setDate(baseDate.getDate() + daysToSunday);
 
     const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - (tableDaysCount - 1));
@@ -182,7 +197,37 @@ function initHabitTracker() {
 }
 
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', initHabitTracker);
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if date parameter is present
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('date')) {
+        // Create and add Today button
+        const todayButton = document.createElement('button');
+        todayButton.textContent = 'Today';
+        todayButton.title = 'Go to today';
+        todayButton.style.marginLeft = '10px';
+        todayButton.style.padding = '5px 10px';
+        todayButton.style.backgroundColor = '#f0f0f0';
+        todayButton.style.border = '1px solid #ccc';
+        todayButton.style.borderRadius = '3px';
+        todayButton.style.cursor = 'pointer';
+        todayButton.onmouseover = function() {
+            this.style.backgroundColor = '#e0e0e0';
+        };
+        todayButton.onmouseout = function() {
+            this.style.backgroundColor = '#f0f0f0';
+        };
+        todayButton.onclick = function() {
+            window.location.href = window.location.pathname;
+        };
+
+        // Add button after settings icon
+        const settingsButton = document.querySelector('.settings-icon');
+        settingsButton.parentNode.insertBefore(todayButton, settingsButton.nextSibling);
+    }
+
+    initHabitTracker();
+});
 
 /**
  * Returns a display string (emoji) based on the habit status.

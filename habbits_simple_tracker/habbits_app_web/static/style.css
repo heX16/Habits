@@ -153,18 +153,28 @@ button {
 /* Habit page styles */
 .calendars-container {
     display: flex;
-    gap: 2rem;
-    justify-content: center;
+    gap: 1rem;
+    justify-content: flex-start;
     flex-wrap: wrap;
     margin: 2rem 0;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Перекрываем общие стили таблицы для календаря */
+.calendar-table {
+    width: auto;  /* Отменяем width: 100% из общего стиля table */
+    table-layout: fixed;  /* Фиксированная ширина ячеек */
 }
 
 .calendar-table td {
     position: relative;
-    height: 40px;
-    width: 40px;
+    height: 48px;
+    width: 48px;
     text-align: center;
     vertical-align: middle;
+    padding: 2px;
+    box-sizing: border-box;  /* Учитываем padding в размере ячейки */
 }
 
 .calendar-table td span.status-indicator {
@@ -233,12 +243,12 @@ td {
     opacity: 1;
 }
 
-/* Только заголовок текущего дня должен быть выделен */
+/* header: Only the current day header should be highlighted */
 th.current-day {
     background-color: #e0e0e0;
 }
 
-/* Будущие дни */
+/* future days */
 .future-day {
     background-color: #f5f5f5;
     cursor: default !important;
@@ -341,4 +351,10 @@ table#habits-table th {
     padding: 0.5em;
     vertical-align: middle;
     box-sizing: border-box;
+}
+
+/* Add styles for the statistics container */
+#stat-container {
+    margin: 0;         /* Remove automatic margins */
+    overflow-x: auto;  /* Add horizontal scrolling when needed */
 }
