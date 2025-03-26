@@ -102,8 +102,13 @@ button {
     background-color: #f8f8f8;
 }
 
-.back-link {
-    margin: 1rem;
+/* Navigation links */
+.nav-links {
+    margin: 1rem 0;
+}
+
+.nav-links a {
+    margin-right: 1rem;
 }
 
 #habit-name {
@@ -140,16 +145,16 @@ button {
     content: attr(data-emoji);
 }
 
-.nav-link-container {
-    margin-bottom: 1rem;
-}
-
+/* Option containers and items */
 .options-container {
-    margin: 2rem;
+    margin: 1.5rem 0;
 }
 
-.global-option-item {
+.option-item {
     margin: 1rem 0;
+    padding: 0.9rem;
+    border: 1px solid #ddd;
+    border-radius: 0.3rem;
 }
 
 .global-option-item label {
@@ -260,6 +265,7 @@ th.current-day {
     cursor: default !important;
 }
 
+/* Settings icon */
 .settings-icon {
     font-size: 0.4em;
     vertical-align: middle;
@@ -365,19 +371,7 @@ table#habits-table th {
     overflow-x: auto;  /* Add horizontal scrolling when needed */
 }
 
-/* Стили из habit_options.html */
-.habit-options-option-item {
-    margin: 1.25rem 0;
-    padding: 0.9rem;
-    border: 1px solid #ddd;
-    border-radius: 0.3rem;
-}
-
-#new-habit-name {
-    padding: 0.3rem;
-    margin-right: 0.6rem;
-}
-
+/* Стили для уведомлений */
 .habit-options-error {
     color: red;
 }
@@ -430,7 +424,14 @@ table#habits-table th {
     justify-content: flex-end;
 }
 
-.options-habit-buttons button {
+/* Form elements */
+#new-habit-name {
+    padding: 0.3rem;
+    margin-right: 0.6rem;
+}
+
+/* Button styles for option areas */
+.option-button {
     padding: 0.1rem 0.5rem;
     min-width: 1.9rem;
 }
@@ -438,9 +439,5 @@ table#habits-table th {
 .options-backup-controls {
     display: flex;
     gap: 0.6rem;
-    margin: 0.6rem 0;
-}
-
-.options-option-item {
     margin: 0.6rem 0;
 }

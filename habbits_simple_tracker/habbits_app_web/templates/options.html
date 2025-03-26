@@ -10,7 +10,7 @@
 
 <body>
     <h1>Options</h1>
-    <div class="nav-link-container">
+    <div class="nav-links">
         <a href="{{ url_for('index') }}">Back to Main Page</a>
     </div>
 
@@ -21,7 +21,7 @@
             <h3>Add New Habit</h3>
             <form id="add-habit-form">
                 <input type="text" id="habit-name" placeholder="Enter habit name" required>
-                <button type="submit">Add Habit</button>
+                <button type="submit" class="option-button">Add Habit</button>
             </form>
         </div>
 
@@ -37,20 +37,20 @@
     <div id="backup" class="options-section">
         <h2>Backup & Restore</h2>
         <div class="options-backup-controls">
-            <button onclick="exportHabits()">Export Habits</button>
+            <button onclick="exportHabits()" class="option-button">Export Habits</button>
             <input type="file" id="import-file" accept=".csv" style="display: none">
-            <button onclick="document.getElementById('import-file').click()">Import Habits</button>
+            <button onclick="document.getElementById('import-file').click()" class="option-button">Import Habits</button>
         </div>
     </div>
 
     <!-- Global Options Section -->
     <div id="settings" class="options-section">
         <h2>Global Options</h2>
-        <div class="options-option-item">
+        <div class="option-item">
             <strong>Database path:</strong> {{ db_path }}
         </div>
         <hr>
-        <div class="options-option-item">
+        <div class="option-item">
             <label>
                 <input type="checkbox" id="test-option"> Test option
             </label>
