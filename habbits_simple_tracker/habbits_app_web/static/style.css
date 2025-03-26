@@ -1,54 +1,116 @@
 /* style.css */
 
+/* CSS Variables */
+:root {
+    /* Color variables */
+    --color-text-primary: #333;
+    --color-text-secondary: #999;
+    --color-text-light: white;
+
+    --color-border-primary: #ccc;
+    --color-border-secondary: #ddd;
+    --color-border-light: #eee;
+    --color-border-dark: #333;
+
+    --color-bg-primary: white;
+    --color-bg-secondary: #f5f5f5;
+    --color-bg-tertiary: #f8f8f8;
+    --color-bg-highlight: #fff3cd;
+    --color-bg-hover: #e0e0e0;
+    --color-bg-button: #f0f0f0;
+    --color-bg-header: #f2f2f2;
+    --color-bg-current-day: #e0e0e0;
+
+    --color-success: #00C851;
+    --color-error: #ff4444;
+    --color-warning: #ffbb33;
+
+    /* Spacing variables */
+    --space-xxs: 0.05rem;  /* 1px at default font size */
+    --space-xs: 0.1rem;    /* 2px */
+    --space-sm: 0.2rem;    /* 3-4px */
+    --space-md: 0.3rem;    /* 5-6px */
+    --space-base: 0.5rem;  /* 8px */
+    --space-lg: 0.6rem;    /* 10px */
+    --space-xl: 0.9rem;    /* 15px */
+    --space-xxl: 1rem;     /* 16px */
+    --space-xxxl: 1.25rem; /* 20px */
+    --space-huge: 1.5rem;  /* 24px */
+    --space-giant: 2rem;   /* 32px */
+
+    /* Font sizes */
+    --font-size-xs: 0.4em;
+    --font-size-sm: 0.6rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.2rem;
+    --font-size-xl: 1.25rem;
+
+    /* Dimension variables */
+    --border-width: 1px;
+    --border-width-bold: 2px;
+    --border-radius-sm: 0.2rem;
+    --border-radius-md: 0.25rem;
+    --border-radius: 0.3rem;
+
+    /* Cell sizes */
+    --cell-size-small: 1.6rem;
+    --cell-size-regular: 3rem;
+
+    /* Utils */
+    --shadow-default: 2px 2px 6px rgba(0, 0, 0, 0.2);
+    --transition-default: 0.3s ease;
+    --z-index-menu: 1000;
+}
+
 /* Basic styling for the habit tracker application */
 
 body {
     font-family: Arial, sans-serif;
-    margin: 1.25rem;
+    margin: var(--space-xxxl);
 }
 
 h1,
 h2 {
-    color: #333;
+    color: var(--color-text-primary);
 }
 
 table {
     border-collapse: collapse;
     width: 100%;
-    margin-top: 1.25rem;
+    margin-top: var(--space-xxxl);
 }
 
 table,
 th,
 td {
-    border: 1px solid #ccc;
+    border: var(--border-width) solid var(--color-border-primary);
     text-align: center;
-    padding: 0.3rem;
+    padding: var(--space-md);
 }
 
 th {
-    background-color: #f2f2f2;
+    background-color: var(--color-bg-header);
 }
 
 .current-day {
-    background-color: #fff3cd;
+    background-color: var(--color-bg-highlight);
     font-weight: bold;
     position: relative;
     /* for the cell menu button "..." */
 }
 
 .future-day {
-    background-color: #f5f5f5;
-    color: #999;
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
 }
 
 /* Statistics page styles */
 .calendars-container {
     display: flex;
-    gap: 1rem;
+    gap: var(--space-xxl);
     justify-content: center;
     flex-wrap: wrap;
-    margin: 1rem 0;
+    margin: var(--space-xxl) 0;
 }
 
 .calendar-table {
@@ -57,52 +119,52 @@ th {
 }
 
 .calendar-table caption {
-    font-size: 1.2rem;
+    font-size: var(--font-size-lg);
     font-weight: bold;
-    padding: 0.5rem;
+    padding: var(--space-base);
 }
 
 .calendar-table th {
-    padding: 0.2rem;
+    padding: var(--space-sm);
 }
 
 .calendar-table td {
     position: relative;
-    height: 1.6rem;
-    width: 1.6rem;
-    padding: 0.1rem;
+    height: var(--cell-size-small);
+    width: var(--cell-size-small);
+    padding: var(--space-xs);
     text-align: center;
     vertical-align: middle;
 }
 
 .calendar-table td span.status-indicator {
     position: absolute;
-    bottom: 0.1rem;
-    right: 0.1rem;
+    bottom: var(--space-xs);
+    right: var(--space-xs);
 }
 
 .calendar-table td span:first-child {
     position: absolute;
-    top: 0.1rem;
-    left: 0.1rem;
+    top: var(--space-xs);
+    left: var(--space-xs);
 }
 
 .calendar-table td.empty {
-    background-color: #f8f8f8;
+    background-color: var(--color-bg-tertiary);
 }
 
 /* Navigation links */
 .nav-links {
-    margin: 1rem 0;
+    margin: var(--space-xxl) 0;
 }
 
 .nav-links a {
-    margin-right: 1rem;
+    margin-right: var(--space-xxl);
 }
 
 #habit-name {
     text-align: center;
-    margin: 1rem 0;
+    margin: var(--space-xxl) 0;
 }
 
 /* Firework animation */
@@ -124,10 +186,10 @@ th {
 
 .firework {
     position: fixed;
-    font-size: 1.25rem;
+    font-size: var(--font-size-xl);
     animation: firework 1s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
     pointer-events: none;
-    z-index: 1000;
+    z-index: var(--z-index-menu);
 }
 
 .firework::before {
@@ -136,14 +198,14 @@ th {
 
 /* Option containers and items */
 .options-container {
-    margin: 1.5rem 0;
+    margin: var(--space-huge) 0;
 }
 
 .option-item {
-    margin: 1rem 0;
-    padding: 0.9rem;
-    border: 1px solid #ddd;
-    border-radius: 0.3rem;
+    margin: var(--space-xxl) 0;
+    padding: var(--space-xl);
+    border: var(--border-width) solid var(--color-border-secondary);
+    border-radius: var(--border-radius);
 }
 
 .global-option-item label {
@@ -153,10 +215,10 @@ th {
 /* Habit page styles */
 .calendars-container {
     display: flex;
-    gap: 1rem;
+    gap: var(--space-xxl);
     justify-content: flex-start;
     flex-wrap: wrap;
-    margin: 2rem 0;
+    margin: var(--space-giant) 0;
     margin-left: 0;
     margin-right: 0;
 }
@@ -169,43 +231,43 @@ th {
 
 .calendar-table td {
     position: relative;
-    height: 3rem;
-    width: 3rem;
+    height: var(--cell-size-regular);
+    width: var(--cell-size-regular);
     text-align: center;
     vertical-align: middle;
-    padding: 0.1rem;
+    padding: var(--space-xs);
     box-sizing: border-box;  /* Учитываем padding в размере ячейки */
 }
 
 .calendar-table td span.status-indicator {
     position: absolute;
-    bottom: 0.1rem;
-    right: 0.1rem;
+    bottom: var(--space-xs);
+    right: var(--space-xs);
     font-size: 0.8em;
 }
 
 .calendar-table td span:first-child {
     position: absolute;
-    top: 0.1rem;
-    left: 0.1rem;
+    top: var(--space-xs);
+    left: var(--space-xs);
 }
 
 .calendar-table td.current-day {
-    border: 2px solid #333;
+    border: var(--border-width-bold) solid var(--color-border-dark);
     /* Bold dark border */
 }
 
 .floating-menu {
-    background-color: white;
-    border: 1px solid #ccc;
-    padding: 0.3rem;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
+    background-color: var(--color-bg-primary);
+    border: var(--border-width) solid var(--color-border-primary);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-default);
+    z-index: var(--z-index-menu);
 }
 
 .menu-item {
-    padding: 0.25rem 0.5rem;
-    border-bottom: 1px solid #ddd;
+    padding: 0.25rem var(--space-base);
+    border-bottom: var(--border-width) solid var(--color-border-secondary);
     display: flex;
     align-items: center;
 }
@@ -215,7 +277,7 @@ th {
 }
 
 .menu-item:hover {
-    background-color: #f5f5f5;
+    background-color: var(--color-bg-secondary);
 }
 
 /* Style for all table cells */
@@ -227,14 +289,14 @@ td {
 /* Style for the cell menu button */
 .cell-menu-button {
     position: absolute;
-    right: 0.1rem;
-    top: 0.1rem;
+    right: var(--space-xs);
+    top: var(--space-xs);
     width: 1.5rem;
     height: 1.5rem;
-    font-size: 0.6rem;
+    font-size: var(--font-size-sm);
     padding: 0;
-    border: 1px solid #ccc;
-    background: #fff;
+    border: var(--border-width) solid var(--color-border-primary);
+    background: var(--color-bg-primary);
     cursor: pointer;
     opacity: 0.7;
 }
@@ -245,68 +307,68 @@ td {
 
 /* header: Only the current day header should be highlighted */
 th.current-day {
-    background-color: #e0e0e0;
+    background-color: var(--color-bg-current-day);
 }
 
 /* future days */
 .future-day {
-    background-color: #f5f5f5;
+    background-color: var(--color-bg-secondary);
     cursor: default !important;
 }
 
 /* Settings icon */
 .settings-icon {
-    font-size: 0.4em;
+    font-size: var(--font-size-xs);
     vertical-align: middle;
-    margin-left: 0.5rem;
+    margin-left: var(--space-base);
 }
 
 #notification-container {
     position: fixed;
-    top: 1.25rem;
-    right: 1.25rem;
-    z-index: 1000;
+    top: var(--space-xxxl);
+    right: var(--space-xxxl);
+    z-index: var(--z-index-menu);
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: var(--space-lg);
 }
 
 .notification {
-    padding: 0.9rem 2.5rem 0.9rem 1.25rem;
-    border-radius: 0.25rem;
-    color: white;
+    padding: var(--space-xl) 2.5rem var(--space-xl) var(--space-xxxl);
+    border-radius: var(--border-radius-md);
+    color: var(--color-text-light);
     position: relative;
     min-width: 17.5rem;
-    animation: notification-slide-in 0.3s ease-out;
+    animation: notification-slide-in var(--transition-default) ease-out;
 }
 
 .notification-error {
-    background-color: #ff4444;
+    background-color: var(--color-error);
 }
 
 .notification-success {
-    background-color: #00C851;
+    background-color: var(--color-success);
 }
 
 .notification-warning {
-    background-color: #ffbb33;
+    background-color: var(--color-warning);
 }
 
 .notification-close {
     position: absolute;
-    right: 0.6rem;
+    right: var(--space-lg);
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: white;
-    font-size: 1.25rem;
+    color: var(--color-text-light);
+    font-size: var(--font-size-xl);
     cursor: pointer;
-    padding: 0 0.3rem;
+    padding: 0 var(--space-md);
 }
 
 .notification-hiding {
-    animation: notification-slide-out 0.3s ease-in forwards;
+    animation: notification-slide-out var(--transition-default) ease-in forwards;
 }
 
 @keyframes notification-slide-in {
@@ -362,29 +424,29 @@ table#habits-table th {
 
 /* Стили для уведомлений */
 .habit-options-error {
-    color: red;
+    color: var(--color-error);
 }
 
 .habit-options-success {
-    color: green;
+    color: var(--color-success);
 }
 
 /* Стили из index.html */
 #index-page-message {
-    margin: 0.6rem 0;
-    padding: 0.6rem;
-    border: 1px solid #ccc;
-    border-radius: 0.3rem;
-    background-color: #f8f8f8;
+    margin: var(--space-lg) 0;
+    padding: var(--space-lg);
+    border: var(--border-width) solid var(--color-border-primary);
+    border-radius: var(--border-radius);
+    background-color: var(--color-bg-tertiary);
     text-align: center;
 }
 
 /* Стили из options.html */
 .options-section {
-    margin: 1.25rem 0;
-    padding: 1.25rem;
-    border: 1px solid #ccc;
-    border-radius: 0.3rem;
+    margin: var(--space-xxxl) 0;
+    padding: var(--space-xxxl);
+    border: var(--border-width) solid var(--color-border-primary);
+    border-radius: var(--border-radius);
 }
 
 .options-habits-list {
@@ -395,47 +457,47 @@ table#habits-table th {
 .options-habits-list li {
     display: flex;
     align-items: center;
-    margin: 0.6rem 0;
-    padding: 0.3rem;
-    border: 1px solid #eee;
-    border-radius: 0.2rem;
+    margin: var(--space-lg) 0;
+    padding: var(--space-md);
+    border: var(--border-width) solid var(--color-border-light);
+    border-radius: var(--border-radius-sm);
 }
 
 .options-habit-name {
     flex-grow: 1;
-    margin-right: 0.6rem;
+    margin-right: var(--space-lg);
 }
 
 .options-habit-buttons {
     display: flex;
-    gap: 0.1rem;
+    gap: var(--space-xs);
     min-width: 12.5rem;
     justify-content: flex-end;
 }
 
 /* Form elements */
 #new-habit-name {
-    padding: 0.3rem;
-    margin-right: 0.6rem;
+    padding: var(--space-md);
+    margin-right: var(--space-lg);
 }
 
 /* Button styles for option areas */
 .option-button {
-    padding: 0.3rem 0.6rem;
-    margin-left: 0.05rem;
-    margin-right: 0.05rem;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 0.2rem;
+    padding: var(--space-md) var(--space-lg);
+    margin-left: var(--space-xxs);
+    margin-right: var(--space-xxs);
+    background-color: var(--color-bg-button);
+    border: var(--border-width) solid var(--color-border-primary);
+    border-radius: var(--border-radius-sm);
     cursor: pointer;
 }
 
 .option-button:hover {
-    background-color: #e0e0e0;
+    background-color: var(--color-bg-hover);
 }
 
 .options-backup-controls {
     display: flex;
-    gap: 0.6rem;
-    margin: 0.6rem 0;
+    gap: var(--space-lg);
+    margin: var(--space-lg) 0;
 }
