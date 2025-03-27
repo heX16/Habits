@@ -2,27 +2,27 @@
 
 /* CSS Variables */
 :root {
-    /* Цвета */
-    --color-dark: #333;     /* Для текста и темных элементов */
-    --color-muted: #999;    /* Для вспомогательного текста */
-    --color-white: #fff;    /* Белый */
-    --color-light: #f8f8f8; /* Светло-серый для фона */
-    --color-mid: #e0e0e0;   /* Средне-серый для ховера */
-    --color-border: #ccc;   /* Для границ */
-    --color-highlight: #fff3cd; /* Выделение */
+    /* Colors */
+    --color-dark: #333;     /* For text and dark elements */
+    --color-muted: #999;    /* For secondary text */
+    --color-white: #fff;    /* White */
+    --color-light: #f8f8f8; /* Light gray for background */
+    --color-mid: #e0e0e0;   /* Medium gray for hover */
+    --color-border: #ccc;   /* For borders */
+    --color-highlight: #fff3cd; /* Highlight */
 
-    /* Цвета состояний */
+    /* State colors */
     --color-success: #00C851;
     --color-error: #ff4444;
     --color-warning: #ffbb33;
 
-    /* Отступы */
-    --space-xs: 0.1rem;    /* 1-2px - минимальный отступ */
-    --space-sm: 0.3rem;    /* 5px - малый отступ */
-    --space-md: 0.6rem;    /* 10px - средний отступ */
-    --space-lg: 1rem;      /* 16px - большой отступ */
-    --space-xl: 1.25rem;   /* 20px - очень большой отступ */
-    --space-xxl: 2rem;     /* 32px - огромный отступ */
+    /* Spacing */
+    --space-xs: 0.1rem;    /* 1-2px - minimal spacing */
+    --space-sm: 0.3rem;    /* 5px - small spacing */
+    --space-md: 0.6rem;    /* 10px - medium spacing */
+    --space-lg: 1rem;      /* 16px - large spacing */
+    --space-xl: 1.25rem;   /* 20px - extra large spacing */
+    --space-xxl: 2rem;     /* 32px - huge spacing */
 
     /* Font sizes */
     --font-size-xs: 0.4em;
@@ -34,8 +34,6 @@
     /* Dimension variables */
     --border-width: 1px;
     --border-width-bold: 2px;
-    --border-radius-sm: 0.2rem;
-    --border-radius-md: 0.25rem;
     --border-radius: 0.3rem;
 
     /* Cell sizes */
@@ -209,10 +207,10 @@ th {
     margin-right: 0;
 }
 
-/* Перекрываем общие стили таблицы для календаря */
+/* Override common table styles for calendar */
 .calendar-table {
-    width: auto;  /* Отменяем width: 100% из общего стиля table */
-    table-layout: fixed;  /* Фиксированная ширина ячеек */
+    width: auto;  /* Cancel width: 100% from general table style */
+    table-layout: fixed;  /* Fixed cell width */
 }
 
 .calendar-table td {
@@ -222,7 +220,7 @@ th {
     text-align: center;
     vertical-align: middle;
     padding: var(--space-xs);
-    box-sizing: border-box;  /* Учитываем padding в размере ячейки */
+    box-sizing: border-box;  /* Include padding in cell size */
 }
 
 .calendar-table td span.status-indicator {
@@ -321,7 +319,7 @@ th.current-day {
 
 .notification {
     padding: var(--space-lg) 2.5rem var(--space-lg) var(--space-xl);
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius);
     color: var(--color-white);
     position: relative;
     min-width: 17.5rem;
@@ -408,7 +406,7 @@ table#habits-table th {
     overflow-x: auto;  /* Add horizontal scrolling when needed */
 }
 
-/* Стили для уведомлений */
+/* Notification styles */
 .habit-options-error {
     color: var(--color-error);
 }
@@ -417,7 +415,7 @@ table#habits-table th {
     color: var(--color-success);
 }
 
-/* Стили из index.html */
+/* Styles from index.html */
 #index-page-message {
     margin: var(--space-md) 0;
     padding: var(--space-md);
@@ -427,7 +425,7 @@ table#habits-table th {
     text-align: center;
 }
 
-/* Стили из options.html */
+/* Styles from options.html */
 .options-section {
     margin: var(--space-xl) 0;
     padding: var(--space-xl);
@@ -446,7 +444,7 @@ table#habits-table th {
     margin: var(--space-md) 0;
     padding: var(--space-sm);
     border: var(--border-width) solid var(--color-light);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius);
 }
 
 .options-habit-name {
@@ -474,7 +472,7 @@ table#habits-table th {
     margin-right: var(--space-xs);
     background-color: var(--color-light);
     border: var(--border-width) solid var(--color-border);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius);
     cursor: pointer;
 }
 
