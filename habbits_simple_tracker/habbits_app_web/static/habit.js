@@ -9,6 +9,18 @@
  * 0 - transparent, 1 - lightgreen, 2 - lightcoral.
  */
 
+/**
+ * Formats a Date object as 'YYYY-MM-DD'.
+ * @param {Date} date
+ * @returns {string}
+ */
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+    const day = ('0' + date.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // Get habit ID from URL
     const pathParts = window.location.pathname.split('/');
@@ -30,18 +42,6 @@ document.addEventListener('DOMContentLoaded', function () {
     let prevMonthStart = new Date(prevYear, prevMonth, 1);
     // Last day of current month.
     let currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
-
-    /**
-     * Formats a Date object as 'YYYY-MM-DD'.
-     * @param {Date} date
-     * @returns {string}
-     */
-    function formatDate(date) {
-        const year = date.getFullYear();
-        const month = ('0' + (date.getMonth() + 1)).slice(-2);
-        const day = ('0' + date.getDate()).slice(-2);
-        return `${year}-${month}-${day}`;
-    }
 
     let startDate = formatDate(prevMonthStart);
     let endDate = formatDate(currentMonthEnd);
@@ -102,6 +102,13 @@ function renderMonth(tracking, year, month, trackingOffset) {
 
     // Week days header
     const headerRow = document.createElement('tr');
+
+    // Add Date column header
+    const dateHeader = document.createElement('th');
+    dateHeader.textContent = 'Date';
+    headerRow.appendChild(dateHeader);
+
+    // Add days of week headers
     weekDays.forEach(day => {
         const th = document.createElement('th');
         th.textContent = day;
@@ -117,6 +124,41 @@ function renderMonth(tracking, year, month, trackingOffset) {
     let date = 1;
     for (let i = 0; i < 6; i++) {
         const row = document.createElement('tr');
+
+        // Add date cell at the beginning of each row
+        const dateCell = document.createElement('td');
+
+        // Calculate the date for the first day of the week in this row
+        let weekDate;
+        if (i === 0) {
+            // For the first row, we need to handle the days from the previous month
+            if (firstDay === 0) { // If the month starts on Sunday
+                weekDate = new Date(year, month, 1);
+            } else {
+                // If there are days from previous month, calculate the first day of this week
+                weekDate = new Date(year, month, 1 - firstDay + 1);
+            }
+        } else {
+            // For other rows, take the first day of the row (subtract the day number to get Sunday)
+            const dayOfMonth = date + (7 - ((date - 1 + firstDay) % 7)) % 7 - 7;
+            weekDate = new Date(year, month, dayOfMonth);
+        }
+
+        // Only create a date link if we have a valid date in this row
+        if (i < 5 || date <= daysInMonth) {
+            // Format the date for the URL query parameter and display
+            const formattedDate = formatDate(weekDate);
+
+            // Create a link with the formatted date
+            const dateLink = document.createElement('a');
+            dateLink.textContent = formattedDate;
+            dateLink.href = `/?date=${formattedDate}`;
+            dateLink.title = `Перейти к дате ${formattedDate}`;
+
+            dateCell.appendChild(dateLink);
+        }
+
+        row.appendChild(dateCell);
 
         for (let j = 0; j < 7; j++) {
             const cell = document.createElement('td');
