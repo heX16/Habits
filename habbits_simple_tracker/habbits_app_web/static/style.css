@@ -2,41 +2,27 @@
 
 /* CSS Variables */
 :root {
-    /* Color variables */
-    --color-text-primary: #333;
-    --color-text-secondary: #999;
-    --color-text-light: white;
+    /* Цвета */
+    --color-dark: #333;     /* Для текста и темных элементов */
+    --color-muted: #999;    /* Для вспомогательного текста */
+    --color-white: #fff;    /* Белый */
+    --color-light: #f8f8f8; /* Светло-серый для фона */
+    --color-mid: #e0e0e0;   /* Средне-серый для ховера */
+    --color-border: #ccc;   /* Для границ */
+    --color-highlight: #fff3cd; /* Выделение */
 
-    --color-border-primary: #ccc;
-    --color-border-secondary: #ddd;
-    --color-border-light: #eee;
-    --color-border-dark: #333;
-
-    --color-bg-primary: white;
-    --color-bg-secondary: #f5f5f5;
-    --color-bg-tertiary: #f8f8f8;
-    --color-bg-highlight: #fff3cd;
-    --color-bg-hover: #e0e0e0;
-    --color-bg-button: #f0f0f0;
-    --color-bg-header: #f2f2f2;
-    --color-bg-current-day: #e0e0e0;
-
+    /* Цвета состояний */
     --color-success: #00C851;
     --color-error: #ff4444;
     --color-warning: #ffbb33;
 
-    /* Spacing variables */
-    --space-xxs: 0.05rem;  /* 1px at default font size */
-    --space-xs: 0.1rem;    /* 2px */
-    --space-sm: 0.2rem;    /* 3-4px */
-    --space-md: 0.3rem;    /* 5-6px */
-    --space-base: 0.5rem;  /* 8px */
-    --space-lg: 0.6rem;    /* 10px */
-    --space-xl: 0.9rem;    /* 15px */
-    --space-xxl: 1rem;     /* 16px */
-    --space-xxxl: 1.25rem; /* 20px */
-    --space-huge: 1.5rem;  /* 24px */
-    --space-giant: 2rem;   /* 32px */
+    /* Отступы */
+    --space-xs: 0.1rem;    /* 1-2px - минимальный отступ */
+    --space-sm: 0.3rem;    /* 5px - малый отступ */
+    --space-md: 0.6rem;    /* 10px - средний отступ */
+    --space-lg: 1rem;      /* 16px - большой отступ */
+    --space-xl: 1.25rem;   /* 20px - очень большой отступ */
+    --space-xxl: 2rem;     /* 32px - огромный отступ */
 
     /* Font sizes */
     --font-size-xs: 0.4em;
@@ -66,51 +52,51 @@
 
 body {
     font-family: Arial, sans-serif;
-    margin: var(--space-xxxl);
+    margin: var(--space-xl);
 }
 
 h1,
 h2 {
-    color: var(--color-text-primary);
+    color: var(--color-dark);
 }
 
 table {
     border-collapse: collapse;
     width: 100%;
-    margin-top: var(--space-xxxl);
+    margin-top: var(--space-xl);
 }
 
 table,
 th,
 td {
-    border: var(--border-width) solid var(--color-border-primary);
+    border: var(--border-width) solid var(--color-border);
     text-align: center;
-    padding: var(--space-md);
+    padding: var(--space-sm);
 }
 
 th {
-    background-color: var(--color-bg-header);
+    background-color: var(--color-light);
 }
 
 .current-day {
-    background-color: var(--color-bg-highlight);
+    background-color: var(--color-highlight);
     font-weight: bold;
     position: relative;
     /* for the cell menu button "..." */
 }
 
 .future-day {
-    background-color: var(--color-bg-secondary);
-    color: var(--color-text-secondary);
+    background-color: var(--color-light);
+    color: var(--color-muted);
 }
 
 /* Statistics page styles */
 .calendars-container {
     display: flex;
-    gap: var(--space-xxl);
+    gap: var(--space-lg);
     justify-content: center;
     flex-wrap: wrap;
-    margin: var(--space-xxl) 0;
+    margin: var(--space-lg) 0;
 }
 
 .calendar-table {
@@ -121,11 +107,11 @@ th {
 .calendar-table caption {
     font-size: var(--font-size-lg);
     font-weight: bold;
-    padding: var(--space-base);
+    padding: var(--space-md);
 }
 
 .calendar-table th {
-    padding: var(--space-sm);
+    padding: var(--space-xs);
 }
 
 .calendar-table td {
@@ -150,21 +136,21 @@ th {
 }
 
 .calendar-table td.empty {
-    background-color: var(--color-bg-tertiary);
+    background-color: var(--color-light);
 }
 
 /* Navigation links */
 .nav-links {
-    margin: var(--space-xxl) 0;
+    margin: var(--space-lg) 0;
 }
 
 .nav-links a {
-    margin-right: var(--space-xxl);
+    margin-right: var(--space-lg);
 }
 
 #habit-name {
     text-align: center;
-    margin: var(--space-xxl) 0;
+    margin: var(--space-lg) 0;
 }
 
 /* Firework animation */
@@ -198,13 +184,13 @@ th {
 
 /* Option containers and items */
 .options-container {
-    margin: var(--space-huge) 0;
+    margin: var(--space-xl) 0;
 }
 
 .option-item {
-    margin: var(--space-xxl) 0;
-    padding: var(--space-xl);
-    border: var(--border-width) solid var(--color-border-secondary);
+    margin: var(--space-lg) 0;
+    padding: var(--space-lg);
+    border: var(--border-width) solid var(--color-border);
     border-radius: var(--border-radius);
 }
 
@@ -215,10 +201,10 @@ th {
 /* Habit page styles */
 .calendars-container {
     display: flex;
-    gap: var(--space-xxl);
+    gap: var(--space-lg);
     justify-content: flex-start;
     flex-wrap: wrap;
-    margin: var(--space-giant) 0;
+    margin: var(--space-xxl) 0;
     margin-left: 0;
     margin-right: 0;
 }
@@ -253,21 +239,21 @@ th {
 }
 
 .calendar-table td.current-day {
-    border: var(--border-width-bold) solid var(--color-border-dark);
+    border: var(--border-width-bold) solid var(--color-dark);
     /* Bold dark border */
 }
 
 .floating-menu {
-    background-color: var(--color-bg-primary);
-    border: var(--border-width) solid var(--color-border-primary);
-    padding: var(--space-md);
+    background-color: var(--color-white);
+    border: var(--border-width) solid var(--color-border);
+    padding: var(--space-sm);
     box-shadow: var(--shadow-default);
     z-index: var(--z-index-menu);
 }
 
 .menu-item {
-    padding: 0.25rem var(--space-base);
-    border-bottom: var(--border-width) solid var(--color-border-secondary);
+    padding: var(--space-xs) var(--space-md);
+    border-bottom: var(--border-width) solid var(--color-border);
     display: flex;
     align-items: center;
 }
@@ -277,7 +263,7 @@ th {
 }
 
 .menu-item:hover {
-    background-color: var(--color-bg-secondary);
+    background-color: var(--color-light);
 }
 
 /* Style for all table cells */
@@ -295,8 +281,8 @@ td {
     height: 1.5rem;
     font-size: var(--font-size-sm);
     padding: 0;
-    border: var(--border-width) solid var(--color-border-primary);
-    background: var(--color-bg-primary);
+    border: var(--border-width) solid var(--color-border);
+    background: var(--color-white);
     cursor: pointer;
     opacity: 0.7;
 }
@@ -307,12 +293,12 @@ td {
 
 /* header: Only the current day header should be highlighted */
 th.current-day {
-    background-color: var(--color-bg-current-day);
+    background-color: var(--color-mid);
 }
 
 /* future days */
 .future-day {
-    background-color: var(--color-bg-secondary);
+    background-color: var(--color-light);
     cursor: default !important;
 }
 
@@ -320,23 +306,23 @@ th.current-day {
 .settings-icon {
     font-size: var(--font-size-xs);
     vertical-align: middle;
-    margin-left: var(--space-base);
+    margin-left: var(--space-md);
 }
 
 #notification-container {
     position: fixed;
-    top: var(--space-xxxl);
-    right: var(--space-xxxl);
+    top: var(--space-xl);
+    right: var(--space-xl);
     z-index: var(--z-index-menu);
     display: flex;
     flex-direction: column;
-    gap: var(--space-lg);
+    gap: var(--space-md);
 }
 
 .notification {
-    padding: var(--space-xl) 2.5rem var(--space-xl) var(--space-xxxl);
+    padding: var(--space-lg) 2.5rem var(--space-lg) var(--space-xl);
     border-radius: var(--border-radius-md);
-    color: var(--color-text-light);
+    color: var(--color-white);
     position: relative;
     min-width: 17.5rem;
     animation: notification-slide-in var(--transition-default) ease-out;
@@ -356,15 +342,15 @@ th.current-day {
 
 .notification-close {
     position: absolute;
-    right: var(--space-lg);
+    right: var(--space-md);
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: var(--color-text-light);
+    color: var(--color-white);
     font-size: var(--font-size-xl);
     cursor: pointer;
-    padding: 0 var(--space-md);
+    padding: 0 var(--space-sm);
 }
 
 .notification-hiding {
@@ -433,19 +419,19 @@ table#habits-table th {
 
 /* Стили из index.html */
 #index-page-message {
-    margin: var(--space-lg) 0;
-    padding: var(--space-lg);
-    border: var(--border-width) solid var(--color-border-primary);
+    margin: var(--space-md) 0;
+    padding: var(--space-md);
+    border: var(--border-width) solid var(--color-border);
     border-radius: var(--border-radius);
-    background-color: var(--color-bg-tertiary);
+    background-color: var(--color-light);
     text-align: center;
 }
 
 /* Стили из options.html */
 .options-section {
-    margin: var(--space-xxxl) 0;
-    padding: var(--space-xxxl);
-    border: var(--border-width) solid var(--color-border-primary);
+    margin: var(--space-xl) 0;
+    padding: var(--space-xl);
+    border: var(--border-width) solid var(--color-border);
     border-radius: var(--border-radius);
 }
 
@@ -457,15 +443,15 @@ table#habits-table th {
 .options-habits-list li {
     display: flex;
     align-items: center;
-    margin: var(--space-lg) 0;
-    padding: var(--space-md);
-    border: var(--border-width) solid var(--color-border-light);
+    margin: var(--space-md) 0;
+    padding: var(--space-sm);
+    border: var(--border-width) solid var(--color-light);
     border-radius: var(--border-radius-sm);
 }
 
 .options-habit-name {
     flex-grow: 1;
-    margin-right: var(--space-lg);
+    margin-right: var(--space-md);
 }
 
 .options-habit-buttons {
@@ -477,27 +463,27 @@ table#habits-table th {
 
 /* Form elements */
 #new-habit-name {
-    padding: var(--space-md);
-    margin-right: var(--space-lg);
+    padding: var(--space-sm);
+    margin-right: var(--space-md);
 }
 
 /* Button styles for option areas */
 .option-button {
-    padding: var(--space-md) var(--space-lg);
-    margin-left: var(--space-xxs);
-    margin-right: var(--space-xxs);
-    background-color: var(--color-bg-button);
-    border: var(--border-width) solid var(--color-border-primary);
+    padding: var(--space-sm) var(--space-md);
+    margin-left: var(--space-xs);
+    margin-right: var(--space-xs);
+    background-color: var(--color-light);
+    border: var(--border-width) solid var(--color-border);
     border-radius: var(--border-radius-sm);
     cursor: pointer;
 }
 
 .option-button:hover {
-    background-color: var(--color-bg-hover);
+    background-color: var(--color-mid);
 }
 
 .options-backup-controls {
     display: flex;
-    gap: var(--space-lg);
-    margin: var(--space-lg) 0;
+    gap: var(--space-md);
+    margin: var(--space-md) 0;
 }
