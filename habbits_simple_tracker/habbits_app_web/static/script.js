@@ -135,6 +135,10 @@ function scheduleNextDayRefresh() {
 function initHabitTracker() {
     const { startDate, endDate } = calculateDateRange();
 
+    // Create base date once
+    const baseDate = new Date(startDate);
+    baseDate.setHours(0, 0, 0, 0);
+
     // Initialize table headers with dates
     const headerRow = document.querySelector('#habits-table tr:first-child');
     const dates = [];
@@ -145,9 +149,9 @@ function initHabitTracker() {
     const dateHeaders = headerRow.querySelectorAll('th.date-header');
 
     for (let i = 0; i < tableDaysCount; i++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(new Date(startDate).getDate() + i);
-        const dateStr = currentDate.toISOString().split('T')[0];
+        const currentDate = new Date(baseDate);
+        currentDate.setDate(baseDate.getDate() + i);
+        const dateStr = formatDate(currentDate);
         dates.push(dateStr);
 
         const th = dateHeaders[i];
