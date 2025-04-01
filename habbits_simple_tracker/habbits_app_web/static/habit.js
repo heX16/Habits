@@ -21,6 +21,49 @@ function formatDate(date) {
     return `${year}-${month}-${day}`;
 }
 
+
+/**
+ * Calculates the ISO week number for a given date
+ * @param {Date} date - The date to find the ISO week number for
+ * @returns {number} The ISO week number (1-53)
+ * @note The ISO week date system is a part of the ISO 8601 date and time standard.
+ *       The week number is calculated by aligning dates to the nearest Thursday.
+ * @see https://en.wikipedia.org/wiki/ISO_week_date
+ */
+function getWeekNumberISO(date) {
+    // Make a copy of the date to avoid modifying the original
+    const targetDate = new Date(date.getTime());
+
+    // Get year of the date
+    const year = targetDate.getFullYear();
+
+    // Calculate day of year (doy)
+    const startOfYear = new Date(year, 0, 1); // January 1st of the year
+    const dayOfYear = Math.floor((targetDate - startOfYear) / (24 * 60 * 60 * 1000)) + 1;
+
+    // Get day of week (1=Monday, 7=Sunday) - convert from JS day of week (0=Sunday, 6=Saturday)
+    let dayOfWeek = targetDate.getDay(); // JS day of week
+    dayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Convert Sunday from 0 to 7
+
+    // Apply the algorithm
+    // 1. Subtract weekday from day of year
+    // 2. Add 10
+    // 3. Divide by 7, discard remainder
+    let weekNumber = Math.floor((dayOfYear - dayOfWeek + 10) / 7);
+
+    // Check edge cases
+    if (weekNumber === 0) {
+      // Date belongs to the last week of the previous year
+      return getWeeksInYear(year - 1);
+    } else if (weekNumber === 53 && isWeek53Invalid(year)) {
+      // Date is actually in week 1 of the following year
+      return 1;
+    }
+
+    return weekNumber;
+  }
+
+
 document.addEventListener('DOMContentLoaded', function () {
     // Get habit ID from URL
     const pathParts = window.location.pathname.split('/');
@@ -140,7 +183,7 @@ function renderMonth(tracking, year, month, trackingOffset) {
             }
         } else {
             // For other rows, take the first day of the row (subtract the day number to get Sunday)
-            const dayOfMonth = date + (7 - ((date - 1 + firstDay) % 7)) % 7 - 7;
+            const dayOfMonth = date + (7 - ((date - 1 + firstDay) % 7)) % 7;
             weekDate = new Date(year, month, dayOfMonth);
         }
 
@@ -149,11 +192,13 @@ function renderMonth(tracking, year, month, trackingOffset) {
             // Format the date for the URL query parameter and display
             const formattedDate = formatDate(weekDate);
 
+            const weekNumFromTheStartOfYear = getWeekNumberISO(weekDate);
+
             // Create a link with the formatted date
             const dateLink = document.createElement('a');
-            dateLink.textContent = formattedDate;
+            dateLink.textContent = `W${weekNumFromTheStartOfYear}`;
             dateLink.href = `/?date=${formattedDate}`;
-            dateLink.title = `Перейти к дате ${formattedDate}`;
+            dateLink.title = `Go to ${formattedDate}`;
 
             dateCell.appendChild(dateLink);
         }
