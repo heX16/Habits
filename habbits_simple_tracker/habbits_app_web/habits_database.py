@@ -12,7 +12,7 @@ class HabitsDatabase:
     GLOBAL_PARAMS_ID = -1
 
     # Parameters that can be set for individual habits
-    VALID_HABIT_PARAMS = {'fail_by_default', 'single_checkbox'}
+    VALID_HABIT_PARAMS = {'fail_by_default', 'single_checkbox', 'multi_numbers'}
 
     # Parameters that can only be set globally
     VALID_GLOBAL_PARAMS = {
@@ -183,7 +183,8 @@ class HabitsDatabase:
 
     def status_mapping(self, value: int, habit_id: int, fail_by_default: bool = False,
                       first_tracking_date: Optional[date] = None, current_date: Optional[date] = None,
-                      today: Optional[date] = None, single_checkbox: bool = False) -> int:
+                      today: Optional[date] = None, single_checkbox: bool = False,
+                      multi_numbers: bool = False) -> int:
         '''
         Maps database status values to client-side values.
         Takes into account habit's fail_by_default parameter.
@@ -195,8 +196,17 @@ class HabitsDatabase:
         :param current_date: Current date being processed
         :param today: Today's date (for future date checks)
         :param single_checkbox: Whether the habit uses only a single checkbox
+        :param multi_numbers: Whether the habit uses only numbers (0, 10-19)
         :return: Mapped status value for client
         '''
+        # Новые числовые статусы (10-19) не изменяются при single_checkbox
+        if value >= 10 and value <= 19:
+            return value
+
+        # If multi_numbers is enabled and value is not numeric (0, 10-19), map to 0
+        if multi_numbers and not (value == 0 or (value >= 10 and value <= 19)):
+            return 0
+
         # If single_checkbox is enabled, map all "done" statuses to 2 ("done")
         if single_checkbox and value in [1, 3]:  # If status is "done mini" or "done elite"
             return 2  # Return "done"
@@ -260,6 +270,7 @@ class HabitsDatabase:
         "id": 1,
         "name": "Test",
         "single_checkbox": false,
+        "multi_numbers": false,
         "tracking": [9,9,9,9,0,0,0,0,0,0]
         }
         ```
@@ -288,6 +299,9 @@ class HabitsDatabase:
         # Get single_checkbox parameter for this habit
         single_checkbox: bool = self.get_param(habit_id_val, 'single_checkbox', '0') == '1'
 
+        # Get multi_numbers parameter for this habit
+        multi_numbers: bool = self.get_param(habit_id_val, 'multi_numbers', '0') == '1'
+
         # Get last tracking date if fail_by_default is enabled
         first_tracking_date = None
         if fail_by_default:
@@ -315,7 +329,8 @@ class HabitsDatabase:
                 first_tracking_date=first_tracking_date,
                 current_date=current_date,
                 today=today,  # Pass today's date
-                single_checkbox=single_checkbox
+                single_checkbox=single_checkbox,
+                multi_numbers=multi_numbers
             )
             tracking.append(status)
 
@@ -323,6 +338,7 @@ class HabitsDatabase:
             'id': habit_id_val,
             'name': habit_name,
             'single_checkbox': single_checkbox,
+            'multi_numbers': multi_numbers,
             'tracking': tracking,
         }
 
@@ -561,7 +577,17 @@ class HabitsDatabase:
             {'value': 1, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'as_char': 'v', 'image': 'done_mini.png'},
             {'value': 2, 'label': 'done',       'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
             {'value': 3, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W', 'image': 'done_elite.png'},
-            {'value': 9, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'}
+            {'value': 9, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+            {'value': 10, 'label': '0',  'icon': '0️⃣', 'color': 'blue', 'as_char': '0', 'image': 'number_0.png'},
+            {'value': 11, 'label': '1',  'icon': '1️⃣', 'color': 'blue', 'as_char': '1', 'image': 'number_1.png'},
+            {'value': 12, 'label': '2',  'icon': '2️⃣', 'color': 'blue', 'as_char': '2', 'image': 'number_2.png'},
+            {'value': 13, 'label': '3',  'icon': '3️⃣', 'color': 'blue', 'as_char': '3', 'image': 'number_3.png'},
+            {'value': 14, 'label': '4',  'icon': '4️⃣', 'color': 'blue', 'as_char': '4', 'image': 'number_4.png'},
+            {'value': 15, 'label': '5',  'icon': '5️⃣', 'color': 'blue', 'as_char': '5', 'image': 'number_5.png'},
+            {'value': 16, 'label': '6',  'icon': '6️⃣', 'color': 'blue', 'as_char': '6', 'image': 'number_6.png'},
+            {'value': 17, 'label': '7',  'icon': '7️⃣', 'color': 'blue', 'as_char': '7', 'image': 'number_7.png'},
+            {'value': 18, 'label': '8',  'icon': '8️⃣', 'color': 'blue', 'as_char': '8', 'image': 'number_8.png'},
+            {'value': 19, 'label': '9',  'icon': '9️⃣', 'color': 'blue', 'as_char': '9', 'image': 'number_9.png'},
         ]
 
     def rename_habit(self, habit_id, new_name):
