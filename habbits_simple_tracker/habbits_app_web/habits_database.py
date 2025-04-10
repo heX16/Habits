@@ -12,7 +12,7 @@ class HabitsDatabase:
     GLOBAL_PARAMS_ID = -1
 
     # Parameters that can be set for individual habits
-    VALID_HABIT_PARAMS = {'fail_by_default', 'single_checkbox', 'multi_numbers'}
+    VALID_HABIT_PARAMS = {'fail_by_default', 'single_checkbox', 'multi_numbers', 'bad_habit'}
 
     # Parameters that can only be set globally
     VALID_GLOBAL_PARAMS = {
@@ -271,6 +271,7 @@ class HabitsDatabase:
         "name": "Test",
         "single_checkbox": false,
         "multi_numbers": false,
+        "bad_habit": false,
         "tracking": [9,9,9,9,0,0,0,0,0,0]
         }
         ```
@@ -301,6 +302,9 @@ class HabitsDatabase:
 
         # Get multi_numbers parameter for this habit
         multi_numbers: bool = self.get_param(habit_id_val, 'multi_numbers', '0') == '1'
+
+        # Get bad_habit parameter for this habit
+        bad_habit: bool = self.get_param(habit_id_val, 'bad_habit', '0') == '1'
 
         # Get last tracking date if fail_by_default is enabled
         first_tracking_date = None
@@ -339,6 +343,7 @@ class HabitsDatabase:
             'name': habit_name,
             'single_checkbox': single_checkbox,
             'multi_numbers': multi_numbers,
+            'bad_habit': bad_habit,
             'tracking': tracking,
         }
 

@@ -35,6 +35,12 @@
         </div>
 
         <div class="option-item">
+            <label>
+                <input type="checkbox" id="bad-habit"> Bad habit mode
+            </label>
+        </div>
+
+        <div class="option-item">
             <h3>Rename Habit</h3>
             <input type="text" id="new-habit-name" placeholder="New name">
             <button onclick="renameHabit()" class="option-button">Rename</button>
@@ -77,6 +83,13 @@
                     document.getElementById('multi-numbers').checked = data.value === '1';
                 });
 
+            // Load bad_habit parameter
+            fetch(`../../api/param/bad_habit/${habitId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('bad-habit').checked = data.value === '1';
+                });
+
             // Handle checkbox change
             document.getElementById('fail-by-default').addEventListener('change', function (e) {
                 const value = e.target.checked ? '1' : '0';
@@ -109,6 +122,20 @@
             document.getElementById('multi-numbers').addEventListener('change', function (e) {
                 const value = e.target.checked ? '1' : '0';
                 fetch(`../../api/param/multi_numbers/${habitId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        value: value
+                    })
+                });
+            });
+
+            // Handle bad habit change
+            document.getElementById('bad-habit').addEventListener('change', function (e) {
+                const value = e.target.checked ? '1' : '0';
+                fetch(`../../api/param/bad_habit/${habitId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
