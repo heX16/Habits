@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 let habit = data.habits[0];
                 document.getElementById('habit-name').textContent = habit.name;
                 let tracking = habit.tracking;
-                renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth);
+                renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth, habit.bad_habit);
             } else {
                 throw new Error('Data for this habit is not available');
             }
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
  * @param {number} trackingOffset - Offset in tracking array
  * @returns {HTMLElement} Table element with calendar
  */
-function renderMonth(tracking, year, month, trackingOffset) {
+function renderMonth(tracking, year, month, trackingOffset, bad_habit) {
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -245,7 +245,8 @@ function renderMonth(tracking, year, month, trackingOffset) {
                         } else {
                             contentDiv.textContent += statusOption.as_char;
                         }
-                        cell.style.backgroundColor = statusOption.color === 'none' ? 'transparent' : statusOption.color;
+                        const colorName = bad_habit ? statusOption.neg_color : statusOption.color;
+                        cell.style.backgroundColor = colorName === 'none' ? 'transparent' : colorName;
                     }
 
                     cell.appendChild(contentDiv);
@@ -264,7 +265,7 @@ function renderMonth(tracking, year, month, trackingOffset) {
 /**
  * Renders both calendar months
  */
-function renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth) {
+function renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth, bad_habit) {
     const container = document.getElementById('stat-container');
     container.innerHTML = '';
 
@@ -273,10 +274,10 @@ function renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMont
 
     // Previous month calendar
     const prevMonthDays = new Date(prevYear, prevMonth + 1, 0).getDate();
-    const prevMonthCalendar = renderMonth(tracking, prevYear, prevMonth, 0);
+    const prevMonthCalendar = renderMonth(tracking, prevYear, prevMonth, 0, bad_habit);
 
     // Current month calendar
-    const currentMonthCalendar = renderMonth(tracking, currentYear, currentMonth, prevMonthDays);
+    const currentMonthCalendar = renderMonth(tracking, currentYear, currentMonth, prevMonthDays, bad_habit);
 
     calendarsDiv.appendChild(prevMonthCalendar);
     calendarsDiv.appendChild(currentMonthCalendar);

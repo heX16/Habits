@@ -578,21 +578,21 @@ class HabitsDatabase:
         Returns list of possible status options for habits
         '''
         return [
-            {'value': 0, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
-            {'value': 1, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'as_char': 'v', 'image': 'done_mini.png'},
-            {'value': 2, 'label': 'done',       'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
-            {'value': 3, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W', 'image': 'done_elite.png'},
-            {'value': 9, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
-            {'value': 10, 'label': '0',  'icon': '0️⃣', 'color': 'blue', 'as_char': '0', 'image': 'number_0.png'},
-            {'value': 11, 'label': '1',  'icon': '1️⃣', 'color': 'blue', 'as_char': '1', 'image': 'number_1.png'},
-            {'value': 12, 'label': '2',  'icon': '2️⃣', 'color': 'blue', 'as_char': '2', 'image': 'number_2.png'},
-            {'value': 13, 'label': '3',  'icon': '3️⃣', 'color': 'blue', 'as_char': '3', 'image': 'number_3.png'},
-            {'value': 14, 'label': '4',  'icon': '4️⃣', 'color': 'blue', 'as_char': '4', 'image': 'number_4.png'},
-            {'value': 15, 'label': '5',  'icon': '5️⃣', 'color': 'blue', 'as_char': '5', 'image': 'number_5.png'},
-            {'value': 16, 'label': '6',  'icon': '6️⃣', 'color': 'blue', 'as_char': '6', 'image': 'number_6.png'},
-            {'value': 17, 'label': '7',  'icon': '7️⃣', 'color': 'blue', 'as_char': '7', 'image': 'number_7.png'},
-            {'value': 18, 'label': '8',  'icon': '8️⃣', 'color': 'blue', 'as_char': '8', 'image': 'number_8.png'},
-            {'value': 19, 'label': '9',  'icon': '9️⃣', 'color': 'blue', 'as_char': '9', 'image': 'number_9.png'},
+            {'value': 0, 'label': 'not set',    'icon': ' ',  'color': 'none', 'neg_color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+            {'value': 1, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'neg_color': 'red', 'as_char': 'v', 'image': 'done_mini.png'},
+            {'value': 2, 'label': 'done',       'icon': '✅', 'color': 'green', 'neg_color': 'red', 'as_char': 'V', 'image': 'done.png'},
+            {'value': 3, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'neg_color': 'red', 'as_char': 'W', 'image': 'done_elite.png'},
+            {'value': 9, 'label': 'fail',       'icon': '❌', 'color': 'red', 'neg_color': 'green', 'as_char': 'X', 'image': 'fail.png'},
+            {'value': 10, 'label': '0',  'icon': '0️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '0', 'image': 'number_0.png'},
+            {'value': 11, 'label': '1',  'icon': '1️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '1', 'image': 'number_1.png'},
+            {'value': 12, 'label': '2',  'icon': '2️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '2', 'image': 'number_2.png'},
+            {'value': 13, 'label': '3',  'icon': '3️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '3', 'image': 'number_3.png'},
+            {'value': 14, 'label': '4',  'icon': '4️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '4', 'image': 'number_4.png'},
+            {'value': 15, 'label': '5',  'icon': '5️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '5', 'image': 'number_5.png'},
+            {'value': 16, 'label': '6',  'icon': '6️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '6', 'image': 'number_6.png'},
+            {'value': 17, 'label': '7',  'icon': '7️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '7', 'image': 'number_7.png'},
+            {'value': 18, 'label': '8',  'icon': '8️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '8', 'image': 'number_8.png'},
+            {'value': 19, 'label': '9',  'icon': '9️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '9', 'image': 'number_9.png'},
         ]
 
     def rename_habit(self, habit_id, new_name):
