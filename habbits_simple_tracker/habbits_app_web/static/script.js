@@ -229,7 +229,8 @@ document.addEventListener('DOMContentLoaded', function() {
  * @returns {string} The corresponding emoji or an empty string.
  */
 function getStatusEmoji(status) {
-    const option = getStatusOptions().find(opt => opt.value === status);
+    const options = getStatusOptions().all;
+    const option = options.find(opt => opt.value === status);
     return option ? option.icon : '';
 }
 
@@ -271,7 +272,7 @@ function handleCellClick(cell, e) {
         const isMultiNumbers = habit && habit.multi_numbers;
 
         // Get available status options based on habit settings
-        const statusOptions = getStatusOptions(isSingleCheckbox, isMultiNumbers);
+        const statusOptions = getStatusOptions(isSingleCheckbox, isMultiNumbers).all;
 
         // Find current status in the array
         const currentIndex = statusOptions.findIndex(opt => opt.value === currentStatus);
@@ -426,12 +427,13 @@ function updateHabitCell(cell, status, habitId, date, today) {
 }
 
 /**
- * Displays a floating status selection menu near the specified cell.
+ * Shows a floating menu with status options.
  * @param {HTMLElement} cell - The table cell element.
- * @param {MouseEvent} event - The mouse event (used for positioning).
+ * @param {MouseEvent} event - The mouse event.
  */
 function showStatusMenu(cell, event) {
-    // Get the habit_id from the cell
+    removeStatusMenu(); // Remove existing menu if any
+
     const habitId = cell.dataset.habitId;
 
     // Get single_checkbox flag from the habit data
@@ -439,7 +441,7 @@ function showStatusMenu(cell, event) {
     const isSingleCheckbox = habit && habit.single_checkbox;
     const isMultiNumbers = habit && habit.multi_numbers;
 
-    const items = getStatusOptions(isSingleCheckbox, isMultiNumbers).map(option => ({
+    const items = getStatusOptions(isSingleCheckbox, isMultiNumbers).all.map(option => ({
         icon: option.icon || option.as_char,
         label: option.label,
         onClick: () => {

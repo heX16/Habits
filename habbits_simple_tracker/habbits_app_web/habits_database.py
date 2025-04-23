@@ -598,25 +598,57 @@ class HabitsDatabase:
 
     def get_status_options(self):
         '''
-        Returns list of possible status options for habits
+        Returns dictionary of status options for habits.
+        The 'all' key contains a list of all available statuses.
         '''
-        return [
-            {'value': 0, 'label': 'not set',    'icon': ' ',  'color': 'none', 'neg_color': 'none', 'as_char': ' ', 'image': 'empty.png'},
-            {'value': 1, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'neg_color': 'red', 'as_char': 'v', 'image': 'done_mini.png'},
-            {'value': 2, 'label': 'done',       'icon': '✅', 'color': 'green', 'neg_color': 'red', 'as_char': 'V', 'image': 'done.png'},
-            {'value': 3, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'neg_color': 'red', 'as_char': 'W', 'image': 'done_elite.png'},
-            {'value': 9, 'label': 'fail',       'icon': '❌', 'color': 'red', 'neg_color': 'green', 'as_char': 'X', 'image': 'fail.png'},
-            {'value': 10, 'label': '0',  'icon': '0️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '0', 'image': 'number_0.png'},
-            {'value': 11, 'label': '1',  'icon': '1️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '1', 'image': 'number_1.png'},
-            {'value': 12, 'label': '2',  'icon': '2️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '2', 'image': 'number_2.png'},
-            {'value': 13, 'label': '3',  'icon': '3️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '3', 'image': 'number_3.png'},
-            {'value': 14, 'label': '4',  'icon': '4️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '4', 'image': 'number_4.png'},
-            {'value': 15, 'label': '5',  'icon': '5️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '5', 'image': 'number_5.png'},
-            {'value': 16, 'label': '6',  'icon': '6️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '6', 'image': 'number_6.png'},
-            {'value': 17, 'label': '7',  'icon': '7️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '7', 'image': 'number_7.png'},
-            {'value': 18, 'label': '8',  'icon': '8️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '8', 'image': 'number_8.png'},
-            {'value': 19, 'label': '9',  'icon': '9️⃣', 'color': 'green', 'neg_color': 'red', 'as_char': '9', 'image': 'number_9.png'},
-        ]
+        return {
+            'all': [
+                {'value': 0, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': 1, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'as_char': 'v', 'image': 'done_mini.png'},
+                {'value': 2, 'label': 'done',       'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': 3, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W', 'image': 'done_elite.png'},
+                {'value': 9, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+            ],
+            # good habits
+            'gh1': [
+                {'value': 0, 'label': 'not set', 'icon': ' ', 'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': 1, 'label': 'done', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': 2, 'label': 'fail', 'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+            ],
+            'gh3': [
+                {'value': 0, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': 1, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'as_char': 'v', 'image': 'done_mini.png'},
+                {'value': 2, 'label': 'done',       'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': 3, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W', 'image': 'done_elite.png'},
+                {'value': 9, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+            ],
+            'gh10': [
+                {'value': 10, 'label': '0',  'icon': '0️⃣', 'color': 'green', 'as_char': '0', 'image': 'number_0.png'},
+                {'value': 11, 'label': '1',  'icon': '1️⃣', 'color': 'green', 'as_char': '1', 'image': 'number_1.png'},
+                {'value': 12, 'label': '2',  'icon': '2️⃣', 'color': 'green', 'as_char': '2', 'image': 'number_2.png'},
+                {'value': 13, 'label': '3',  'icon': '3️⃣', 'color': 'green', 'as_char': '3', 'image': 'number_3.png'},
+                {'value': 14, 'label': '4',  'icon': '4️⃣', 'color': 'green', 'as_char': '4', 'image': 'number_4.png'},
+                {'value': 15, 'label': '5',  'icon': '5️⃣', 'color': 'green', 'as_char': '5', 'image': 'number_5.png'},
+                {'value': 16, 'label': '6',  'icon': '6️⃣', 'color': 'green', 'as_char': '6', 'image': 'number_6.png'},
+                {'value': 17, 'label': '7',  'icon': '7️⃣', 'color': 'green', 'as_char': '7', 'image': 'number_7.png'},
+                {'value': 18, 'label': '8',  'icon': '8️⃣', 'color': 'green', 'as_char': '8', 'image': 'number_8.png'},
+                {'value': 19, 'label': '9',  'icon': '9️⃣', 'color': 'green', 'as_char': '9', 'image': 'number_9.png'},
+            ],
+            # bad habits
+            'bh1': [
+                {'value': 0, 'label': 'not set', 'icon': ' ', 'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': 1, 'label': 'done', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': 2, 'label': 'fail', 'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+            ],
+            'bh3': [
+                {'value': 0, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': 1, 'label': 'low fail',   'icon': '🟡', 'color': 'yellow', 'as_char': '~', 'image': 'yellow_circle.png'},
+                {'value': 2, 'label': 'medium fail','icon': '🟠', 'color': 'orange', 'as_char': 'x', 'image': 'orange_circle.png'},
+                {'value': 3, 'label': 'high fail',  'icon': '🔴', 'color': 'red', 'as_char': 'X', 'image': 'red_circle.png'},
+                {'value': 9, 'label': 'success',    'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+            ],
+
+        }
 
     def rename_habit(self, habit_id, new_name):
         '''

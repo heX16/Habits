@@ -223,19 +223,23 @@ def prepare_js_constants(database):
     }
 
     status_options = database.get_status_options()
-    formatted_options = []
-    for option in status_options:
-        formatted_items = []
-        for k, v in option.items():
-            if isinstance(v, str):
-                formatted_items.append(f"'{k}': '{v}'")
-            else:
-                formatted_items.append(f"'{k}': {v}")
-        formatted_options.append('{' + ', '.join(formatted_items) + '}')
+    formatted_options_categories = {}
+    for category, options in status_options.items():
+        formatted_options = []
+        for option in options:
+            formatted_items = []
+            for k, v in option.items():
+                if isinstance(v, str):
+                    formatted_items.append(f"'{k}': '{v}'")
+                else:
+                    formatted_items.append(f"'{k}': {v}")
+            formatted_options.append('{' + ', '.join(formatted_items) + '}')
+        formatted_options_categories[category] = formatted_options
+
 
     return {
         'constants': constants,
-        'status_options': formatted_options
+        'status_options': formatted_options_categories
     }
 
 def api_get_param(param_name, habit_id=-1, database=None):

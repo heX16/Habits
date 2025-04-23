@@ -1,0 +1,9 @@
+*.bat
+*.bak
+__pycache__
+__pycache__/*
+.index_hash.yaml
+*.pyc
+*.log
+.idea/
+*.db
