@@ -4,10 +4,14 @@ import csv
 import os
 from typing import Optional
 
+# TODO: все русские комментарии переписать на английский язык
+
 class HabitsDatabase:
     '''
     Database class for managing habits, habit tracking, and special parameters.
     '''
+
+    # TODO: переименовать: `GLOBAL_PARAMS_ID` -> `GLOBAL_PARAMS`
     # Special habit_id value for global parameters
     GLOBAL_PARAMS_ID = -1
 
@@ -26,6 +30,11 @@ class HabitsDatabase:
 
         :param db_path: Path to the SQLite database file
         '''
+        # TODO: добавить аргумент - создавать таблицу если ее нет.
+        #       в файл habits_config.py добавить параметр - создавать таблицу по умолчанию или нет.
+
+        # TODO: `db_path` должен иметь тип `Path|str`
+        # TODO: `self.db_path` должен иметь тип `Path`
         self.db_path = db_path
         self.init_db()
 
@@ -50,9 +59,13 @@ class HabitsDatabase:
                          WHERE type='table' AND
                          name IN ('habits_list', 'habit_tracking', 'habit_params')''')
         existing_tables = {row['name'] for row in cursor.fetchall()}
+
         required_tables = {'habits_list', 'habit_tracking', 'habit_params'}
 
         conn.close()
+
+        # TODO: по умолчанию вместо стирания таблицы должен вызываться exception.
+        #       это отдельный аргумент функции - стирание таблицы
 
         # If any table is missing, clear DB and create all tables
         if not required_tables.issubset(existing_tables):
@@ -203,6 +216,9 @@ class HabitsDatabase:
         if value >= 10 and value <= 19:
             return value
 
+        # TODO: все числовые значения статуса нужно объявить константами.
+        #       тоесть убрать все "магические числа" (0, 9, 10-19, и тд)
+
         # If multi_numbers is enabled and value is not numeric (0, 10-19), map to 0
         if multi_numbers and not (value == 0 or (value >= 10 and value <= 19)):
             return 0
@@ -212,6 +228,15 @@ class HabitsDatabase:
             return 2  # Return "done"
 
         if fail_by_default:
+            # TODO:
+            #   объединить все условия в этой ветке в одно простое условие.
+            #   перед простым условием можно добавить условие которое проверяет наличие данных.
+            #   простое условие:
+            #   # Если значение "пустое" (0) и текущая дата находится между началом учета и сегодняшним днем,
+            #   # тогда возвращаем "провал" (9)
+            #   if (value == 0) and (first_tracking_date > current_date < today):
+            #     return 9
+
             # Don't mark future dates as failed
             if value == 0 and current_date and today and current_date >= today:
                 return 0
@@ -307,10 +332,7 @@ class HabitsDatabase:
         bad_habit: bool = self.get_param(habit_id_val, 'bad_habit', '0') == '1'
 
         # Get last tracking date if fail_by_default is enabled
-        first_tracking_date = None
-        if fail_by_default:
-            first_tracking_date = self.get_first_tracking_date(habit_id_val)
-            print(f'first_tracking_date: {first_tracking_date}')
+        first_tracking_date = self.get_first_tracking_date(habit_id_val)
 
         # Get all records for habit in date range, ordered by date
         cursor.execute('''SELECT date, status
@@ -343,6 +365,7 @@ class HabitsDatabase:
             'name': habit_name,
             'single_checkbox': single_checkbox,
             'multi_numbers': multi_numbers,
+            'first_tracking_date': first_tracking_date,
             'bad_habit': bad_habit,
             'tracking': tracking,
         }
@@ -642,6 +665,7 @@ class HabitsDatabase:
             if not row:
                 return None
             try:
+                # TODO: сделать отдельную вспомогательную функцию по конвертированию "%Y-%m-%d"->`date`
                 return datetime.strptime(row['date'], '%Y-%m-%d').date()
             except ValueError:
                 return None
@@ -739,3 +763,5 @@ class HabitsDatabase:
 
         self.set_habit_sequence(habit_id, target_sequence)
         self.set_habit_sequence(habits[target_index]['id'], current_sequence)
+
+
