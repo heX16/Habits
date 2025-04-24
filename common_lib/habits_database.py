@@ -4,14 +4,14 @@ import csv
 import os
 from typing import Optional
 
-# TODO: все русские комментарии переписать на английский язык
+# TODO: translate all Russian comments to English
 
 class HabitsDatabase:
     '''
     Database class for managing habits, habit tracking, and special parameters.
     '''
 
-    # TODO: переименовать: `GLOBAL_PARAMS_ID` -> `GLOBAL_PARAMS`
+    # TODO: rename: `GLOBAL_PARAMS_ID` -> `GLOBAL_PARAMS`
     # Special habit_id value for global parameters
     GLOBAL_PARAMS_ID = -1
 
@@ -30,11 +30,11 @@ class HabitsDatabase:
 
         :param db_path: Path to the SQLite database file
         '''
-        # TODO: добавить аргумент - создавать таблицу если ее нет.
-        #       в файл habits_config.py добавить параметр - создавать таблицу по умолчанию или нет.
+        # TODO: add argument - create tables if they don't exist.
+        #       add parameter to habits_config.py - create tables by default or not.
 
-        # TODO: `db_path` должен иметь тип `Path|str`
-        # TODO: `self.db_path` должен иметь тип `Path`
+        # TODO: `db_path` should have type `Path|str`
+        # TODO: `self.db_path` should have type `Path`
         self.db_path = db_path
         self.init_db()
 
@@ -64,8 +64,8 @@ class HabitsDatabase:
 
         conn.close()
 
-        # TODO: по умолчанию вместо стирания таблицы должен вызываться exception.
-        #       это отдельный аргумент функции - стирание таблицы
+        # TODO: by default, an exception should be raised instead of clearing the table.
+        #       this is a separate function argument - table clearing
 
         # If any table is missing, clear DB and create all tables
         if not required_tables.issubset(existing_tables):
@@ -212,12 +212,12 @@ class HabitsDatabase:
         :param multi_numbers: Whether the habit uses only numbers (0, 10-19)
         :return: Mapped status value for client
         '''
-        # Новые числовые статусы (10-19) не изменяются при single_checkbox
+        # New numeric statuses (10-19) don't change with single_checkbox
         if value >= 10 and value <= 19:
             return value
 
-        # TODO: все числовые значения статуса нужно объявить константами.
-        #       тоесть убрать все "магические числа" (0, 9, 10-19, и тд)
+        # TODO: all numeric status values should be declared as constants.
+        #       i.e., remove all "magic numbers" (0, 9, 10-19, etc.)
 
         # If multi_numbers is enabled and value is not numeric (0, 10-19), map to 0
         if multi_numbers and not (value == 0 or (value >= 10 and value <= 19)):
@@ -229,11 +229,11 @@ class HabitsDatabase:
 
         if fail_by_default:
             # TODO:
-            #   объединить все условия в этой ветке в одно простое условие.
-            #   перед простым условием можно добавить условие которое проверяет наличие данных.
-            #   простое условие:
-            #   # Если значение "пустое" (0) и текущая дата находится между началом учета и сегодняшним днем,
-            #   # тогда возвращаем "провал" (9)
+            #   combine all conditions in this branch into one simple condition.
+            #   before the simple condition, add a condition that checks for data presence.
+            #   simple condition:
+            #   # If the value is "empty" (0) and the current date is between the first tracking date and today,
+            #   # then return "fail" (9)
             #   if (value == 0) and (first_tracking_date > current_date < today):
             #     return 9
 
@@ -697,7 +697,7 @@ class HabitsDatabase:
             if not row:
                 return None
             try:
-                # TODO: сделать отдельную вспомогательную функцию по конвертированию "%Y-%m-%d"->`date`
+                # TODO: create a separate helper function for converting "%Y-%m-%d" to `date`
                 return datetime.strptime(row['date'], '%Y-%m-%d').date()
             except ValueError:
                 return None

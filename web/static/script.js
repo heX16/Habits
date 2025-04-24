@@ -158,7 +158,7 @@ function initHabitTracker() {
         const dayOfMonth = currentDate.getDate();
         const dayOfWeek = weekDays[currentDate.getDay()];
         th.textContent = `${dayOfMonth} ${dayOfWeek}`;
-        th.dataset.date = dateStr;  // Сохраняем дату в dataset
+        th.dataset.date = dateStr;  // Store date in dataset
 
         if (currentDate.getFullYear() === today.getFullYear() &&
             currentDate.getMonth() === today.getMonth() &&

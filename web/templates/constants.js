@@ -16,14 +16,14 @@ function getStatusOptions(singleCheckbox, multiNumbers) {
     };
 
     if (multiNumbers) {
-        // Если включен режим multi_numbers, оставляем только статусы 0 и числовые (10-19)
+        // If multi_numbers mode is enabled, keep only status 0 and numeric values (10-19)
         return {
             'all': options['all'].filter(opt => opt.value === 0 || (opt.value >= 10 && opt.value <= 19))
         };
     }
 
     if (singleCheckbox) {
-        // Если включен режим single_checkbox, оставляем только статусы 0, 2 и 9
+        // If single_checkbox mode is enabled, keep only statuses 0, 2 and 9
         return {
             'all': options['all'].filter(opt => opt.value === 0 || opt.value === 2 || opt.value === 9)
         };
