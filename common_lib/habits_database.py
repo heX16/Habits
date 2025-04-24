@@ -259,28 +259,15 @@ class HabitsDatabase:
             return HabitStatus.DONE  # Return "done"
 
         if fail_by_default:
-            # TODO:
-            #   combine all conditions in this branch into one simple condition.
-            #   before the simple condition, add a condition that checks for data presence.
-            #   simple condition:
-            #   # If the value is "empty" (0) and the current date is between the first tracking date and today,
-            #   # then return "fail" (9)
-            #   if (value == 0) and (first_tracking_date > current_date < today):
-            #     return 9
-
-            # Don't mark future dates as failed
-            if value == HabitStatus.NOT_SET and current_date and today and current_date >= today:
+            if value == HabitStatus.NOT_SET and current_date and today and first_tracking_date:
+                # If status is `NOT_SET` (0) and
+                # current date is between:
+                # - first tracking date (not including) and
+                # - today (not including)
+                # Then return `FAIL`` (9)
+                if first_tracking_date < current_date < today:
+                    return HabitStatus.FAIL
                 return HabitStatus.NOT_SET
-
-            # Handle dates relative to first tracking
-            if value == HabitStatus.NOT_SET and first_tracking_date and current_date:
-                # Return fail status for dates up to first tracking date
-                # Return 0 for dates before first tracking date
-                return HabitStatus.FAIL if current_date > first_tracking_date else HabitStatus.NOT_SET
-
-            # Default fail_by_default behavior
-            if value == HabitStatus.NOT_SET:
-                return HabitStatus.FAIL
 
         return value
 
