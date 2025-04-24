@@ -42,12 +42,13 @@ class HabitsDatabase:
     GLOBAL_PARAMS = -1
 
     # Parameters that can be set for individual habits
-    VALID_HABIT_PARAMS = {'fail_by_default', 'single_checkbox', 'multi_numbers', 'bad_habit'}
+    VALID_HABIT_PARAMS = {'fail_by_default', 'single_checkbox', 'multi_numbers', 'bad_habit', 'mode'}
 
     # Parameters that can only be set globally
     VALID_GLOBAL_PARAMS = {
         'theme',        # UI theme (light/dark) (work in progress)
-        'test_option'   # Test parameter used in options page (test, will be removed)
+        'test_option',   # Test parameter used in options page (test, will be removed)
+        'db_version',    # Database version
     }
 
     @staticmethod
