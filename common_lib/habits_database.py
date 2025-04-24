@@ -2,7 +2,9 @@ import sqlite3
 from datetime import date, datetime, timedelta
 import csv
 import os
-from typing import Optional
+from typing import Optional, Union
+from pathlib import Path
+from os import PathLike
 
 # TODO: translate all Russian comments to English
 
@@ -11,9 +13,8 @@ class HabitsDatabase:
     Database class for managing habits, habit tracking, and special parameters.
     '''
 
-    # TODO: rename: `GLOBAL_PARAMS_ID` -> `GLOBAL_PARAMS`
     # Special habit_id value for global parameters
-    GLOBAL_PARAMS_ID = -1
+    GLOBAL_PARAMS = -1
 
     # Parameters that can be set for individual habits
     VALID_HABIT_PARAMS = {'fail_by_default', 'single_checkbox', 'multi_numbers', 'bad_habit'}
@@ -24,18 +25,15 @@ class HabitsDatabase:
         'test_option'   # Test parameter used in options page (test, will be removed)
     }
 
-    def __init__(self, db_path):
+    def __init__(self, db_path: Union[str, PathLike[str]], create_tables_if_missing=True):
         '''
         Initialize the Database object and create tables if they do not exist.
 
         :param db_path: Path to the SQLite database file
+        :param create_tables_if_missing: Whether to create tables if they don't exist (default: True)
         '''
-        # TODO: add argument - create tables if they don't exist.
-        #       add parameter to habits_config.py - create tables by default or not.
-
-        # TODO: `db_path` should have type `Path|str`
-        # TODO: `self.db_path` should have type `Path`
-        self.db_path = db_path
+        self.db_path = Path(db_path)
+        self.create_tables_if_missing = create_tables_if_missing
         self.init_db()
 
     def connect(self):
@@ -49,7 +47,8 @@ class HabitsDatabase:
     def init_db(self):
         '''
         Initialize the database with the required tables.
-        If any required table is missing, clear database and create all tables.
+        If any required table is missing and create_tables_if_missing is True,
+        clear database and create all tables.
         '''
         conn = self.connect()
         cursor = conn.cursor()
@@ -67,10 +66,13 @@ class HabitsDatabase:
         # TODO: by default, an exception should be raised instead of clearing the table.
         #       this is a separate function argument - table clearing
 
-        # If any table is missing, clear DB and create all tables
-        if not required_tables.issubset(existing_tables):
+        # If any table is missing and create_tables_if_missing is True, clear DB and create all tables
+        if not required_tables.issubset(existing_tables) and self.create_tables_if_missing:
             self.clear_db()
             self.create_tables()
+        elif not required_tables.issubset(existing_tables) and not self.create_tables_if_missing:
+            missing_tables = required_tables - existing_tables
+            raise Exception(f"Required tables are missing: {missing_tables} and create_tables_if_missing is False")
 
     def create_tables(self):
         '''
@@ -432,11 +434,11 @@ class HabitsDatabase:
         Validate parameter name and check if it can be used with given habit_id.
 
         :param param_name: Name of the parameter
-        :param habit_id: Habit ID or GLOBAL_PARAMS_ID for global parameters
+        :param habit_id: Habit ID or GLOBAL_PARAMS for global parameters
         :param value: Parameter value
         :raises ValueError: If parameter name is invalid for given habit_id
         """
-        if habit_id == self.GLOBAL_PARAMS_ID:
+        if habit_id == self.GLOBAL_PARAMS:
             if param_name not in self.VALID_GLOBAL_PARAMS:
                 raise ValueError(f"Unknown global parameter: {param_name}")
         else:
@@ -447,7 +449,7 @@ class HabitsDatabase:
         '''
         Get the value of a specific parameter for a habit or globally.
 
-        :param habit_id: The habit ID (HabitsDatabase.GLOBAL_PARAMS_ID for global parameters).
+        :param habit_id: The habit ID (HabitsDatabase.GLOBAL_PARAMS for global parameters).
         :param param_name: The name of the parameter.
         :param default_value: Value to return if parameter is not found.
         :return: The value of the parameter, or default_value if not found.
@@ -468,7 +470,7 @@ class HabitsDatabase:
         '''
         Set or update the value of a specific parameter for a habit or globally.
 
-        :param habit_id: The habit ID (HabitsDatabase.GLOBAL_PARAMS_ID for global parameters).
+        :param habit_id: The habit ID (HabitsDatabase.GLOBAL_PARAMS for global parameters).
         :param param_name: The name of the parameter.
         :param value: The value to store.
         :raises ValueError: If parameter name is invalid for given habit_id
@@ -570,7 +572,7 @@ class HabitsDatabase:
                     _, target = row
                     mode = 'params'
                     if target == 'global':
-                        current_habit_id = -1
+                        current_habit_id = self.GLOBAL_PARAMS
                     else:
                         # Find habit ID by name from our cache
                         current_habit_id = habits_dict.get(target)

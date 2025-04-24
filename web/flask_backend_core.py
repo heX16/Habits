@@ -173,26 +173,26 @@ def create_app():
 
     @app.route('/api/param/<param_name>', methods=['GET'])
     @app.route('/api/param/<param_name>/<int:habit_id>', methods=['GET'])
-    def get_param(param_name, habit_id=-1):
+    def get_param(param_name, habit_id=HabitsDatabase.GLOBAL_PARAMS):
         """
         Get parameter value.
-        If habit_id is not provided, returns global parameter (habit_id = -1)
+        If habit_id is not provided, returns global parameter (habit_id = GLOBAL_PARAMS)
 
         :param param_name: Name of the parameter
-        :param habit_id: Optional habit ID (default: -1 for global parameters)
+        :param habit_id: Optional habit ID (default: GLOBAL_PARAMS for global parameters)
         """
         value = db.get_param(habit_id, param_name) or 'false'
         return jsonify({'value': value})
 
     @app.route('/api/param/<param_name>', methods=['POST'])
     @app.route('/api/param/<param_name>/<int:habit_id>', methods=['POST'])
-    def set_param(param_name, habit_id=-1):
+    def set_param(param_name, habit_id=HabitsDatabase.GLOBAL_PARAMS):
         """
         Set parameter value.
-        If habit_id is not provided, sets global parameter (habit_id = -1)
+        If habit_id is not provided, sets global parameter (habit_id = GLOBAL_PARAMS)
 
         :param param_name: Name of the parameter
-        :param habit_id: Optional habit ID (default: -1 for global parameters)
+        :param habit_id: Optional habit ID (default: GLOBAL_PARAMS for global parameters)
         """
         data = request.get_json()
         if 'value' not in data:

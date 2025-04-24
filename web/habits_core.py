@@ -12,7 +12,8 @@ def get_database() -> HabitsDatabase:
     """
     # Get database path from environment variable or use default from config
     db_path = os.environ.get('HABITS_WEB_DB_PATH') or Config.HABITS_WEB_DB_PATH
-    return HabitsDatabase(db_path)
+
+    return HabitsDatabase(db_path, create_tables_if_missing=Config.CREATE_TABLES_IF_MISSING)
 
 def init_db(database: HabitsDatabase):
     """
@@ -242,12 +243,12 @@ def prepare_js_constants(database):
         'status_options': formatted_options_categories
     }
 
-def api_get_param(param_name, habit_id=-1, database=None):
+def api_get_param(param_name, habit_id=HabitsDatabase.GLOBAL_PARAMS, database=None):
     """
     Get parameter value through API.
 
     :param param_name: Name of the parameter
-    :param habit_id: Habit ID or -1 for global parameters
+    :param habit_id: Habit ID or HabitsDatabase.GLOBAL_PARAMS for global parameters
     :param database: Database instance
     :return: JSON response
     """
@@ -257,13 +258,13 @@ def api_get_param(param_name, habit_id=-1, database=None):
     except ValueError as e:
         return {'error': str(e)}, 400
 
-def api_set_param(param_name, data, habit_id=-1, database=None):
+def api_set_param(param_name, data, habit_id=HabitsDatabase.GLOBAL_PARAMS, database=None):
     """
     Set parameter value through API.
 
     :param param_name: Name of the parameter
     :param data: Request data containing new value
-    :param habit_id: Habit ID or -1 for global parameters
+    :param habit_id: Habit ID or HabitsDatabase.GLOBAL_PARAMS for global parameters
     :param database: Database instance
     :return: JSON response
     """
