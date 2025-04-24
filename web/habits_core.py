@@ -1,7 +1,7 @@
 # habits_core.py
 from datetime import datetime, timedelta, date
-from habits_database import HabitsDatabase
-from habits_config import Config
+from common_lib.habits_database import HabitsDatabase
+from web.habits_config import Config
 import os
 
 def get_database() -> HabitsDatabase:

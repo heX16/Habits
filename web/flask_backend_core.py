@@ -33,8 +33,8 @@ http://server.test/habits/js/constants.js    - Generated constants
 """
 import os
 from flask import Flask, jsonify, request, render_template, send_file, Response, redirect, url_for
-from habits_core import init_db, api_fetch_habits, api_fetch_main_page, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits, api_rename_habit, api_reorder_habit, prepare_js_constants, get_database
-from habits_database import HabitsDatabase
+from web.habits_core import init_db, api_fetch_habits, api_fetch_main_page, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits, api_rename_habit, api_reorder_habit, prepare_js_constants, get_database
+from common_lib.habits_database import HabitsDatabase
 
 def create_app():
     """

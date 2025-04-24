@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    // Press F5 to start debugging Flask Backend
+    "configurations": [
+        {
+            "name": "Python: Flask Backend",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "web.flask_backend",
+            "cwd": "${workspaceFolder}/..",
+            "env": {
+                "FLASK_APP": "web.flask_backend",
+                "FLASK_ENV": "development"
+            },
+            "args": [],
+            "jinja": true,
+            "justMyCode": true
+        }
+    ]
+}
