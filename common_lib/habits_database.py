@@ -41,6 +41,11 @@ class HabitsDatabase:
         'test_option'   # Test parameter used in options page (test, will be removed)
     }
 
+    @staticmethod
+    def str_to_date(date_str: str) -> date:
+        """Convert a string in format 'YYYY-MM-DD' to a date object"""
+        return datetime.strptime(date_str, '%Y-%m-%d').date()
+
     def __init__(self, db_path: Union[str, PathLike[str]], create_tables_if_missing=True, clear_tables_if_missing=False, create_db_file_if_missing=True):
         '''
         Initialize the Database object and create tables if they do not exist.
@@ -245,9 +250,6 @@ class HabitsDatabase:
         if value >= HabitStatus.NUMBER_0 and value <= HabitStatus.NUMBER_9:
             return value
 
-        # TODO: all numeric status values should be declared as constants.
-        #       i.e., remove all "magic numbers" (0, 9, 10-19, etc.)
-
         # If multi_numbers is enabled and value is not numeric (0, 10-19), map to 0
         if multi_numbers and not (value == HabitStatus.NOT_SET or (value >= HabitStatus.NUMBER_0 and value <= HabitStatus.NUMBER_9)):
             return HabitStatus.NOT_SET
@@ -343,8 +345,8 @@ class HabitsDatabase:
             habit_name = habits[0]['name']
 
         # Generate date list
-        start_dt = datetime.strptime(start_date, '%Y-%m-%d').date()
-        end_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
+        start_dt = self.str_to_date(start_date)
+        end_dt = self.str_to_date(end_date)
         num_days = (end_dt - start_dt).days + 1
         date_list = [start_dt + timedelta(days=i) for i in range(num_days)]
 
@@ -371,7 +373,7 @@ class HabitsDatabase:
                      (habit_id_val, start_date, end_date))
 
         tracking_rows = cursor.fetchall()
-        tracking_dict = {datetime.strptime(row['date'], '%Y-%m-%d').date(): row['status']
+        tracking_dict = {self.str_to_date(row['date']): row['status']
                         for row in tracking_rows}
 
         tracking = []
@@ -726,8 +728,7 @@ class HabitsDatabase:
             if not row:
                 return None
             try:
-                # TODO: create a separate helper function for converting "%Y-%m-%d" to `date`
-                return datetime.strptime(row['date'], '%Y-%m-%d').date()
+                return self.str_to_date(row['date'])
             except ValueError:
                 return None
         finally:
