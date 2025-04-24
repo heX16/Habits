@@ -6,7 +6,23 @@ from typing import Optional, Union
 from pathlib import Path
 from os import PathLike
 
-# TODO: translate all Russian comments to English
+# Status constants
+class HabitStatus:
+    NOT_SET = 0
+    DONE_MINI = 1
+    DONE = 2
+    DONE_ELITE = 3
+    FAIL = 9
+    NUMBER_0 = 10
+    NUMBER_1 = 11
+    NUMBER_2 = 12
+    NUMBER_3 = 13
+    NUMBER_4 = 14
+    NUMBER_5 = 15
+    NUMBER_6 = 16
+    NUMBER_7 = 17
+    NUMBER_8 = 18
+    NUMBER_9 = 19
 
 class HabitsDatabase:
     '''
@@ -25,21 +41,28 @@ class HabitsDatabase:
         'test_option'   # Test parameter used in options page (test, will be removed)
     }
 
-    def __init__(self, db_path: Union[str, PathLike[str]], create_tables_if_missing=True):
+    def __init__(self, db_path: Union[str, PathLike[str]], create_tables_if_missing=True, clear_tables_if_missing=False, create_db_file_if_missing=True):
         '''
         Initialize the Database object and create tables if they do not exist.
 
         :param db_path: Path to the SQLite database file
         :param create_tables_if_missing: Whether to create tables if they don't exist (default: True)
+        :param clear_tables_if_missing: Whether to clear existing tables if some are missing (default: False)
+        :param create_db_file_if_missing: Whether to create database file if it doesn't exist (default: True)
         '''
         self.db_path = Path(db_path)
         self.create_tables_if_missing = create_tables_if_missing
+        self.clear_tables_if_missing = clear_tables_if_missing
+        self.create_db_file_if_missing = create_db_file_if_missing
         self.init_db()
 
     def connect(self):
         '''
         Create and return a new database connection.
         '''
+        if not self.create_db_file_if_missing and not self.db_path.exists():
+            raise FileNotFoundError(f"Database file does not exist: {self.db_path}")
+
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
@@ -48,7 +71,8 @@ class HabitsDatabase:
         '''
         Initialize the database with the required tables.
         If any required table is missing and create_tables_if_missing is True,
-        clear database and create all tables.
+        either clear database and create all tables (if clear_tables_if_missing is True),
+        or raise an exception (if clear_tables_if_missing is False).
         '''
         conn = self.connect()
         cursor = conn.cursor()
@@ -63,16 +87,19 @@ class HabitsDatabase:
 
         conn.close()
 
-        # TODO: by default, an exception should be raised instead of clearing the table.
-        #       this is a separate function argument - table clearing
+        # If tables are missing, handle according to parameters
+        if not required_tables.issubset(existing_tables):
+            if self.clear_tables_if_missing:
+                # Clear and recreate all tables
+                self.clear_db()
+                self.create_tables()
+            else:
+                missing_tables = required_tables - existing_tables
+                if not self.create_tables_if_missing:
+                    raise Exception(f"Required tables are missing: {missing_tables}")
 
-        # If any table is missing and create_tables_if_missing is True, clear DB and create all tables
-        if not required_tables.issubset(existing_tables) and self.create_tables_if_missing:
-            self.clear_db()
-            self.create_tables()
-        elif not required_tables.issubset(existing_tables) and not self.create_tables_if_missing:
-            missing_tables = required_tables - existing_tables
-            raise Exception(f"Required tables are missing: {missing_tables} and create_tables_if_missing is False")
+                self.create_tables()
+
 
     def create_tables(self):
         '''
@@ -215,19 +242,19 @@ class HabitsDatabase:
         :return: Mapped status value for client
         '''
         # New numeric statuses (10-19) don't change with single_checkbox
-        if value >= 10 and value <= 19:
+        if value >= HabitStatus.NUMBER_0 and value <= HabitStatus.NUMBER_9:
             return value
 
         # TODO: all numeric status values should be declared as constants.
         #       i.e., remove all "magic numbers" (0, 9, 10-19, etc.)
 
         # If multi_numbers is enabled and value is not numeric (0, 10-19), map to 0
-        if multi_numbers and not (value == 0 or (value >= 10 and value <= 19)):
-            return 0
+        if multi_numbers and not (value == HabitStatus.NOT_SET or (value >= HabitStatus.NUMBER_0 and value <= HabitStatus.NUMBER_9)):
+            return HabitStatus.NOT_SET
 
         # If single_checkbox is enabled, map all "done" statuses to 2 ("done")
-        if single_checkbox and value in [1, 3]:  # If status is "done mini" or "done elite"
-            return 2  # Return "done"
+        if single_checkbox and value in [HabitStatus.DONE_MINI, HabitStatus.DONE_ELITE]:  # If status is "done mini" or "done elite"
+            return HabitStatus.DONE  # Return "done"
 
         if fail_by_default:
             # TODO:
@@ -240,18 +267,18 @@ class HabitsDatabase:
             #     return 9
 
             # Don't mark future dates as failed
-            if value == 0 and current_date and today and current_date >= today:
-                return 0
+            if value == HabitStatus.NOT_SET and current_date and today and current_date >= today:
+                return HabitStatus.NOT_SET
 
             # Handle dates relative to first tracking
-            if value == 0 and first_tracking_date and current_date:
+            if value == HabitStatus.NOT_SET and first_tracking_date and current_date:
                 # Return fail status for dates up to first tracking date
                 # Return 0 for dates before first tracking date
-                return 9 if current_date > first_tracking_date else 0
+                return HabitStatus.FAIL if current_date > first_tracking_date else HabitStatus.NOT_SET
 
             # Default fail_by_default behavior
-            if value == 0:
-                return 9
+            if value == HabitStatus.NOT_SET:
+                return HabitStatus.FAIL
 
         return value
 
@@ -605,49 +632,49 @@ class HabitsDatabase:
         '''
         return {
             'all': [
-                {'value': 0, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
-                {'value': 1, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'as_char': 'v', 'image': 'done_mini.png'},
-                {'value': 2, 'label': 'done',       'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
-                {'value': 3, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W', 'image': 'done_elite.png'},
-                {'value': 9, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+                {'value': HabitStatus.NOT_SET, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': HabitStatus.DONE_MINI, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'as_char': 'v', 'image': 'done_mini.png'},
+                {'value': HabitStatus.DONE, 'label': 'done',       'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': HabitStatus.DONE_ELITE, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W', 'image': 'done_elite.png'},
+                {'value': HabitStatus.FAIL, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
             ],
             # good habits
             'gh1': [
-                {'value': 0, 'label': 'not set', 'icon': ' ', 'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
-                {'value': 1, 'label': 'done', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
-                {'value': 2, 'label': 'fail', 'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+                {'value': HabitStatus.NOT_SET, 'label': 'not set', 'icon': ' ', 'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': HabitStatus.DONE_MINI, 'label': 'done', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': HabitStatus.DONE, 'label': 'fail', 'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
             ],
             'gh3': [
-                {'value': 0, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
-                {'value': 1, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'as_char': 'v', 'image': 'done_mini.png'},
-                {'value': 2, 'label': 'done',       'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
-                {'value': 3, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W', 'image': 'done_elite.png'},
-                {'value': 9, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+                {'value': HabitStatus.NOT_SET, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': HabitStatus.DONE_MINI, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'as_char': 'v', 'image': 'done_mini.png'},
+                {'value': HabitStatus.DONE, 'label': 'done',       'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': HabitStatus.DONE_ELITE, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W', 'image': 'done_elite.png'},
+                {'value': HabitStatus.FAIL, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
             ],
             'gh10': [
-                {'value': 10, 'label': '0',  'icon': '0️⃣', 'color': 'green', 'as_char': '0', 'image': 'number_0.png'},
-                {'value': 11, 'label': '1',  'icon': '1️⃣', 'color': 'green', 'as_char': '1', 'image': 'number_1.png'},
-                {'value': 12, 'label': '2',  'icon': '2️⃣', 'color': 'green', 'as_char': '2', 'image': 'number_2.png'},
-                {'value': 13, 'label': '3',  'icon': '3️⃣', 'color': 'green', 'as_char': '3', 'image': 'number_3.png'},
-                {'value': 14, 'label': '4',  'icon': '4️⃣', 'color': 'green', 'as_char': '4', 'image': 'number_4.png'},
-                {'value': 15, 'label': '5',  'icon': '5️⃣', 'color': 'green', 'as_char': '5', 'image': 'number_5.png'},
-                {'value': 16, 'label': '6',  'icon': '6️⃣', 'color': 'green', 'as_char': '6', 'image': 'number_6.png'},
-                {'value': 17, 'label': '7',  'icon': '7️⃣', 'color': 'green', 'as_char': '7', 'image': 'number_7.png'},
-                {'value': 18, 'label': '8',  'icon': '8️⃣', 'color': 'green', 'as_char': '8', 'image': 'number_8.png'},
-                {'value': 19, 'label': '9',  'icon': '9️⃣', 'color': 'green', 'as_char': '9', 'image': 'number_9.png'},
+                {'value': HabitStatus.NUMBER_0, 'label': '0',  'icon': '0️⃣', 'color': 'green', 'as_char': '0', 'image': 'number_0.png'},
+                {'value': HabitStatus.NUMBER_1, 'label': '1',  'icon': '1️⃣', 'color': 'green', 'as_char': '1', 'image': 'number_1.png'},
+                {'value': HabitStatus.NUMBER_2, 'label': '2',  'icon': '2️⃣', 'color': 'green', 'as_char': '2', 'image': 'number_2.png'},
+                {'value': HabitStatus.NUMBER_3, 'label': '3',  'icon': '3️⃣', 'color': 'green', 'as_char': '3', 'image': 'number_3.png'},
+                {'value': HabitStatus.NUMBER_4, 'label': '4',  'icon': '4️⃣', 'color': 'green', 'as_char': '4', 'image': 'number_4.png'},
+                {'value': HabitStatus.NUMBER_5, 'label': '5',  'icon': '5️⃣', 'color': 'green', 'as_char': '5', 'image': 'number_5.png'},
+                {'value': HabitStatus.NUMBER_6, 'label': '6',  'icon': '6️⃣', 'color': 'green', 'as_char': '6', 'image': 'number_6.png'},
+                {'value': HabitStatus.NUMBER_7, 'label': '7',  'icon': '7️⃣', 'color': 'green', 'as_char': '7', 'image': 'number_7.png'},
+                {'value': HabitStatus.NUMBER_8, 'label': '8',  'icon': '8️⃣', 'color': 'green', 'as_char': '8', 'image': 'number_8.png'},
+                {'value': HabitStatus.NUMBER_9, 'label': '9',  'icon': '9️⃣', 'color': 'green', 'as_char': '9', 'image': 'number_9.png'},
             ],
             # bad habits
             'bh1': [
-                {'value': 0, 'label': 'not set', 'icon': ' ', 'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
-                {'value': 1, 'label': 'done', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
-                {'value': 2, 'label': 'fail', 'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+                {'value': HabitStatus.NOT_SET, 'label': 'not set', 'icon': ' ', 'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': HabitStatus.DONE_MINI, 'label': 'done', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': HabitStatus.DONE, 'label': 'fail', 'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
             ],
             'bh3': [
-                {'value': 0, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
-                {'value': 1, 'label': 'low fail',   'icon': '🟡', 'color': 'yellow', 'as_char': '~', 'image': 'yellow_circle.png'},
-                {'value': 2, 'label': 'medium fail','icon': '🟠', 'color': 'orange', 'as_char': 'x', 'image': 'orange_circle.png'},
-                {'value': 3, 'label': 'high fail',  'icon': '🔴', 'color': 'red', 'as_char': 'X', 'image': 'red_circle.png'},
-                {'value': 9, 'label': 'success',    'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': HabitStatus.NOT_SET, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': HabitStatus.DONE_MINI, 'label': 'low fail',   'icon': '🟡', 'color': 'yellow', 'as_char': '~', 'image': 'yellow_circle.png'},
+                {'value': HabitStatus.DONE, 'label': 'medium fail','icon': '🟠', 'color': 'orange', 'as_char': 'x', 'image': 'orange_circle.png'},
+                {'value': HabitStatus.DONE_ELITE, 'label': 'high fail',  'icon': '🔴', 'color': 'red', 'as_char': 'X', 'image': 'red_circle.png'},
+                {'value': HabitStatus.FAIL, 'label': 'success',    'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
             ],
 
         }
