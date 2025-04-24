@@ -29,6 +29,15 @@ class HabitsDatabase:
     Database class for managing habits, habit tracking, and special parameters.
     '''
 
+    # HabitsDatabase version
+    # see: https://semver.org/
+    VERSION = 1.0
+    VERSION_PATCH = 0
+
+    # Database version
+    # see: https://semver.org/ with droped PATCH part
+    DB_VERSION = '1.0'
+
     # Special habit_id value for global parameters
     GLOBAL_PARAMS = -1
 
@@ -82,13 +91,11 @@ class HabitsDatabase:
         conn = self.connect()
         cursor = conn.cursor()
 
-        # Check if all required tables exist
-        cursor.execute('''SELECT name FROM sqlite_master
-                         WHERE type='table' AND
-                         name IN ('habits_list', 'habit_tracking', 'habit_params')''')
-        existing_tables = {row['name'] for row in cursor.fetchall()}
-
         required_tables = {'habits_list', 'habit_tracking', 'habit_params'}
+
+        # Get all tables
+        cursor.execute('SELECT name FROM sqlite_master WHERE type=\'table\'')
+        existing_tables = {row['name'] for row in cursor.fetchall()}
 
         conn.close()
 
@@ -134,6 +141,8 @@ class HabitsDatabase:
                          'PRIMARY KEY (habit_id, param_name))')
 
             conn.commit()
+
+            self.set_param(self.GLOBAL_PARAMS, 'db_version', self.DB_VERSION)
 
         except Exception as e:
             conn.rollback()
