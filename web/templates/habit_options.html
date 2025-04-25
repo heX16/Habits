@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <title>Habit Options</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='habit_options.js') }}"></script>
 </head>
 
 <body>
@@ -41,6 +42,17 @@
         </div>
 
         <div class="option-item">
+            Habit levels:
+            <label>
+                <select id="levels">
+                    <option value="1">1</option>
+                    <option value="3">3</option>
+                    <option value="10">10</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="option-item">
             <h3>Rename Habit</h3>
             <input type="text" id="new-habit-name" placeholder="New name">
             <button onclick="renameHabit()" class="option-button">Rename</button>
@@ -49,141 +61,8 @@
     </div>
 
     <script>
+        // Pass habit ID to JavaScript
         const habitId = parseInt("{{ habit_id }}");
-
-        document.addEventListener('DOMContentLoaded', function () {
-            // Load habit name
-            fetch(`../../api/habits/list`)
-                .then(response => response.json())
-                .then(data => {
-                    const habit = data.habits.find(h => h.id === habitId);
-                    if (habit) {
-                        document.getElementById('habit-name').textContent = habit.name;
-                    }
-                });
-
-            // Load fail_by_default parameter
-            fetch(`../../api/param/fail_by_default/${habitId}`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('fail-by-default').checked = data.value === '1';
-                });
-
-            // Load single_checkbox parameter
-            fetch(`../../api/param/single_checkbox/${habitId}`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('single-checkbox').checked = data.value === '1';
-                });
-
-            // Load multi_numbers parameter
-            fetch(`../../api/param/multi_numbers/${habitId}`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('multi-numbers').checked = data.value === '1';
-                });
-
-            // Load bad_habit parameter
-            fetch(`../../api/param/bad_habit/${habitId}`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('bad-habit').checked = data.value === '1';
-                });
-
-            // Handle checkbox change
-            document.getElementById('fail-by-default').addEventListener('change', function (e) {
-                const value = e.target.checked ? '1' : '0';
-                fetch(`../../api/param/fail_by_default/${habitId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        value: value
-                    })
-                });
-            });
-
-            // Handle single checkbox change
-            document.getElementById('single-checkbox').addEventListener('change', function (e) {
-                const value = e.target.checked ? '1' : '0';
-                fetch(`../../api/param/single_checkbox/${habitId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        value: value
-                    })
-                });
-            });
-
-            // Handle multi numbers change
-            document.getElementById('multi-numbers').addEventListener('change', function (e) {
-                const value = e.target.checked ? '1' : '0';
-                fetch(`../../api/param/multi_numbers/${habitId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        value: value
-                    })
-                });
-            });
-
-            // Handle bad habit change
-            document.getElementById('bad-habit').addEventListener('change', function (e) {
-                const value = e.target.checked ? '1' : '0';
-                fetch(`../../api/param/bad_habit/${habitId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        value: value
-                    })
-                });
-            });
-        });
-
-        function renameHabit() {
-            const newName = document.getElementById('new-habit-name').value.trim();
-            if (!newName) {
-                showRenameStatus('Name cannot be empty', 'error');
-                return;
-            }
-
-            fetch(`../../api/habits/rename`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    habit_id: parseInt(habitId),
-                    new_name: newName
-                })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        showRenameStatus(data.error, 'error');
-                    } else {
-                        showRenameStatus('Habit renamed successfully', 'success');
-                        document.getElementById('habit-name').textContent = newName;
-                        document.getElementById('new-habit-name').value = '';
-                    }
-                })
-                .catch(error => {
-                    showRenameStatus('Error occurred while renaming', 'error');
-                });
-        }
-
-        function showRenameStatus(message, type) {
-            const statusDiv = document.getElementById('rename-status');
-            statusDiv.textContent = message;
-            statusDiv.className = type === 'error' ? 'habit-options-error' : 'habit-options-success';
-        }
     </script>
 </body>
 
