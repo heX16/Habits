@@ -217,7 +217,7 @@ function renderMonth(tracking, year, month, trackingOffset, bad_habit) {
             } else {
                 if (date <= daysInMonth) {
                     const status = tracking[trackingOffset + date - 1];
-                    const statusOption = getStatusOptions().all.find(opt => opt.value === status);
+                    const statusOption = getStatusOptions(false, false, bad_habit).all.find(opt => opt.value === status);
 
                     // Create wrapper for content
                     const contentDiv = document.createElement('div');

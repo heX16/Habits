@@ -229,7 +229,8 @@ document.addEventListener('DOMContentLoaded', function() {
  * @returns {string} The corresponding emoji or an empty string.
  */
 function getStatusEmoji(status) {
-    const options = getStatusOptions().all;
+    // TODO: getStatusEmoji - WIP! WFT! remove?
+    const options = getStatusOptions(false, false, false).all;
     const option = options.find(opt => opt.value === status);
     return option ? option.icon : '';
 }
@@ -270,9 +271,10 @@ function handleCellClick(cell, e) {
         const habit = habitsData.habits.find(h => h.id.toString() === habitId);
         const isSingleCheckbox = habit && habit.single_checkbox;
         const isMultiNumbers = habit && habit.multi_numbers;
+        const isBadHabit = habit && habit.bad_habit;
 
         // Get available status options based on habit settings
-        const statusOptions = getStatusOptions(isSingleCheckbox, isMultiNumbers).all;
+        const statusOptions = getStatusOptions(isSingleCheckbox, isMultiNumbers, isBadHabit).all;
 
         // Find current status in the array
         const currentIndex = statusOptions.findIndex(opt => opt.value === currentStatus);
@@ -440,8 +442,9 @@ function showStatusMenu(cell, event) {
     const habit = habitsData.habits.find(h => h.id.toString() === habitId);
     const isSingleCheckbox = habit && habit.single_checkbox;
     const isMultiNumbers = habit && habit.multi_numbers;
+    const isBadHabit = habit && habit.bad_habit;
 
-    const items = getStatusOptions(isSingleCheckbox, isMultiNumbers).all.map(option => ({
+    const items = getStatusOptions(isSingleCheckbox, isMultiNumbers, isBadHabit).all.map(option => ({
         icon: option.icon || option.as_char,
         label: option.label,
         onClick: () => {

@@ -675,6 +675,19 @@ class HabitsDatabase:
                 {'value': HabitStatus.DONE_ELITE, 'label': 'high fail',  'icon': '🔴', 'color': 'red', 'as_char': 'X', 'image': 'red_circle.png'},
                 {'value': HabitStatus.FAIL, 'label': 'success',    'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
             ],
+            'bh10': [
+                {'value': HabitStatus.NOT_SET, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
+                {'value': HabitStatus.NUMBER_0, 'label': '0',  'icon': '0️⃣', 'color': 'red', 'as_char': '0', 'image': 'number_red_0.png'},
+                {'value': HabitStatus.NUMBER_1, 'label': '1',  'icon': '1️⃣', 'color': 'red', 'as_char': '1', 'image': 'number_red_1.png'},
+                {'value': HabitStatus.NUMBER_2, 'label': '2',  'icon': '2️⃣', 'color': 'red', 'as_char': '2', 'image': 'number_red_2.png'},
+                {'value': HabitStatus.NUMBER_3, 'label': '3',  'icon': '3️⃣', 'color': 'red', 'as_char': '3', 'image': 'number_red_3.png'},
+                {'value': HabitStatus.NUMBER_4, 'label': '4',  'icon': '4️⃣', 'color': 'red', 'as_char': '4', 'image': 'number_red_4.png'},
+                {'value': HabitStatus.NUMBER_5, 'label': '5',  'icon': '5️⃣', 'color': 'red', 'as_char': '5', 'image': 'number_red_5.png'},
+                {'value': HabitStatus.NUMBER_6, 'label': '6',  'icon': '6️⃣', 'color': 'red', 'as_char': '6', 'image': 'number_red_6.png'},
+                {'value': HabitStatus.NUMBER_7, 'label': '7',  'icon': '7️⃣', 'color': 'red', 'as_char': '7', 'image': 'number_red_7.png'},
+                {'value': HabitStatus.NUMBER_8, 'label': '8',  'icon': '8️⃣', 'color': 'red', 'as_char': '8', 'image': 'number_red_8.png'},
+                {'value': HabitStatus.NUMBER_9, 'label': '9',  'icon': '9️⃣', 'color': 'red', 'as_char': '9', 'image': 'number_red_9.png'},
+            ],
 
         }
 
