@@ -42,7 +42,7 @@ class HabitsDatabase:
     GLOBAL_PARAMS = -1
 
     # Parameters that can be set for individual habits
-    VALID_HABIT_PARAMS = {'fail_by_default', 'single_checkbox', 'multi_numbers', 'bad_habit', 'mode'}
+    VALID_HABIT_PARAMS = {'fail_by_default', 'single_checkbox', 'multi_numbers', 'bad_habit', 'levels'}
 
     # Parameters that can only be set globally
     VALID_GLOBAL_PARAMS = {
@@ -241,7 +241,7 @@ class HabitsDatabase:
     def status_mapping(self, value: int, habit_id: int, fail_by_default: bool = False,
                       first_tracking_date: Optional[date] = None, current_date: Optional[date] = None,
                       today: Optional[date] = None, single_checkbox: bool = False,
-                      multi_numbers: bool = False) -> int:
+                      multi_numbers: bool = False, levels: int = 0) -> int:
         '''
         Maps database status values to client-side values.
         Takes into account habit's fail_by_default parameter.
@@ -254,8 +254,20 @@ class HabitsDatabase:
         :param today: Today's date (for future date checks)
         :param single_checkbox: Whether the habit uses only a single checkbox
         :param multi_numbers: Whether the habit uses only numbers (0, 10-19)
+        :param levels: Number of levels/statuses to use (1, 3, or 10)
         :return: Mapped status value for client
         '''
+        # Convert levels value to appropriate mode
+        levels_mode = int(levels) if levels else 0
+
+        # If levels is specified, it overrides single_checkbox and multi_numbers
+        if levels_mode == 1:
+            single_checkbox = True
+            multi_numbers = False
+        elif levels_mode == 10:
+            single_checkbox = False
+            multi_numbers = True
+
         # New numeric statuses (10-19) don't change with single_checkbox
         if value >= HabitStatus.NUMBER_0 and value <= HabitStatus.NUMBER_9:
             return value
@@ -325,6 +337,7 @@ class HabitsDatabase:
         "single_checkbox": false,
         "multi_numbers": false,
         "bad_habit": false,
+        "levels": 0,
         "tracking": [9,9,9,9,0,0,0,0,0,0]
         }
         ```
@@ -356,6 +369,9 @@ class HabitsDatabase:
         # Get multi_numbers parameter for this habit
         multi_numbers: bool = self.get_param(habit_id_val, 'multi_numbers', '0') == '1'
 
+        # Get levels parameter for this habit
+        levels: int = int(self.get_param(habit_id_val, 'levels', '0') or 0)
+
         # Get bad_habit parameter for this habit
         bad_habit: bool = self.get_param(habit_id_val, 'bad_habit', '0') == '1'
 
@@ -384,7 +400,8 @@ class HabitsDatabase:
                 current_date=current_date,
                 today=today,  # Pass today's date
                 single_checkbox=single_checkbox,
-                multi_numbers=multi_numbers
+                multi_numbers=multi_numbers,
+                levels=levels
             )
             tracking.append(status)
 
@@ -395,6 +412,7 @@ class HabitsDatabase:
             'multi_numbers': multi_numbers,
             'first_tracking_date': first_tracking_date,
             'bad_habit': bad_habit,
+            'levels': levels,
             'tracking': tracking,
         }
 

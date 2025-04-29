@@ -272,9 +272,10 @@ function handleCellClick(cell, e) {
         const isSingleCheckbox = habit && habit.single_checkbox;
         const isMultiNumbers = habit && habit.multi_numbers;
         const isBadHabit = habit && habit.bad_habit;
+        const levels = habit && habit.levels;
 
         // Get available status options based on habit settings
-        const statusOptions = getStatusOptions(isSingleCheckbox, isMultiNumbers, isBadHabit).all;
+        const statusOptions = getStatusOptions(isSingleCheckbox, isMultiNumbers, isBadHabit, levels).all;
 
         // Find current status in the array
         const currentIndex = statusOptions.findIndex(opt => opt.value === currentStatus);
@@ -443,8 +444,9 @@ function showStatusMenu(cell, event) {
     const isSingleCheckbox = habit && habit.single_checkbox;
     const isMultiNumbers = habit && habit.multi_numbers;
     const isBadHabit = habit && habit.bad_habit;
+    const levels = habit && habit.levels;
 
-    const items = getStatusOptions(isSingleCheckbox, isMultiNumbers, isBadHabit).all.map(option => ({
+    const items = getStatusOptions(isSingleCheckbox, isMultiNumbers, isBadHabit, levels).all.map(option => ({
         icon: option.icon || option.as_char,
         label: option.label,
         onClick: () => {

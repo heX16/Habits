@@ -14,7 +14,18 @@ const statusOptionsData = {
     {% endfor %}
 };
 
-function getStatusOptions(singleCheckbox, multiNumbers, bad_habit) {
+function getStatusOptions(singleCheckbox, multiNumbers, bad_habit, levels) {
+    // If levels is specified, it overrides single_checkbox and multi_numbers
+    if (levels) {
+        if (levels == 1) {
+            singleCheckbox = true;
+            multiNumbers = false;
+        } else if (levels == 10) {
+            singleCheckbox = false;
+            multiNumbers = true;
+        }
+    }
+
     if (multiNumbers) {
         // If multi_numbers mode is enabled, keep only status 0 and numeric values (10-19)
         return {
