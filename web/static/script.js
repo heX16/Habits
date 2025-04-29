@@ -268,10 +268,10 @@ function handleCellClick(cell, e) {
         let currentStatus = parseInt(cell.dataset.status);
 
         // Get the habit_id from the cell
-        const habitId = cell.dataset.habitId;
+        const habitId = parseInt(cell.dataset.habitId);
 
         // Get habit parameters
-        const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+        const habit = habitsData.habits.find(h => h.id === habitId);
         const isBadHabit = habit && habit.bad_habit;
         const levels = habit && habit.levels;
 
@@ -299,7 +299,7 @@ function handleCellClick(cell, e) {
             } else if (status === 2) {
                 playFireworkAnimation(cell, false);
             }
-            sendUpdate(cell.dataset.habitId, cell.dataset.date, status, cell);
+            sendUpdate(parseInt(cell.dataset.habitId), cell.dataset.date, status, cell);
             cell.pendingUpdateTimer = null;
         }, 2000);
     }
@@ -323,8 +323,8 @@ function handleCellDblClick(cell, e) {
     // Restore previous state
     if (lastClickedCell === cell && lastClickedStatus !== null) {
         // Get habit parameters
-        const habitId = cell.dataset.habitId;
-        const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+        const habitId = parseInt(cell.dataset.habitId);
+        const habit = habitsData.habits.find(h => h.id === habitId);
         const isBadHabit = habit && habit.bad_habit;
         const levels = habit && habit.levels;
 
@@ -411,10 +411,10 @@ function updateHabitRow(row, habit, dates, today) {
 function showStatusMenu(cell, event) {
     removeStatusMenu(); // Remove existing menu if any
 
-    const habitId = cell.dataset.habitId;
+    const habitId = parseInt(cell.dataset.habitId);
 
     // Get habit parameters
-    const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+    const habit = habitsData.habits.find(h => h.id === habitId);
     const isBadHabit = habit && habit.bad_habit;
     const levels = habit && habit.levels;
 
@@ -435,7 +435,7 @@ function showStatusMenu(cell, event) {
                 } else if (status === 2) {
                     playFireworkAnimation(cell, false);
                 }
-                sendUpdate(cell.dataset.habitId, cell.dataset.date, status, cell);
+                sendUpdate(parseInt(cell.dataset.habitId), cell.dataset.date, status, cell);
                 cell.pendingUpdateTimer = null;
             }, 2000);
         }
@@ -456,7 +456,7 @@ function removeStatusMenu() {
 
 /**
  * Sends an update request to the backend to change the habit status.
- * @param {string} habitId - The habit ID.
+ * @param {number} habitId - The habit ID.
  * @param {string} date - The date of the status.
  * @param {number} status - The new status.
  * @param {HTMLElement} cell - The table cell element (for logging purposes).
@@ -468,7 +468,7 @@ function sendUpdate(habitId, date, status, cell) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            habit_id: parseInt(habitId),
+            habit_id: habitId,
             date: date,
             status: status
         })
@@ -576,9 +576,9 @@ function updateCellContent(cell, status) {
     cell.dataset.status = status;
 
     // Get habit parameters
-    const habitId = cell.dataset.habitId;
+    const habitId = parseInt(cell.dataset.habitId);
     console.log('updateCellContent - habitsData available:', !!habitsData.habits, 'habitId:', habitId);
-    const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+    const habit = habitsData.habits.find(h => h.id === habitId);
     const isBadHabit = habit && habit.bad_habit;
     const levels = habit && habit.levels;
     console.log('updateCellContent - habit found:', !!habit, 'isBadHabit:', isBadHabit, 'levels:', levels);
@@ -602,7 +602,7 @@ function updateCellContent(cell, status) {
  * Updates a single cell in the habit tracking table
  * @param {HTMLTableCellElement} cell - The table cell to update
  * @param {number} status - Status value for the cell
- * @param {string} habitId - ID of the habit
+ * @param {number} habitId - ID of the habit
  * @param {string} date - Date string in YYYY-MM-DD format
  * @param {Date} today - Current date (with time set to 00:00:00)
  */
@@ -618,7 +618,7 @@ function updateHabitCell(cell, status, habitId, date, today) {
 
     // Get habit parameters
     console.log('updateHabitCell - habitsData available:', !!habitsData.habits, 'habitId:', habitId);
-    const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+    const habit = habitsData.habits.find(h => h.id === habitId);
     const isBadHabit = habit && habit.bad_habit;
     const levels = habit && habit.levels;
     console.log('updateHabitCell - habit found:', !!habit, 'isBadHabit:', isBadHabit, 'levels:', levels);
