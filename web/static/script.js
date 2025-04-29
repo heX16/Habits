@@ -98,6 +98,7 @@ function fetchHabitsData(startDate, endDate) {
         .then(data => {
             // Store the habits data globally
             habitsData = data;
+            console.log('After fetch, habitsData loaded:', !!habitsData.habits, 'count:', habitsData.habits?.length);
 
             // Show message if present
             if (data.message) {
@@ -403,44 +404,6 @@ function updateHabitRow(row, habit, dates, today) {
 }
 
 /**
- * Updates a single cell in the habit tracking table
- * @param {HTMLTableCellElement} cell - The table cell to update
- * @param {number} status - Status value for the cell
- * @param {string} habitId - ID of the habit
- * @param {string} date - Date string in YYYY-MM-DD format
- * @param {Date} today - Current date (with time set to 00:00:00)
- */
-function updateHabitCell(cell, status, habitId, date, today) {
-    cell.style.cursor = 'pointer';
-
-    cell.dataset.habitId = habitId;
-    cell.dataset.date = date;
-    cell.dataset.status = status;
-
-    const cellDate = new Date(date);
-    cellDate.setHours(0, 0, 0, 0);
-
-    // Get habit parameters
-    const habit = habitsData.habits.find(h => h.id.toString() === habitId);
-    const isBadHabit = habit && habit.bad_habit;
-    const levels = habit && habit.levels;
-
-    cell.textContent = getStatusEmoji(status, isBadHabit, levels);
-
-    // Handle future dates only
-    if (cellDate > today) {
-        cell.classList.add('future-day');
-        cell.style.cursor = 'default';
-    } else {
-        attachCellListeners(cell);
-        // Add menu button for any empty status (except future dates)
-        if (parseInt(status) === 0) {
-            createCellMenuButton(cell);
-        }
-    }
-}
-
-/**
  * Shows a floating menu with status options.
  * @param {HTMLElement} cell - The table cell element.
  * @param {MouseEvent} event - The mouse event.
@@ -602,6 +565,8 @@ function createCellMenuButton(cell) {
     cell.appendChild(button);
 }
 
+// TODO: `updateCellContent` and `updateHabitCell` - looks absolutle similar...
+
 /**
  * Updates cell content and manages menu button
  * @param {HTMLElement} cell - The table cell element
@@ -612,9 +577,11 @@ function updateCellContent(cell, status) {
 
     // Get habit parameters
     const habitId = cell.dataset.habitId;
+    console.log('updateCellContent - habitsData available:', !!habitsData.habits, 'habitId:', habitId);
     const habit = habitsData.habits.find(h => h.id.toString() === habitId);
     const isBadHabit = habit && habit.bad_habit;
     const levels = habit && habit.levels;
+    console.log('updateCellContent - habit found:', !!habit, 'isBadHabit:', isBadHabit, 'levels:', levels);
 
     cell.textContent = getStatusEmoji(status, isBadHabit, levels);
 
@@ -628,6 +595,46 @@ function updateCellContent(cell, status) {
     // Add button if status is 0 and it's not a future date
     else if (!hasButton && needsButton) {
         createCellMenuButton(cell);
+    }
+}
+
+/**
+ * Updates a single cell in the habit tracking table
+ * @param {HTMLTableCellElement} cell - The table cell to update
+ * @param {number} status - Status value for the cell
+ * @param {string} habitId - ID of the habit
+ * @param {string} date - Date string in YYYY-MM-DD format
+ * @param {Date} today - Current date (with time set to 00:00:00)
+ */
+function updateHabitCell(cell, status, habitId, date, today) {
+    cell.style.cursor = 'pointer';
+
+    cell.dataset.habitId = habitId;
+    cell.dataset.date = date;
+    cell.dataset.status = status;
+
+    const cellDate = new Date(date);
+    cellDate.setHours(0, 0, 0, 0);
+
+    // Get habit parameters
+    console.log('updateHabitCell - habitsData available:', !!habitsData.habits, 'habitId:', habitId);
+    const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+    const isBadHabit = habit && habit.bad_habit;
+    const levels = habit && habit.levels;
+    console.log('updateHabitCell - habit found:', !!habit, 'isBadHabit:', isBadHabit, 'levels:', levels);
+
+    cell.textContent = getStatusEmoji(status, isBadHabit, levels);
+
+    // Handle future dates only
+    if (cellDate > today) {
+        cell.classList.add('future-day');
+        cell.style.cursor = 'default';
+    } else {
+        attachCellListeners(cell);
+        // Add menu button for any empty status (except future dates)
+        if (parseInt(status) === 0) {
+            createCellMenuButton(cell);
+        }
     }
 }
 

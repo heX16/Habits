@@ -396,6 +396,7 @@ class HabitsDatabase:
         return {
             'id': habit_id_val,
             'name': habit_name,
+            # TODO:       "first_tracking_date": "Tue, 28 Jan 2025 00:00:00 GMT", - да блин, это не тот формат, нужен нормальный YYYY-MM-DD!
             'first_tracking_date': first_tracking_date,
             'bad_habit': bad_habit,
             'levels': levels,
