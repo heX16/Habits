@@ -225,12 +225,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /**
  * Returns a display string (emoji) based on the habit status.
- * @param {number} status - The status code (0, 1, or 2).
+ * @param {number} status - The status code.
+ * @param {boolean} isBadHabit - Whether this is a bad habit.
+ * @param {number} levels - The number of levels for this habit.
  * @returns {string} The corresponding emoji or an empty string.
  */
-function getStatusEmoji(status) {
-    // TODO: getStatusEmoji - WIP! WFT! remove?
-    const options = getStatusOptions(false, 0).all;
+function getStatusEmoji(status, isBadHabit = false, levels = 3) {
+    const options = getStatusOptions(isBadHabit, levels);
+    // TODO: optimize???
     const option = options.find(opt => opt.value === status);
     return option ? option.icon : '';
 }
@@ -273,7 +275,7 @@ function handleCellClick(cell, e) {
         const levels = habit && habit.levels;
 
         // Get available status options based on habit settings
-        const statusOptions = getStatusOptions(isBadHabit, levels).all;
+        const statusOptions = getStatusOptions(isBadHabit, levels);
 
         // Find current status in the array
         const currentIndex = statusOptions.findIndex(opt => opt.value === currentStatus);
@@ -319,8 +321,14 @@ function handleCellDblClick(cell, e) {
 
     // Restore previous state
     if (lastClickedCell === cell && lastClickedStatus !== null) {
+        // Get habit parameters
+        const habitId = cell.dataset.habitId;
+        const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+        const isBadHabit = habit && habit.bad_habit;
+        const levels = habit && habit.levels;
+
         cell.dataset.status = lastClickedStatus;
-        cell.textContent = getStatusEmoji(lastClickedStatus);
+        cell.textContent = getStatusEmoji(lastClickedStatus, isBadHabit, levels);
     }
 
     // Clear last click information
@@ -412,7 +420,12 @@ function updateHabitCell(cell, status, habitId, date, today) {
     const cellDate = new Date(date);
     cellDate.setHours(0, 0, 0, 0);
 
-    cell.textContent = getStatusEmoji(status);
+    // Get habit parameters
+    const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+    const isBadHabit = habit && habit.bad_habit;
+    const levels = habit && habit.levels;
+
+    cell.textContent = getStatusEmoji(status, isBadHabit, levels);
 
     // Handle future dates only
     if (cellDate > today) {
@@ -442,7 +455,7 @@ function showStatusMenu(cell, event) {
     const isBadHabit = habit && habit.bad_habit;
     const levels = habit && habit.levels;
 
-    const items = getStatusOptions(isBadHabit, levels).all.map(option => ({
+    const items = getStatusOptions(isBadHabit, levels).map(option => ({
         icon: option.icon || option.as_char,
         label: option.label,
         onClick: () => {
@@ -596,7 +609,14 @@ function createCellMenuButton(cell) {
  */
 function updateCellContent(cell, status) {
     cell.dataset.status = status;
-    cell.textContent = getStatusEmoji(status);
+
+    // Get habit parameters
+    const habitId = cell.dataset.habitId;
+    const habit = habitsData.habits.find(h => h.id.toString() === habitId);
+    const isBadHabit = habit && habit.bad_habit;
+    const levels = habit && habit.levels;
+
+    cell.textContent = getStatusEmoji(status, isBadHabit, levels);
 
     const hasButton = cell.querySelector('.cell-menu-button') !== null;
     const needsButton = parseInt(status) === 0 && !cell.classList.contains('future-day');

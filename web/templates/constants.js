@@ -16,20 +16,23 @@ const statusOptionsData = {
 
 function getStatusOptions(bad_habit, levels) {
     // Determine options based on levels
+    let  l = '1';
     if (levels) {
         if (levels == 10) {
-            // Numbers mode (0-9)
-            return {
-                'all': statusOptionsData['all'].filter(opt => opt.value === 0 || (opt.value >= 10 && opt.value <= 19))
-            };
+            // Numbers mode
+            l = '10';
         } else if (levels == 1) {
-            // Single checkbox mode (0, 2, 9)
-            return {
-                'all': statusOptionsData['all'].filter(opt => opt.value === 0 || opt.value === 2 || opt.value === 9)
-            };
+            // Single checkbox mode
+            l = '1';
+        } else if (levels == 3) {
+            // Tiple levels
+            l = '3';
         }
     }
-
-    // Default mode (levels == 3 or levels == 0)
-    return statusOptionsData;
+    let h = 'gh';
+    if ((bad_habit) && (bad_habit == true)) {
+        h = 'bh';
+    }
+    // return array by key. Key example: 'gb1'
+    return statusOptionsData[h+l];
 }
