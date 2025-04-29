@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function getStatusEmoji(status) {
     // TODO: getStatusEmoji - WIP! WFT! remove?
-    const options = getStatusOptions(false, false, false).all;
+    const options = getStatusOptions(false, 0).all;
     const option = options.find(opt => opt.value === status);
     return option ? option.icon : '';
 }
@@ -267,15 +267,13 @@ function handleCellClick(cell, e) {
         // Get the habit_id from the cell
         const habitId = cell.dataset.habitId;
 
-        // Get single_checkbox flag from the habit data
+        // Get habit parameters
         const habit = habitsData.habits.find(h => h.id.toString() === habitId);
-        const isSingleCheckbox = habit && habit.single_checkbox;
-        const isMultiNumbers = habit && habit.multi_numbers;
         const isBadHabit = habit && habit.bad_habit;
         const levels = habit && habit.levels;
 
         // Get available status options based on habit settings
-        const statusOptions = getStatusOptions(isSingleCheckbox, isMultiNumbers, isBadHabit, levels).all;
+        const statusOptions = getStatusOptions(isBadHabit, levels).all;
 
         // Find current status in the array
         const currentIndex = statusOptions.findIndex(opt => opt.value === currentStatus);
@@ -439,14 +437,12 @@ function showStatusMenu(cell, event) {
 
     const habitId = cell.dataset.habitId;
 
-    // Get single_checkbox flag from the habit data
+    // Get habit parameters
     const habit = habitsData.habits.find(h => h.id.toString() === habitId);
-    const isSingleCheckbox = habit && habit.single_checkbox;
-    const isMultiNumbers = habit && habit.multi_numbers;
     const isBadHabit = habit && habit.bad_habit;
     const levels = habit && habit.levels;
 
-    const items = getStatusOptions(isSingleCheckbox, isMultiNumbers, isBadHabit, levels).all.map(option => ({
+    const items = getStatusOptions(isBadHabit, levels).all.map(option => ({
         icon: option.icon || option.as_char,
         label: option.label,
         onClick: () => {

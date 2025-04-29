@@ -25,7 +25,7 @@ function fetchHabitName() {
 
 // Load all parameters from the server
 function loadParameters() {
-    const parameters = ['fail_by_default', 'single_checkbox', 'multi_numbers', 'bad_habit', 'levels'];
+    const parameters = ['fail_by_default', 'bad_habit', 'levels'];
 
     parameters.forEach(param => {
         if (param === 'levels') {
@@ -33,7 +33,7 @@ function loadParameters() {
             fetch(`../../api/param/${param}/${habitId}`)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById(param).value = data.value || 'level1';
+                    document.getElementById(param).value = data.value || '0';
                 });
         } else {
             // Handle checkbox inputs
@@ -48,7 +48,7 @@ function loadParameters() {
 
 // Setup event listeners for all parameters
 function setupEventListeners() {
-    const checkboxParams = ['fail-by-default', 'single-checkbox', 'multi-numbers', 'bad-habit'];
+    const checkboxParams = ['fail-by-default', 'bad-habit'];
 
     // Add event listeners for all checkboxes
     checkboxParams.forEach(param => {

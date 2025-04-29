@@ -14,31 +14,22 @@ const statusOptionsData = {
     {% endfor %}
 };
 
-function getStatusOptions(singleCheckbox, multiNumbers, bad_habit, levels) {
-    // If levels is specified, it overrides single_checkbox and multi_numbers
+function getStatusOptions(bad_habit, levels) {
+    // Determine options based on levels
     if (levels) {
-        if (levels == 1) {
-            singleCheckbox = true;
-            multiNumbers = false;
-        } else if (levels == 10) {
-            singleCheckbox = false;
-            multiNumbers = true;
+        if (levels == 10) {
+            // Numbers mode (0-9)
+            return {
+                'all': statusOptionsData['all'].filter(opt => opt.value === 0 || (opt.value >= 10 && opt.value <= 19))
+            };
+        } else if (levels == 1) {
+            // Single checkbox mode (0, 2, 9)
+            return {
+                'all': statusOptionsData['all'].filter(opt => opt.value === 0 || opt.value === 2 || opt.value === 9)
+            };
         }
     }
 
-    if (multiNumbers) {
-        // If multi_numbers mode is enabled, keep only status 0 and numeric values (10-19)
-        return {
-            'all': statusOptionsData['all'].filter(opt => opt.value === 0 || (opt.value >= 10 && opt.value <= 19))
-        };
-    }
-
-    if (singleCheckbox) {
-        // If single_checkbox mode is enabled, keep only statuses 0, 2 and 9
-        return {
-            'all': statusOptionsData['all'].filter(opt => opt.value === 0 || opt.value === 2 || opt.value === 9)
-        };
-    }
-
+    // Default mode (levels == 3 or levels == 0)
     return statusOptionsData;
 }

@@ -111,7 +111,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 let habit = data.habits[0];
                 document.getElementById('habit-name').textContent = habit.name;
                 let tracking = habit.tracking;
-                renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth, habit.bad_habit);
+
+                renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth, habit);
             } else {
                 throw new Error('Data for this habit is not available');
             }
@@ -129,11 +130,15 @@ document.addEventListener('DOMContentLoaded', function () {
  * @param {number} year - Year to render
  * @param {number} month - Month to render (0-11)
  * @param {number} trackingOffset - Offset in tracking array
+ * @param {Object} habit - The habit object with properties like bad_habit and levels
  * @returns {HTMLElement} Table element with calendar
  */
-function renderMonth(tracking, year, month, trackingOffset, bad_habit) {
+function renderMonth(tracking, year, month, trackingOffset, habit) {
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const bad_habit = habit.bad_habit;
+    const levels = habit.levels || 0;
 
     const table = document.createElement('table');
     table.className = 'calendar-table';
@@ -217,7 +222,8 @@ function renderMonth(tracking, year, month, trackingOffset, bad_habit) {
             } else {
                 if (date <= daysInMonth) {
                     const status = tracking[trackingOffset + date - 1];
-                    const statusOption = getStatusOptions(false, false, bad_habit).all.find(opt => opt.value === status);
+
+                    const statusOption = getStatusOptions(bad_habit, levels).all.find(opt => opt.value === status);
 
                     // Create wrapper for content
                     const contentDiv = document.createElement('div');
@@ -264,8 +270,14 @@ function renderMonth(tracking, year, month, trackingOffset, bad_habit) {
 
 /**
  * Renders both calendar months
+ * @param {Array} tracking - Array of statuses
+ * @param {number} prevYear - Previous month's year
+ * @param {number} prevMonth - Previous month (0-11)
+ * @param {number} currentYear - Current month's year
+ * @param {number} currentMonth - Current month (0-11)
+ * @param {Object} habit - The habit object containing properties like bad_habit and levels
  */
-function renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth, bad_habit) {
+function renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMonth, habit) {
     const container = document.getElementById('stat-container');
     container.innerHTML = '';
 
@@ -274,10 +286,10 @@ function renderCalendars(tracking, prevYear, prevMonth, currentYear, currentMont
 
     // Previous month calendar
     const prevMonthDays = new Date(prevYear, prevMonth + 1, 0).getDate();
-    const prevMonthCalendar = renderMonth(tracking, prevYear, prevMonth, 0, bad_habit);
+    const prevMonthCalendar = renderMonth(tracking, prevYear, prevMonth, 0, habit);
 
     // Current month calendar
-    const currentMonthCalendar = renderMonth(tracking, currentYear, currentMonth, prevMonthDays, bad_habit);
+    const currentMonthCalendar = renderMonth(tracking, currentYear, currentMonth, prevMonthDays, habit);
 
     calendarsDiv.appendChild(prevMonthCalendar);
     calendarsDiv.appendChild(currentMonthCalendar);
