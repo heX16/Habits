@@ -656,6 +656,7 @@ class HabitsDatabase:
                 {'value': HabitStatus.FAIL, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
             ],
             'gh10': [
+                {'value': HabitStatus.NOT_SET, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
                 {'value': HabitStatus.NUMBER_0, 'label': '0',  'icon': '0️⃣', 'color': 'green', 'as_char': '0', 'image': 'number_0.png'},
                 {'value': HabitStatus.NUMBER_1, 'label': '1',  'icon': '1️⃣', 'color': 'green', 'as_char': '1', 'image': 'number_1.png'},
                 {'value': HabitStatus.NUMBER_2, 'label': '2',  'icon': '2️⃣', 'color': 'green', 'as_char': '2', 'image': 'number_2.png'},
@@ -670,7 +671,7 @@ class HabitsDatabase:
             # bad habits
             'bh1': [
                 {'value': HabitStatus.NOT_SET, 'label': 'not set', 'icon': ' ', 'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
-                {'value': HabitStatus.DONE_MINI, 'label': 'success', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': HabitStatus.FAIL, 'label': 'success', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
                 {'value': HabitStatus.DONE, 'label': 'failed', 'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
             ],
             'bh3': [

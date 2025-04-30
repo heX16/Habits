@@ -48,7 +48,7 @@ function loadParameters() {
 
 // Setup event listeners for all parameters
 function setupEventListeners() {
-    const checkboxParams = ['fail-by-default', 'bad-habit'];
+    const checkboxParams = ['fail_by_default', 'bad_habit'];
 
     // Add event listeners for all checkboxes
     checkboxParams.forEach(param => {
