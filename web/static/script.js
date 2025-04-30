@@ -376,7 +376,7 @@ function renderTable(data, startDateStr, endDateStr) {
     const rows = table.querySelectorAll('tr');
     data.habits.forEach((habit, index) => {
         const row = rows[index + 1]; // +1 to skip header row
-        updateHabitRow(row, habit, dates, today);
+        initializeHabitRow(row, habit, dates, today);
     });
 }
 
@@ -387,7 +387,7 @@ function renderTable(data, startDateStr, endDateStr) {
  * @param {Array<string>} dates - Array of dates in YYYY-MM-DD format
  * @param {Date} today - Current date (with time set to 00:00:00)
  */
-function updateHabitRow(row, habit, dates, today) {
+function initializeHabitRow(row, habit, dates, today) {
     // Set habit name in first cell
     const habitCell = row.cells[0];
     const habitLink = document.createElement('a');
@@ -399,7 +399,7 @@ function updateHabitRow(row, habit, dates, today) {
     // Fill tracking data
     habit.tracking.forEach((status, cellIndex) => {
         const cell = row.cells[cellIndex + 1];
-        updateHabitCell(cell, status, habit.id, dates[cellIndex], today);
+        initializeHabitCell(cell, status, habit.id, dates[cellIndex], today);
     });
 }
 
@@ -565,28 +565,25 @@ function createCellMenuButton(cell) {
     cell.appendChild(button);
 }
 
-// TODO: `updateCellContent` and `updateHabitCell` - looks absolutle similar...
-
 /**
- * Updates cell content and manages menu button
+ * Updates cell display with appropriate emoji and menu button
  * @param {HTMLElement} cell - The table cell element
- * @param {number} status - New status value
+ * @param {number} status - Status value for the cell
+ * @param {number} habitId - ID of the habit
+ * @param {boolean} isFutureDay - Whether this cell represents a future date
  */
-function updateCellContent(cell, status) {
+function updateCellDisplay(cell, status, habitId, isFutureDay = false) {
     cell.dataset.status = status;
 
     // Get habit parameters
-    const habitId = parseInt(cell.dataset.habitId);
-    console.log('updateCellContent - habitsData available:', !!habitsData.habits, 'habitId:', habitId);
     const habit = habitsData.habits.find(h => h.id === habitId);
     const isBadHabit = habit && habit.bad_habit;
     const levels = habit && habit.levels;
-    console.log('updateCellContent - habit found:', !!habit, 'isBadHabit:', isBadHabit, 'levels:', levels);
 
     cell.textContent = getStatusEmoji(status, isBadHabit, levels);
 
     const hasButton = cell.querySelector('.cell-menu-button') !== null;
-    const needsButton = parseInt(status) === 0 && !cell.classList.contains('future-day');
+    const needsButton = parseInt(status) === 0 && !isFutureDay;
 
     // Remove existing button if status is not 0 or it's a future date
     if (hasButton && !needsButton) {
@@ -599,43 +596,44 @@ function updateCellContent(cell, status) {
 }
 
 /**
- * Updates a single cell in the habit tracking table
+ * Updates cell content after user interaction
+ * @param {HTMLElement} cell - The table cell element
+ * @param {number} status - New status value
+ */
+function updateCellContent(cell, status) {
+    const habitId = parseInt(cell.dataset.habitId);
+    const isFutureDay = cell.classList.contains('future-day');
+    updateCellDisplay(cell, status, habitId, isFutureDay);
+}
+
+/**
+ * Initializes a single cell in the habit tracking table
  * @param {HTMLTableCellElement} cell - The table cell to update
  * @param {number} status - Status value for the cell
  * @param {number} habitId - ID of the habit
  * @param {string} date - Date string in YYYY-MM-DD format
  * @param {Date} today - Current date (with time set to 00:00:00)
  */
-function updateHabitCell(cell, status, habitId, date, today) {
+function initializeHabitCell(cell, status, habitId, date, today) {
     cell.style.cursor = 'pointer';
 
     cell.dataset.habitId = habitId;
     cell.dataset.date = date;
-    cell.dataset.status = status;
 
     const cellDate = new Date(date);
     cellDate.setHours(0, 0, 0, 0);
 
-    // Get habit parameters
-    console.log('updateHabitCell - habitsData available:', !!habitsData.habits, 'habitId:', habitId);
-    const habit = habitsData.habits.find(h => h.id === habitId);
-    const isBadHabit = habit && habit.bad_habit;
-    const levels = habit && habit.levels;
-    console.log('updateHabitCell - habit found:', !!habit, 'isBadHabit:', isBadHabit, 'levels:', levels);
-
-    cell.textContent = getStatusEmoji(status, isBadHabit, levels);
-
-    // Handle future dates only
-    if (cellDate > today) {
+    // Handle future dates
+    const isFutureDay = cellDate > today;
+    if (isFutureDay) {
         cell.classList.add('future-day');
         cell.style.cursor = 'default';
     } else {
         attachCellListeners(cell);
-        // Add menu button for any empty status (except future dates)
-        if (parseInt(status) === 0) {
-            createCellMenuButton(cell);
-        }
     }
+
+    // Update display (emoji and menu button)
+    updateCellDisplay(cell, status, habitId, isFutureDay);
 }
 
 function showMessage(message) {
