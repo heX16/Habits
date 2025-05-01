@@ -7,7 +7,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "web.flask_backend",
-            "cwd": "${workspaceFolder}/..",
+            "cwd": "${workspaceFolder}",
             "env": {
                 "FLASK_APP": "web.flask_backend",
                 "FLASK_ENV": "development"

@@ -5,9 +5,9 @@ import os
 from typing import Optional, Union
 from pathlib import Path
 from os import PathLike
+from enum import IntEnum
 
-# Status constants
-class HabitStatus:
+class HabitStatus(IntEnum):
     NOT_SET = 0
     DONE_MINI = 1
     DONE = 2
@@ -23,6 +23,12 @@ class HabitStatus:
     NUMBER_7 = 17
     NUMBER_8 = 18
     NUMBER_9 = 19
+
+class HabitLevels(IntEnum):
+    LEVEL_1 = 1
+    LEVEL_3 = 3
+    LEVEL_10 = 10
+
 
 class HabitsDatabase:
     '''
@@ -257,26 +263,15 @@ class HabitsDatabase:
         # Convert levels value to appropriate mode
         levels_mode = int(levels) if levels else 0
 
-        # Determine behavior based on levels mode
-        single_checkbox = False
-        multi_numbers = False
-
-        if levels_mode == 1:
-            single_checkbox = True
-        elif levels_mode == 10:
-            multi_numbers = True
-
-        # New numeric statuses (10-19) don't change with single_checkbox
-        if value >= HabitStatus.NUMBER_0 and value <= HabitStatus.NUMBER_9:
-            return value
-
-        # If multi_numbers is enabled and value is not numeric (0, 10-19), map to 0
-        if multi_numbers and not (value == HabitStatus.NOT_SET or (value >= HabitStatus.NUMBER_0 and value <= HabitStatus.NUMBER_9)):
+        # If LEVEL_10 mode and value is not numeric (0, 10-19), map to 0
+        if levels_mode == HabitLevels.LEVEL_10 and \
+               not (value == HabitStatus.NOT_SET or
+               (value >= HabitStatus.NUMBER_0 and value <= HabitStatus.NUMBER_9)):
             return HabitStatus.NOT_SET
 
-        # If single_checkbox is enabled, map all "done" statuses to 2 ("done")
-        if single_checkbox and value in [HabitStatus.DONE_MINI, HabitStatus.DONE_ELITE]:  # If status is "done mini" or "done elite"
-            return HabitStatus.DONE  # Return "done"
+        # If LEVEL_1 mode, map all "done" statuses to 2 ("done")
+        if levels_mode == HabitLevels.LEVEL_1 and value in [HabitStatus.DONE_MINI, HabitStatus.DONE_ELITE]:
+            return HabitStatus.DONE
 
         if fail_by_default:
             if value == HabitStatus.NOT_SET and current_date and today and first_tracking_date:
@@ -634,26 +629,31 @@ class HabitsDatabase:
         Returns dictionary of status options for habits.
         The 'all' key contains a list of all available statuses.
         '''
+
+        # TODO: (читай текст ниже...)
+        # идея для оптимизации:
+        # нужно сделать один массив который содержит все состояния и их описания (цвет, иконка и тп).
+        # а эта функция будет возвращать наборы из словарей вида:
+        # 'gh1': {
+        #     HabitStatus.NOT_SET: 0,
+        #     HabitStatus.DONE: 1,
+        #     HabitStatus.FAIL: 2
+        # }, ...
+        # тоесть словари, которые указывают на номера в массиве.
+
         return {
-            'all': [
-                {'value': HabitStatus.NOT_SET, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
-                {'value': HabitStatus.DONE_MINI, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'as_char': 'v', 'image': 'done_mini.png'},
-                {'value': HabitStatus.DONE, 'label': 'done',       'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
-                {'value': HabitStatus.DONE_ELITE, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W', 'image': 'done_elite.png'},
-                {'value': HabitStatus.FAIL, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
-            ],
             # good habits
             'gh1': [
                 {'value': HabitStatus.NOT_SET, 'label': 'not set', 'icon': ' ', 'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
-                {'value': HabitStatus.DONE_MINI, 'label': 'done', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
-                {'value': HabitStatus.DONE, 'label': 'fail', 'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+                {'value': HabitStatus.DONE, 'label': 'done', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': HabitStatus.FAIL, 'label': 'fail', 'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
             ],
             'gh3': [
                 {'value': HabitStatus.NOT_SET, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
                 {'value': HabitStatus.DONE_MINI, 'label': 'done mini',  'icon': '☑️', 'color': 'green', 'as_char': 'v', 'image': 'done_mini.png'},
-                {'value': HabitStatus.DONE, 'label': 'done',       'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
+                {'value': HabitStatus.DONE, 'label': 'done',  'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
                 {'value': HabitStatus.DONE_ELITE, 'label': 'done elite', 'icon': '🌟', 'color': 'gold', 'as_char': 'W', 'image': 'done_elite.png'},
-                {'value': HabitStatus.FAIL, 'label': 'fail',       'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
+                {'value': HabitStatus.FAIL, 'label': 'fail',  'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
             ],
             'gh10': [
                 {'value': HabitStatus.NOT_SET, 'label': 'not set',    'icon': ' ',  'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
@@ -667,8 +667,9 @@ class HabitsDatabase:
                 {'value': HabitStatus.NUMBER_7, 'label': '7',  'icon': '7️⃣', 'color': 'green', 'as_char': '7', 'image': 'number_7.png'},
                 {'value': HabitStatus.NUMBER_8, 'label': '8',  'icon': '8️⃣', 'color': 'green', 'as_char': '8', 'image': 'number_8.png'},
                 {'value': HabitStatus.NUMBER_9, 'label': '9',  'icon': '9️⃣', 'color': 'green', 'as_char': '9', 'image': 'number_9.png'},
+                {'value': HabitStatus.FAIL, 'label': 'fail',  'icon': '❌', 'color': 'red', 'as_char': 'X', 'image': 'fail.png'},
             ],
-            # bad habits
+            # bad habits (status logic inversed)
             'bh1': [
                 {'value': HabitStatus.NOT_SET, 'label': 'not set', 'icon': ' ', 'color': 'none', 'as_char': ' ', 'image': 'empty.png'},
                 {'value': HabitStatus.FAIL, 'label': 'success', 'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
@@ -693,6 +694,7 @@ class HabitsDatabase:
                 {'value': HabitStatus.NUMBER_7, 'label': 'fail 7',  'icon': '7️⃣', 'color': 'red', 'as_char': '7', 'image': 'number_red_7.png'},
                 {'value': HabitStatus.NUMBER_8, 'label': 'fail 8',  'icon': '8️⃣', 'color': 'red', 'as_char': '8', 'image': 'number_red_8.png'},
                 {'value': HabitStatus.NUMBER_9, 'label': 'fail 9',  'icon': '9️⃣', 'color': 'red', 'as_char': '9', 'image': 'number_red_9.png'},
+                {'value': HabitStatus.FAIL, 'label': 'success',    'icon': '✅', 'color': 'green', 'as_char': 'V', 'image': 'done.png'},
             ],
 
         }

@@ -235,7 +235,7 @@ function getStatusEmoji(status, isBadHabit = false, levels = 3) {
     const options = getStatusOptions(isBadHabit, levels);
     // TODO: optimize???
     const option = options.find(opt => opt.value === status);
-    return option ? option.icon : '';
+    return option ? option.icon : '???';
 }
 
 /**
