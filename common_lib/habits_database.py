@@ -624,7 +624,7 @@ class HabitsDatabase:
         finally:
             conn.close()
 
-    def get_status_options(self):
+    def get_status_lists(self):
         '''
         Returns dictionary of status options for habits.
         The 'all' key contains a list of all available statuses.
@@ -639,7 +639,7 @@ class HabitsDatabase:
         #     HabitStatus.DONE: 1,
         #     HabitStatus.FAIL: 2
         # }, ...
-        # тоесть словари, которые указывают на номера в массиве.
+        # тоесть словари, которые указывают на номера в массиве. а также их ключи - это номер статуса.
 
         return {
             # good habits

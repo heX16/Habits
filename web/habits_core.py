@@ -223,7 +223,8 @@ def prepare_js_constants(database):
         'approximateHabitsCount': len(habits_list)
     }
 
-    status_options = database.get_status_options()
+    # prepare dict of string for template
+    status_options = database.get_status_lists()
     formatted_options_categories = {}
     for category, options in status_options.items():
         formatted_options = []
