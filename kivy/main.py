@@ -4,16 +4,20 @@ Habits Simple Tracker - Kivy Version
 
 Main application entry point for the Kivy-based habits tracking app.
 Cross-platform habits tracker with 7-day table view.
+Updated to use KivyMD components including MDDataTable.
 """
 
 import os
 import sys
 import kivy
-from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.logger import Logger
 from kivy.resources import resource_add_path
 from kivy.lang import Builder
+
+# KivyMD imports
+from kivymd.app import MDApp
+from kivymd.theming import ThemeManager
 
 # Add the project root to the path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,12 +28,12 @@ from app.screens import MainTrackerScreen, OptionsScreen
 from app.services.app_state_manager import AppStateManager
 
 
-class HabitsApp(App):
-    """Main Kivy application class"""
+class HabitsApp(MDApp):
+    """Main KivyMD application class"""
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        Logger.info('HabitsApp: Initializing application')
+        Logger.info('HabitsApp: Initializing KivyMD application')
         
         # App state manager
         self.state_manager = None
@@ -42,6 +46,11 @@ class HabitsApp(App):
         
         # Options screen
         self.options_screen = None
+        
+        # Set theme
+        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.primary_palette = "Blue"
+        self.theme_cls.accent_palette = "Orange"
         
     def build(self):
         """Build the application UI"""
