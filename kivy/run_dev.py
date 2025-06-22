@@ -24,7 +24,7 @@ if config_file.exists():
     Config.read(str(config_file))
 
 # Development-specific settings
-Config.set('kivy', 'log_level', '2')  # Debug level
+Config.set('kivy', 'log_level', 'debug')  # Debug level
 Config.set('graphics', 'show_cursor', '1')
 Config.set('graphics', 'resizable', '1')
 
@@ -36,9 +36,9 @@ if __name__ == '__main__':
     print("📁 Project directory:", Path(__file__).parent)
     print("🔧 Debug logging enabled")
     print("⌨️  Press Ctrl+C to stop\n")
-    
+
     try:
         main()
     except KeyboardInterrupt:
         print("\n👋 Development session ended")
-        sys.exit(0) 
+        sys.exit(0)

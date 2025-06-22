@@ -5,7 +5,7 @@ Primary interface for habit tracking with 7-day table view.
 Handles status cycling, date navigation, and habit display.
 """
 
-from kivy.uix.screen import Screen
+from kivy.uix.screenmanager import Screen
 from kivy.logger import Logger
 
 
