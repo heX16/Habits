@@ -28,6 +28,10 @@ class MainTrackerScreen(Screen):
     week_label = StringProperty('This Week')
     is_loading = BooleanProperty(False)
     
+    # UI widget references (connected from .kv file)
+    habit_table = ObjectProperty(None, allownone=True)
+    status_bar = ObjectProperty(None, allownone=True)
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Logger.info('MainTrackerScreen: Initializing main tracker screen')
@@ -40,10 +44,6 @@ class MainTrackerScreen(Screen):
         # Current date range
         self.current_start_date = None
         self.current_end_date = None
-        
-        # UI references (will be set from .kv file)
-        self.habit_table = None
-        self.status_bar = None
         
         # List of habit rows for management
         self.habit_rows = []
@@ -110,6 +110,10 @@ class MainTrackerScreen(Screen):
         self.habit_rows.clear()
         
         # Get date headers
+        if self.current_start_date is None or self.current_end_date is None:
+            Logger.warning('MainTrackerScreen: Date range not set, cannot rebuild table')
+            return
+            
         date_headers = DateCalculator.get_date_headers(
             self.current_start_date, 
             self.current_end_date

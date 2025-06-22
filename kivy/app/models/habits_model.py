@@ -81,7 +81,15 @@ class HabitsModel(EventDispatcher):
             Logger.info(f'HabitsModel: Loading habits data from {start_date} to {end_date}')
             
             today = date.today()
-            data = self.database.fetch_habits(start_date, end_date, today=today)
+            
+            # Convert date objects to strings for database call
+            start_date_str = start_date.strftime('%Y-%m-%d')
+            end_date_str = end_date.strftime('%Y-%m-%d')
+            
+            data = self.database.fetch_habits(start_date_str, end_date_str, today=today)
+            
+            # Transform the data format to match UI expectations
+            self._transform_habits_data(data, start_date, end_date)
             
             # Store current date range
             self.current_start_date = start_date
@@ -104,6 +112,40 @@ class HabitsModel(EventDispatcher):
         except Exception as e:
             Logger.error(f'HabitsModel: Error loading habits data: {e}')
             raise
+            
+    def _transform_habits_data(self, data: Dict[str, Any], start_date: date, end_date: date):
+        """
+        Transform the database format to UI format.
+        Convert tracking array to dates array with date and status objects.
+        
+        :param data: Database data dictionary
+        :param start_date: Start date for the range
+        :param end_date: End date for the range
+        """
+        # Generate date list for the range
+        date_list = []
+        current_date = start_date
+        while current_date <= end_date:
+            date_list.append(current_date.strftime('%Y-%m-%d'))
+            current_date += timedelta(days=1)
+            
+        # Transform each habit's tracking data
+        for habit in data.get('habits', []):
+            tracking = habit.get('tracking', [])
+            dates = []
+            
+            # Convert tracking array to dates array
+            for i, date_str in enumerate(date_list):
+                status = tracking[i] if i < len(tracking) else 0
+                dates.append({
+                    'date': date_str,
+                    'status': status
+                })
+                
+            # Replace tracking with dates
+            habit['dates'] = dates
+            # Keep tracking for backward compatibility if needed
+            # habit['tracking'] = tracking
             
     def update_habit_status(self, habit_id: int, date_str: str, status: int) -> bool:
         """
