@@ -1,0 +1,26 @@
+# Kivy framework for cross-platform GUI
+kivy>=2.1.0
+
+# Additional Kivy components
+kivymd>=1.1.1
+
+# Date and time handling
+python-dateutil>=2.8.2
+
+# SQLite database (built-in with Python, but useful for type hints)
+# sqlite3 is built-in
+
+# Platform-specific dependencies (optional)
+# For Android packaging
+# buildozer
+
+# For Windows packaging  
+# pyinstaller>=5.0
+
+# For development and testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Code formatting and linting
+black>=22.0.0
+flake8>=5.0.0 

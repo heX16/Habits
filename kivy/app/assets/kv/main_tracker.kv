@@ -1,0 +1,87 @@
+# Main Tracker Screen Layout
+# Kivy layout definition for the main habit tracking interface
+
+<MainTrackerScreen>:
+    name: 'main'
+    
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+        
+        # Header with title and navigation
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 50
+            
+            Label:
+                text: 'Habits Simple Tracker'
+                font_size: 20
+                bold: True
+                text_size: self.size
+                halign: 'left'
+                valign: 'middle'
+                
+            Button:
+                text: 'Options'
+                size_hint_x: None
+                width: 100
+                on_press: root.go_to_options()
+        
+        # Date navigation
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 40
+            spacing: 10
+            
+            Button:
+                text: '← Previous'
+                size_hint_x: None
+                width: 100
+                on_press: root.navigate_previous()
+                
+            Label:
+                text: 'Week View'
+                text_size: self.size
+                halign: 'center'
+                valign: 'middle'
+                
+            Button:
+                text: 'Next →'
+                size_hint_x: None
+                width: 100
+                on_press: root.navigate_next()
+                
+            Button:
+                text: 'Today'
+                size_hint_x: None
+                width: 80
+                on_press: root.go_to_today()
+        
+        # Main habit tracking table
+        ScrollView:
+            do_scroll_x: True
+            do_scroll_y: True
+            
+            GridLayout:
+                id: habit_table
+                cols: 8  # 1 for habit name + 7 for days
+                row_default_height: 50
+                row_force_default: True
+                size_hint_y: None
+                height: self.minimum_height
+                
+                # Header row will be added programmatically
+                # Habit rows will be added programmatically
+                
+        # Status bar
+        Label:
+            id: status_bar
+            text: 'Ready'
+            size_hint_y: None
+            height: 30
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle' 
