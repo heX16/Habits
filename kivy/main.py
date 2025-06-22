@@ -1,86 +1,151 @@
 #!/usr/bin/env python3
 """
-Habits Simple Tracker - Kivy Mobile/Desktop Application
+Habits Simple Tracker - Kivy Version
 
-Main entry point for the Habits tracking application.
-Migrated from Flask web version to cross-platform Kivy app.
+Main application entry point for the Kivy-based habits tracking app.
+Cross-platform habits tracker with 7-day table view.
 """
 
-import sys
 import os
-from pathlib import Path
-
-# Add project root to Python path
-PROJECT_ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
-# Kivy imports
+import sys
 from kivy.app import App
-from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.config import Config
+from kivy.uix.screenmanager import ScreenManager
 from kivy.logger import Logger
+from kivy.resources import resource_add_path
+from kivy.lang import Builder
 
-# App imports
+# Add the project root to the path for imports
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from app.screens.main_tracker_screen import MainTrackerScreen
 from app.services.app_state_manager import AppStateManager
 
 
 class HabitsApp(App):
-    """Main Kivy application class for Habits Simple Tracker"""
+    """Main Kivy application class"""
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.title = "Habits Simple Tracker"
-        self.app_state = None
+        Logger.info('HabitsApp: Initializing application')
         
-    def build_config(self, config):
-        """Build configuration for the app"""
-        config.setdefaults('graphics', {
-            'width': '800',
-            'height': '600',
-            'minimum_width': '600',
-            'minimum_height': '400'
-        })
+        # App state manager
+        self.state_manager = None
+        
+        # Screen manager
+        self.screen_manager = None
+        
+        # Main screen
+        self.main_screen = None
         
     def build(self):
-        """Build the main app interface"""
-        # Initialize app state manager
-        self.app_state = AppStateManager()
+        """Build the application UI"""
+        Logger.info('HabitsApp: Building application')
         
-        # Create screen manager
-        sm = ScreenManager()
-        
-        # Add main tracker screen
-        main_screen = MainTrackerScreen(name='main')
-        sm.add_widget(main_screen)
-        
-        # Set current screen
-        sm.current = 'main'
-        
-        Logger.info('HabitsApp: Application initialized successfully')
-        return sm
-        
+        try:
+            # Initialize app state manager
+            self.state_manager = AppStateManager()
+            
+            # Load the main screen layout
+            kv_file = os.path.join(os.path.dirname(__file__), 'app', 'assets', 'kv', 'main_tracker.kv')
+            if os.path.exists(kv_file):
+                Builder.load_file(kv_file)
+                Logger.info(f'HabitsApp: Loaded KV file: {kv_file}')
+            else:
+                Logger.warning(f'HabitsApp: KV file not found: {kv_file}')
+            
+            # Create screen manager
+            self.screen_manager = ScreenManager()
+            
+            # Create main screen
+            self.main_screen = MainTrackerScreen(name='main')
+            
+            # Connect main screen to shared habits model
+            if self.state_manager.is_database_ready():
+                shared_model = self.state_manager.get_habits_model()
+                self.main_screen.habits_model = shared_model
+                Logger.info('HabitsApp: Connected main screen to shared habits model')
+            
+            # Add screens to screen manager
+            self.screen_manager.add_widget(self.main_screen)
+            
+            # Set initial screen
+            self.screen_manager.current = 'main'
+            
+            # Set window title
+            self.title = 'Habits Simple Tracker'
+            
+            Logger.info('HabitsApp: Application built successfully')
+            return self.screen_manager
+            
+        except Exception as e:
+            Logger.error(f'HabitsApp: Error building application: {e}')
+            raise
+            
     def on_start(self):
         """Called when the app starts"""
         Logger.info('HabitsApp: Application started')
         
+        # Print database info
+        if self.state_manager:
+            db_info = self.state_manager.get_database_info()
+            Logger.info(f'HabitsApp: Database info: {db_info}')
+            
+            # Add sample data if database is empty
+            if db_info.get('habits_count', 0) == 0:
+                Logger.info('HabitsApp: Database is empty, adding sample data')
+                try:
+                    self.state_manager.add_sample_data()
+                    
+                    # Refresh the main screen
+                    if self.main_screen:
+                        self.main_screen.load_current_week()
+                        
+                except Exception as e:
+                    Logger.error(f'HabitsApp: Error adding sample data: {e}')
+        
+    def on_pause(self):
+        """Called when the app is paused (Android)"""
+        Logger.info('HabitsApp: Application paused')
+        if self.state_manager:
+            self.state_manager.on_app_pause()
+        return True  # Return True to pause
+        
+    def on_resume(self):
+        """Called when the app is resumed (Android)"""
+        Logger.info('HabitsApp: Application resumed')
+        if self.state_manager:
+            self.state_manager.on_app_resume()
+            
     def on_stop(self):
-        """Called when the app stops"""
-        Logger.info('HabitsApp: Application stopped')
-        if self.app_state:
-            self.app_state.cleanup()
+        """Called when the app is stopped"""
+        Logger.info('HabitsApp: Application stopping')
+        if self.state_manager:
+            self.state_manager.on_app_stop()
+            
+    def get_application_config(self):
+        """Get path to the application config file"""
+        config_path = os.path.join(os.path.dirname(__file__), 'config.ini')
+        Logger.info(f'HabitsApp: Using config file: {config_path}')
+        return config_path
 
 
 def main():
     """Main entry point"""
-    # Configure Kivy settings
-    Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
-    Config.set('kivy', 'exit_on_escape', '1')
+    Logger.info('Starting Habits Simple Tracker (Kivy Version)')
     
-    # Create and run app
-    app = HabitsApp()
-    app.run()
-
+    try:
+        # Create and run the app
+        app = HabitsApp()
+        app.run()
+        
+    except Exception as e:
+        Logger.error(f'Failed to start application: {e}')
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+        
 
 if __name__ == '__main__':
     main() 

@@ -8,4 +8,11 @@ This package contains:
 - StatusIcon: Status display components
 - FloatingMenu: Popup status menu
 - NotificationBar: Message display
-""" 
+"""
+
+# Widgets module for Habits Kivy app
+from .status_cell import StatusCell
+from .habit_row import HabitRow
+from .date_header import DateHeader
+
+__all__ = ['StatusCell', 'HabitRow', 'DateHeader'] 
