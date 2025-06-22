@@ -174,9 +174,31 @@ def insert_row(table_grid, table_data, row_num, row_data):
     # Вставляем данные в table_data
     table_data.insert(row_num, list(row_data))
     
-    # Создаем виджеты для новой строки
-    new_widgets = []
-    for cell_data in row_data:
+    total_rows = len(table_data)
+    
+    print(f"Inserting row at position {row_num}")
+    print(f"Children before: {len(table_grid.children)}")
+    
+    # ЦИКЛ 1: Рассчитываем все индексы для вставки виджетов новой строки
+    insert_indices = []
+    
+    # Для строки row_num в новой структуре позиция в children (обратный порядок):
+    base_position = (total_rows - row_num - 1) * cols
+    
+    # Вставляем виджеты слева направо (от первой колонки к последней)
+    for col in range(cols):
+        # Позиция виджета = базовая позиция строки + сдвиг по колонкам
+        insert_index = base_position + col
+        
+        insert_indices.append((col, insert_index))
+        print(f"Col {col}: will insert at index {insert_index}")
+    
+    # ЦИКЛ 2: Создаем и вставляем виджеты по рассчитанным индексам
+    for col, insert_index in insert_indices:
+        # Берем данные в обратном порядке, потому что children хранятся в обратном порядке
+        cell_data = row_data[cols - 1 - col]
+        
+        # Создаем виджет для ячейки
         label = Label(
             text=str(cell_data),
             size_hint_y=None,
@@ -185,20 +207,10 @@ def insert_row(table_grid, table_data, row_num, row_data):
             valign="middle"
         )
         label.bind(size=label.setter('text_size'))  # type: ignore
-        new_widgets.append(label)
-    
-    # Вычисляем позицию для вставки виджетов
-    # В children виджеты хранятся в обратном порядке
-    # Для строки row_num нужна позиция: (len(table_data) - row_num - 1) * cols
-    total_rows = len(table_data)
-    insert_position = (total_rows - row_num - 1) * cols
-    
-    print(f"Inserting {len(new_widgets)} widgets at position {insert_position}")
-    print(f"Children before: {len(table_grid.children)}")
-    
-    # Вставляем виджеты в обратном порядке (справа налево)
-    for i, widget in enumerate(reversed(new_widgets)):
-        table_grid.add_widget(widget, index=insert_position + i)
+        
+        # Вставляем виджет по заранее рассчитанному индексу
+        table_grid.add_widget(label, index=insert_index)
+        print(f"Inserted widget for col {col} at index {insert_index}")
     
     print(f"Children after: {len(table_grid.children)}")
     print(f"Table now has {len(table_data)} rows")
