@@ -8,6 +8,7 @@ Cross-platform habits tracker with 7-day table view.
 
 import os
 import sys
+import kivy
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.logger import Logger
@@ -19,7 +20,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from app.screens.main_tracker_screen import MainTrackerScreen
+from app.screens import MainTrackerScreen, OptionsScreen
 from app.services.app_state_manager import AppStateManager
 
 
@@ -38,6 +39,9 @@ class HabitsApp(App):
         
         # Main screen
         self.main_screen = None
+        
+        # Options screen
+        self.options_screen = None
         
     def build(self):
         """Build the application UI"""
@@ -59,19 +63,24 @@ class HabitsApp(App):
             self.screen_manager = ScreenManager()
             
             # Create main screen
-            self.main_screen = MainTrackerScreen(name='main')
+            self.main_screen = MainTrackerScreen(name='main_tracker')
             
-            # Connect main screen to shared habits model
+            # Create options screen
+            self.options_screen = OptionsScreen(name='options')
+            
+            # Connect screens to shared habits model
             if self.state_manager.is_database_ready():
                 shared_model = self.state_manager.get_habits_model()
                 self.main_screen.habits_model = shared_model
-                Logger.info('HabitsApp: Connected main screen to shared habits model')
+                self.options_screen.habits_model = shared_model
+                Logger.info('HabitsApp: Connected screens to shared habits model')
             
             # Add screens to screen manager
             self.screen_manager.add_widget(self.main_screen)
+            self.screen_manager.add_widget(self.options_screen)
             
             # Set initial screen
-            self.screen_manager.current = 'main'
+            self.screen_manager.current = 'main_tracker'
             
             # Set window title
             self.title = 'Habits Simple Tracker'

@@ -14,5 +14,6 @@ This package contains:
 from .status_cell import StatusCell
 from .habit_row import HabitRow
 from .date_header import DateHeader
+from .status_menu_popup import StatusMenuPopup
 
-__all__ = ['StatusCell', 'HabitRow', 'DateHeader'] 
+__all__ = ['StatusCell', 'HabitRow', 'DateHeader', 'StatusMenuPopup'] 

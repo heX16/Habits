@@ -360,4 +360,35 @@ class HabitsModel(EventDispatcher):
             check_date = datetime.strptime(date_str, '%Y-%m-%d').date()
             return check_date > date.today()
         except ValueError:
-            return False 
+            return False
+            
+    def get_habit_data(self, habit_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get data for a specific habit by ID.
+        
+        :param habit_id: ID of the habit
+        :return: Habit data dictionary or None if not found
+        """
+        try:
+            # First try to get from loaded data
+            if self.habits_data and 'habits' in self.habits_data:
+                for habit in self.habits_data['habits']:
+                    if habit.get('id') == habit_id:
+                        return habit
+            
+            # If not found in loaded data, query database
+            habits_list = self.database.get_habits_list()
+            for habit in habits_list:
+                if habit.get('id') == habit_id:
+                    # Get habit parameters
+                    habit['levels'] = self.database.get_param(habit_id, 'levels', '0')
+                    habit['fail_by_default'] = self.database.get_param(habit_id, 'fail_by_default', '0')
+                    habit['bad_habit'] = self.database.get_param(habit_id, 'bad_habit', '0')
+                    return habit
+                    
+            Logger.warning(f'HabitsModel: Habit {habit_id} not found')
+            return None
+            
+        except Exception as e:
+            Logger.error(f'HabitsModel: Error getting habit data for ID {habit_id}: {e}')
+            return None 

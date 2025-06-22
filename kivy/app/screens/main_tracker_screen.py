@@ -16,7 +16,7 @@ from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty
 
 from ..models import HabitsModel, DateCalculator
-from ..widgets import StatusCell, HabitRow, DateHeader
+from ..widgets import StatusCell, HabitRow, DateHeader, StatusMenuPopup
 
 
 class MainTrackerScreen(Screen):
@@ -205,8 +205,24 @@ class MainTrackerScreen(Screen):
     def on_status_double_clicked(self, habit_row, habit_id: int, date_str: str, status: int):
         """Handle status cell double click"""
         Logger.info(f'MainTrackerScreen: Status double-clicked - habit {habit_id}, date {date_str}')
-        # TODO: Show status selection menu
-        self.update_status_bar(f'Double-click on habit {habit_id} for {date_str}')
+        
+        # Find habit data
+        habit_data = self.habits_model.get_habit_data(habit_id)
+        if not habit_data:
+            Logger.warning(f'MainTrackerScreen: Habit data not found for ID {habit_id}')
+            self.update_status_bar(f'Error: Habit {habit_id} not found')
+            return
+            
+        # Show status selection menu
+        StatusMenuPopup.show_for_cell(
+            habit_data=habit_data,
+            current_status=status,
+            on_status_selected=lambda new_status: self.on_status_selected_from_menu(
+                habit_id, date_str, status, new_status
+            )
+        )
+        
+        self.update_status_bar(f'Status menu for habit "{habit_data.get("name", "")}"')
         
     def on_status_changed(self, habit_row, habit_id: int, date_str: str, old_status: int, new_status: int):
         """Handle status change"""
@@ -221,6 +237,29 @@ class MainTrackerScreen(Screen):
             self.update_status_bar('Failed to update status')
             # Revert the change in UI
             habit_row.update_cell_status(date_str, old_status)
+    
+    def on_status_selected_from_menu(self, habit_id: int, date_str: str, old_status: int, new_status: int):
+        """Handle status selection from popup menu"""
+        Logger.info(f'MainTrackerScreen: Status selected from menu - habit {habit_id}, date {date_str}, {old_status} → {new_status}')
+        
+        if new_status == old_status:
+            # No change needed
+            self.update_status_bar('No status change')
+            return
+            
+        # Update the database
+        success = self.habits_model.update_habit_status(habit_id, date_str, new_status)
+        
+        if success:
+            # Update the UI
+            for habit_row in self.habit_rows:
+                if habit_row.habit_id == habit_id:
+                    habit_row.update_cell_status(date_str, new_status)
+                    break
+                    
+            self.update_status_bar(f'Status updated to {new_status}')
+        else:
+            self.update_status_bar('Failed to update status')
             
     def on_data_changed(self, habits_model):
         """Handle data model changes"""
@@ -243,8 +282,13 @@ class MainTrackerScreen(Screen):
     def go_to_options(self):
         """Navigate to options screen"""
         Logger.info('MainTrackerScreen: Navigate to options')
-        # TODO: Implement navigation to options screen
-        self.update_status_bar('Options screen not implemented yet')
+        
+        # Переключиться на экран настроек
+        if self.manager:
+            self.manager.current = 'options'
+        else:
+            Logger.warning('MainTrackerScreen: No screen manager found')
+            self.update_status_bar('Navigation error: No screen manager')
         
     def navigate_previous(self):
         """Navigate to previous week"""
