@@ -42,9 +42,67 @@ def create_table_widget(table_data):
     return scroll, table_grid
 
 
-def add_row(table_data, row_data):
-    """Добавляет строку данных в таблицу"""
-    table_data.append(list(row_data))
+def recreate_table(table_grid, table_data):
+    """Обновляет всю таблицу на основе table_data"""
+    if not table_grid or not table_data:
+        return
+        
+    # Очищаем таблицу
+    table_grid.clear_widgets()
+    
+    # Добавляем все строки (включая заголовки в первой строке)
+    for row in table_data:
+        for cell in row:
+            label = Label(
+                text=str(cell),
+                size_hint_y=None,
+                height=dp(40),
+                halign="center",
+                valign="middle"
+            )
+            label.bind(size=label.setter('text_size'))  # type: ignore
+            table_grid.add_widget(label)
+
+
+def update_table(table_grid, table_data):
+    """Обновляет содержимое таблицы без пересоздания виджетов"""
+    if not table_grid or not table_data:
+        return False
+        
+    cols = table_grid.cols
+    rows = len(table_data)
+    total_widgets = len(table_grid.children)
+    expected_widgets = rows * cols
+    
+    # Проверяем, что количество виджетов соответствует ожидаемому
+    if total_widgets != expected_widgets:
+        print(f"Warning: Expected {expected_widgets} widgets, but found {total_widgets}")
+        return False
+    
+    # Проверяем, что все строки имеют правильное количество колонок
+    for i, row in enumerate(table_data):
+        if len(row) != cols:
+            print(f"Error: Row {i} has {len(row)} columns, but table has {cols} columns")
+            return False
+    
+    # Обновляем содержимое каждого виджета
+    for row in range(rows):
+        for col in range(cols):
+            # Вычисляем индекс виджета в children (обратный порядок)
+            # Логическая позиция: (row, col)
+            # Линейный индекс в порядке добавления: row * cols + col
+            # Индекс в children: total_widgets - 1 - (row * cols + col)
+            widget_idx = total_widgets - 1 - (row * cols + col)
+            
+            if 0 <= widget_idx < len(table_grid.children):
+                widget = table_grid.children[widget_idx]
+                new_text = str(table_data[row][col])
+                
+                # Обновляем текст только если он изменился
+                if hasattr(widget, 'text') and widget.text != new_text:
+                    widget.text = new_text
+
+    return True
 
 
 def update_cell(table_data, row, col, text):
@@ -55,6 +113,11 @@ def update_cell(table_data, row, col, text):
     else:
         print(f"Error: Invalid cell position ({row}, {col})")
         return False
+
+
+def add_row(table_data, row_data):
+    """Добавляет строку данных в таблицу"""
+    table_data.append(list(row_data))
 
 
 def delete_row(table_grid, table_data, row_num):
@@ -294,27 +357,6 @@ def insert_col(table_grid, table_data, col_num, col_data):
     return True
 
 
-def refresh_table(table_grid, table_data):
-    """Обновляет всю таблицу на основе table_data"""
-    if not table_grid or not table_data:
-        return
-        
-    # Очищаем таблицу
-    table_grid.clear_widgets()
-    
-    # Добавляем все строки (включая заголовки в первой строке)
-    for row in table_data:
-        for cell in row:
-            label = Label(
-                text=str(cell),
-                size_hint_y=None,
-                height=dp(40),
-                halign="center",
-                valign="middle"
-            )
-            label.bind(size=label.setter('text_size'))  # type: ignore
-            table_grid.add_widget(label)
-
 
 class SimpleTableApp(App):
     """Простейшее приложение с таблицей"""
@@ -336,8 +378,8 @@ class SimpleTableApp(App):
         button1 = Button(text="Add Row", size_hint_x=0.2, on_press=self.on_add_row)
         button2 = Button(text="Insert Row", size_hint_x=0.2, on_press=self.on_insert_row)
         button3 = Button(text="Update Cell", size_hint_x=0.2, on_press=self.on_update_cell)
-        button4 = Button(text="Refresh Table", size_hint_x=0.2, on_press=self.on_refresh_table)
-        button5 = Button(text="Count Widgets", size_hint_x=0.2, on_press=self.on_count_widgets)
+        button4 = Button(text="Update Table", size_hint_x=0.2, on_press=self.on_update_table)
+        button5 = Button(text="Change Data", size_hint_x=0.2, on_press=self.on_change_data)
         
         # Добавляем первые кнопки в первый layout
         buttons_layout1.add_widget(button1)
@@ -353,7 +395,7 @@ class SimpleTableApp(App):
         button6 = Button(text="Insert Col", size_hint_x=0.25, on_press=self.on_insert_col)
         button7 = Button(text="Delete Col", size_hint_x=0.25, on_press=self.on_delete_col_new)
         button8 = Button(text="+1 rows", size_hint_x=0.25, on_press=self.on_add_row_size)
-        button9 = Button(text="-1 rows", size_hint_x=0.25, on_press=self.on_remove_row_size)
+        button9 = Button(text="Count Widgets", size_hint_x=0.25, on_press=self.on_count_widgets)
         
         # Добавляем вторые кнопки во второй layout
         buttons_layout2.add_widget(button6)
@@ -374,7 +416,7 @@ class SimpleTableApp(App):
         self.scroll_widget, self.table_grid = create_table_widget(self.table_data)
         
         # Заполняем таблицу
-        refresh_table(self.table_grid, self.table_data)
+        recreate_table(self.table_grid, self.table_data)
         
         # Добавляем элементы в основной layout
         main_layout.add_widget(buttons_layout1)
@@ -390,14 +432,14 @@ class SimpleTableApp(App):
         row_num = len(self.table_data)  # -1 для заголовков + 1 для нового номера = len
         new_row = [f"1x{row_num}", f"2x{row_num}", f"3x{row_num}", f"4x{row_num}", f"5x{row_num}", f"6x{row_num}", f"7x{row_num}"]
         add_row(self.table_data, new_row)
-        refresh_table(self.table_grid, self.table_data)
+        recreate_table(self.table_grid, self.table_data)
         print(f"Added row. Total rows: {len(self.table_data) - 1}")  # -1 для заголовков
     
     def on_delete_row(self, instance):
         """Удаляет последнюю строку из таблицы"""
         if len(self.table_data) > 1:  # Оставляем заголовки
             self.table_data.pop()
-            refresh_table(self.table_grid, self.table_data)
+            recreate_table(self.table_grid, self.table_data)
             print(f"Removed row. Total rows: {len(self.table_data) - 1}")  # -1 для заголовков
     
     def on_delete_row_new(self, instance):
@@ -417,13 +459,43 @@ class SimpleTableApp(App):
         if len(self.table_data) > 1:  # Проверяем, что есть данные кроме заголовков
             # Обновляем первую ячейку первой строки данных (не заголовков)
             update_cell(self.table_data, 1, 0, "UPDATED!")
-            refresh_table(self.table_grid, self.table_data)
+            recreate_table(self.table_grid, self.table_data)
             print("Updated cell (1,0)")
+    
+    def on_update_table(self, instance):
+        """Обновляет таблицу без пересоздания виджетов"""
+        if self.table_grid and self.table_data:
+            success = update_table(self.table_grid, self.table_data)
+            if success:
+                print("Table updated successfully")
+            else:
+                print("Failed to update table")
+        else:
+            print("Table not initialized")
     
     def on_refresh_table(self, instance):
         """Принудительно обновляет таблицу"""
-        refresh_table(self.table_grid, self.table_data)
+        recreate_table(self.table_grid, self.table_data)
         print("Table refreshed")
+    
+    def on_change_data(self, instance):
+        """Изменяет некоторые данные в таблице для тестирования update_table"""
+        if self.table_data and len(self.table_data) > 1:
+            import random
+            
+            # Изменяем случайные ячейки
+            rows_to_change = min(3, len(self.table_data) - 1)  # Не трогаем заголовки
+            for _ in range(rows_to_change):
+                row_idx = random.randint(1, len(self.table_data) - 1)  # Не трогаем заголовки
+                col_idx = random.randint(0, len(self.table_data[row_idx]) - 1)
+                old_value = self.table_data[row_idx][col_idx]
+                new_value = f"NEW_{random.randint(1, 999)}"
+                self.table_data[row_idx][col_idx] = new_value
+                print(f"Changed cell ({row_idx},{col_idx}): '{old_value}' -> '{new_value}'")
+            
+            print("Data changed. Use 'Update Table' to apply changes efficiently.")
+        else:
+            print("No data to change")
     
     def on_count_widgets(self, instance):
         """Выводит количество виджетов в таблице"""
