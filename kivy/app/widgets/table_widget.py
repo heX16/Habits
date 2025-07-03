@@ -20,7 +20,7 @@ def create_cell(text="", style=None):
         halign="center",
         valign="middle"
     )
-    label.bind(size=label.setter('text_size'))  # type: ignore
+    label.bind(size=label.setter('text_size'))  
 
     # Apply style if provided
     if style and isinstance(style, dict):
@@ -55,7 +55,7 @@ def create_table_widget(table_data):
         row_force_default=True,
     )
     # Bind height to minimum height for scrolling
-    table_grid.bind(minimum_height=table_grid.setter('height'))  # type: ignore
+    table_grid.bind(minimum_height=table_grid.setter('height'))  
 
     scroll.add_widget(table_grid)
     return scroll, table_grid

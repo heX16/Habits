@@ -1,0 +1,16 @@
+{
+    "typeCheckingMode": "basic",
+    "reportAttributeAccessIssue": "none",
+    "reportGeneralTypeIssues": "warning",
+    "reportOptionalMemberAccess": "warning",
+    "reportUnknownMemberType": "none",
+    "reportUnknownArgumentType": "none",
+    "include": [
+        "kivy/",
+        "common_lib/"
+    ],
+    "exclude": [
+        "**/__pycache__",
+        "**/.git"
+    ]
+} 

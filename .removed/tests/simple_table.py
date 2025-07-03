@@ -6,7 +6,7 @@ Simple table based on ScrollView and GridLayout.
 """
 
 from kivy.metrics import dp
-from kivy.app import App  # type: ignore
+from kivy.app import App  
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
@@ -23,7 +23,7 @@ def create_cell(text="", style=None):
         halign="center",
         valign="middle"
     )
-    label.bind(size=label.setter('text_size'))  # type: ignore
+    label.bind(size=label.setter('text_size'))  
     
     # Apply style if provided
     if style and isinstance(style, dict):
@@ -58,7 +58,7 @@ def create_table_widget(table_data):
         row_force_default=True,
     )
     # Bind height to minimum height for scrolling
-    table_grid.bind(minimum_height=table_grid.setter('height'))  # type: ignore
+    table_grid.bind(minimum_height=table_grid.setter('height'))  
     
     scroll.add_widget(table_grid)
     return scroll, table_grid
@@ -606,7 +606,7 @@ class SimpleTableApp(App):
                         self.table_style[row_idx].append(None)
                     
                     # Now safely assign the style (Python allows mixed types in lists)
-                    self.table_style[row_idx][col_idx] = cell_style  # type: ignore
+                    self.table_style[row_idx][col_idx] = cell_style  
                 
                 update_cell(self.table_grid, self.table_data, row_idx, col_idx, new_value, cell_style)
                 print(f"Changed cell ({row_idx},{col_idx}): '{old_value}' -> '{new_value}' with style {cell_style}")

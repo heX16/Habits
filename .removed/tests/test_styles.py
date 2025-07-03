@@ -4,9 +4,9 @@ Test script for table styling system
 """
 
 from simple_table import create_cell, update_cell, create_table_widget, recreate_table
-from kivy.app import App  # type: ignore
-from kivy.uix.boxlayout import BoxLayout  # type: ignore
-from kivy.uix.button import Button  # type: ignore
+from kivy.app import App  
+from kivy.uix.boxlayout import BoxLayout  
+from kivy.uix.button import Button  
 
 
 class StyleTestApp(App):
