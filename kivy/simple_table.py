@@ -14,6 +14,19 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 
 
+def create_cell(text=""):
+    """Creates a standardized cell widget (Label) with given text"""
+    label = Label(
+        text=str(text),
+        size_hint_y=None,
+        height=dp(40),
+        halign="center",
+        valign="middle"
+    )
+    label.bind(size=label.setter('text_size'))  # type: ignore
+    return label
+
+
 def create_table_widget(table_data):
     """Creates a table widget (ScrollView + GridLayout)"""
     # Determine the number of columns from the first row (headers)
@@ -43,24 +56,17 @@ def create_table_widget(table_data):
 
 
 def recreate_table(table_grid, table_data):
-    """Updates the entire table based on table_data"""
+    """Updates the entire table based on table_data using create_cell for direct creation"""
     if not table_grid or not table_data:
         return
         
     # Clear the table
     table_grid.clear_widgets()
     
-    # Add all rows (including headers in the first row)
+    # Create all widgets directly with their text using create_cell function
     for row in table_data:
         for cell in row:
-            label = Label(
-                text=str(cell),
-                size_hint_y=None,
-                height=dp(40),
-                halign="center",
-                valign="middle"
-            )
-            label.bind(size=label.setter('text_size'))  # type: ignore
+            label = create_cell(cell)  # Create with actual text
             table_grid.add_widget(label)
 
 
@@ -105,19 +111,41 @@ def update_table(table_grid, table_data):
     return True
 
 
-def update_cell(table_data, row, col, text):
-    """Updates a specific cell"""
-    if 0 <= row < len(table_data) and 0 <= col < len(table_data[row]):
-        table_data[row][col] = str(text)
-        return True
-    else:
+def update_cell(table_grid, table_data, row, col, text):
+    """Updates a specific cell in both data and widget"""
+    if not (0 <= row < len(table_data) and 0 <= col < len(table_data[row])):
         print(f"Error: Invalid cell position ({row}, {col})")
         return False
+    
+    # Update data
+    table_data[row][col] = str(text)
+    
+    # Update corresponding widget if table_grid is provided
+    if table_grid:
+        cols = table_grid.cols
+        total_widgets = len(table_grid.children)
+        
+        # Calculate widget index (widgets are in reverse order)
+        widget_idx = total_widgets - 1 - (row * cols + col)
+        
+        if 0 <= widget_idx < len(table_grid.children):
+            widget = table_grid.children[widget_idx]
+            if hasattr(widget, 'text'):
+                widget.text = str(text)
+    
+    return True
 
 
-def add_row(table_data, row_data):
-    """Adds a data row to the table"""
-    table_data.append(list(row_data))
+def add_row(table_grid, table_data, row_data):
+    """Adds a data row to the table using update_cell for abstraction"""
+    # Create empty row first
+    new_row = [""] * len(row_data)
+    table_data.append(new_row)
+    
+    # Fill the row using update_cell
+    row_idx = len(table_data) - 1
+    for col_idx, value in enumerate(row_data):
+        update_cell(table_grid, table_data, row_idx, col_idx, value)
 
 
 def delete_row(table_grid, table_data, row_num):
@@ -256,20 +284,13 @@ def insert_row(table_grid, table_data, row_num, row_data):
         insert_indices.append((col, insert_index))
         print(f"Col {col}: will insert at index {insert_index}")
     
-    # LOOP 2: Create and insert widgets at calculated indices
+    # LOOP 2: Create and insert widgets at calculated indices with actual text
     for col, insert_index in insert_indices:
         # Take data in reverse order because children are stored in reverse order
         cell_data = row_data[cols - 1 - col]
         
-        # Create widget for the cell
-        label = Label(
-            text=str(cell_data),
-            size_hint_y=None,
-            height=dp(40),
-            halign="center",
-            valign="middle"
-        )
-        label.bind(size=label.setter('text_size'))  # type: ignore
+        # Create widget using create_cell function with actual text
+        label = create_cell(cell_data)
         
         # Insert widget at pre-calculated index
         table_grid.add_widget(label, index=insert_index)
@@ -334,19 +355,12 @@ def insert_col(table_grid, table_data, col_num, col_data):
         insert_indices.append((row, insert_index))
         print(f"Row {row}: will insert at index {insert_index}")
     
-    # LOOP 2: Create and insert widgets at calculated indices  
+    # LOOP 2: Create and insert widgets at calculated indices with actual text
     for row, insert_index in insert_indices:
         cell_data = col_data[row] if row < len(col_data) else ""
         
-        # Create widget for the cell
-        label = Label(
-            text=str(cell_data),
-            size_hint_y=None,
-            height=dp(40),
-            halign="center",
-            valign="middle"
-        )
-        label.bind(size=label.setter('text_size'))  # type: ignore
+        # Create widget using create_cell function with actual text
+        label = create_cell(cell_data)
         
         # Insert widget at pre-calculated index
         table_grid.add_widget(label, index=insert_index)
@@ -408,9 +422,9 @@ class SimpleTableApp(App):
             ["Col1", "Col2", "Col3", "Col4", "Col5", "Col6", "Col7"]  # Headers
         ]
         
-        # Add data rows
+        # Add data rows directly to table_data during initialization (before widgets are created)
         for col in range(1, 11):  # 10 rows
-            add_row(self.table_data, [f"1x{col}", f"2x{col}", f"3x{col}", f"4x{col}", f"5x{col}", f"6x{col}", f"7x{col}"])
+            self.table_data.append([f"1x{col}", f"2x{col}", f"3x{col}", f"4x{col}", f"5x{col}", f"6x{col}", f"7x{col}"])
         
         # Create table widget
         self.scroll_widget, self.table_grid = create_table_widget(self.table_data)
@@ -431,7 +445,7 @@ class SimpleTableApp(App):
         """Adds a new row to the table"""
         row_num = len(self.table_data)  # -1 for headers + 1 for new number = len
         new_row = [f"1x{row_num}", f"2x{row_num}", f"3x{row_num}", f"4x{row_num}", f"5x{row_num}", f"6x{row_num}", f"7x{row_num}"]
-        add_row(self.table_data, new_row)
+        add_row(self.table_grid, self.table_data, new_row)
         recreate_table(self.table_grid, self.table_data)
         print(f"Added row. Total rows: {len(self.table_data) - 1}")  # -1 for headers
     
@@ -458,8 +472,7 @@ class SimpleTableApp(App):
         """Demonstration of cell update"""
         if len(self.table_data) > 1:  # Check that there's data besides headers
             # Update first cell of first data row (not headers)
-            update_cell(self.table_data, 1, 0, "UPDATED!")
-            recreate_table(self.table_grid, self.table_data)
+            update_cell(self.table_grid, self.table_data, 1, 0, "UPDATED!")
             print("Updated cell (1,0)")
     
     def on_update_table(self, instance):
@@ -483,14 +496,14 @@ class SimpleTableApp(App):
         if self.table_data and len(self.table_data) > 1:
             import random
             
-            # Change random cells
+            # Change random cells using update_cell for abstraction
             rows_to_change = min(3, len(self.table_data) - 1)  # Don't touch headers
             for _ in range(rows_to_change):
                 row_idx = random.randint(1, len(self.table_data) - 1)  # Don't touch headers
                 col_idx = random.randint(0, len(self.table_data[row_idx]) - 1)
                 old_value = self.table_data[row_idx][col_idx]
                 new_value = f"NEW_{random.randint(1, 999)}"
-                self.table_data[row_idx][col_idx] = new_value
+                update_cell(self.table_grid, self.table_data, row_idx, col_idx, new_value)
                 print(f"Changed cell ({row_idx},{col_idx}): '{old_value}' -> '{new_value}'")
             
             print("Data changed. Use 'Update Table' to apply changes efficiently.")
