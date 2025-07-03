@@ -14,8 +14,8 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 
 
-def create_cell(text=""):
-    """Creates a standardized cell widget (Label) with given text"""
+def create_cell(text="", style=None):
+    """Creates a standardized cell widget (Label) with given text and style"""
     label = Label(
         text=str(text),
         size_hint_y=None,
@@ -24,6 +24,15 @@ def create_cell(text=""):
         valign="middle"
     )
     label.bind(size=label.setter('text_size'))  # type: ignore
+    
+    # Apply style if provided
+    if style and isinstance(style, dict):
+        if 'color' in style and style['color'] is not None:
+            # Convert color to RGBA format if needed
+            color = style['color']
+            if isinstance(color, (list, tuple)) and len(color) >= 3:
+                label.color = color
+    
     return label
 
 
@@ -55,22 +64,27 @@ def create_table_widget(table_data):
     return scroll, table_grid
 
 
-def recreate_table(table_grid, table_data):
-    """Updates the entire table based on table_data using create_cell for direct creation"""
+def recreate_table(table_grid, table_data, table_style=None):
+    """Updates the entire table based on table_data and table_style using create_cell for direct creation"""
     if not table_grid or not table_data:
         return
         
     # Clear the table
     table_grid.clear_widgets()
     
-    # Create all widgets directly with their text using create_cell function
-    for row in table_data:
-        for cell in row:
-            label = create_cell(cell)  # Create with actual text
+    # Create all widgets directly with their text and style using create_cell function
+    for row_idx, row in enumerate(table_data):
+        for col_idx, cell in enumerate(row):
+            # Get style for this cell
+            cell_style = None
+            if table_style and row_idx < len(table_style) and col_idx < len(table_style[row_idx]):
+                cell_style = table_style[row_idx][col_idx]
+            
+            label = create_cell(cell, cell_style)  # Create with actual text and style
             table_grid.add_widget(label)
 
 
-def update_table(table_grid, table_data):
+def update_table(table_grid, table_data, table_style=None):
     """Updates table content without recreating widgets"""
     if not table_grid or not table_data:
         return False
@@ -95,24 +109,33 @@ def update_table(table_grid, table_data):
     for row in range(rows):
         for col in range(cols):
             # Calculate widget index in children (reverse order)
-            # Logical position: (row, col)
-            # Linear index in addition order: row * cols + col
-            # Index in children: total_widgets - 1 - (row * cols + col)
             widget_idx = total_widgets - 1 - (row * cols + col)
             
             if 0 <= widget_idx < len(table_grid.children):
                 widget = table_grid.children[widget_idx]
                 new_text = str(table_data[row][col])
                 
+                # Get style for this cell
+                cell_style = None
+                if table_style and row < len(table_style) and col < len(table_style[row]):
+                    cell_style = table_style[row][col]
+                
                 # Update text only if it has changed
                 if hasattr(widget, 'text') and widget.text != new_text:
                     widget.text = new_text
+                
+                # Apply style
+                if cell_style and isinstance(cell_style, dict):
+                    if 'color' in cell_style and cell_style['color'] is not None:
+                        color = cell_style['color']
+                        if isinstance(color, (list, tuple)) and len(color) >= 3:
+                            widget.color = color
 
     return True
 
 
-def update_cell(table_grid, table_data, row, col, text):
-    """Updates a specific cell in both data and widget"""
+def update_cell(table_grid, table_data, row, col, text, style=None):
+    """Updates a specific cell in both data and widget with optional style"""
     if not (0 <= row < len(table_data) and 0 <= col < len(table_data[row])):
         print(f"Error: Invalid cell position ({row}, {col})")
         return False
@@ -132,23 +155,43 @@ def update_cell(table_grid, table_data, row, col, text):
             widget = table_grid.children[widget_idx]
             if hasattr(widget, 'text'):
                 widget.text = str(text)
+            
+            # Apply style if provided
+            if style and isinstance(style, dict):
+                if 'color' in style and style['color'] is not None:
+                    # Convert color to RGBA format if needed
+                    color = style['color']
+                    if isinstance(color, (list, tuple)) and len(color) >= 3:
+                        widget.color = color
     
     return True
 
 
-def add_row(table_grid, table_data, row_data):
+def add_row(table_grid, table_data, row_data, table_style=None, row_style=None):
     """Adds a data row to the table using update_cell for abstraction"""
     # Create empty row first
     new_row = [""] * len(row_data)
     table_data.append(new_row)
     
+    # Add empty style row if table_style exists
+    if table_style is not None:
+        new_style_row = [None] * len(row_data)
+        if row_style:
+            for i, style in enumerate(row_style):
+                if i < len(new_style_row):
+                    new_style_row[i] = style
+        table_style.append(new_style_row)
+    
     # Fill the row using update_cell
     row_idx = len(table_data) - 1
     for col_idx, value in enumerate(row_data):
-        update_cell(table_grid, table_data, row_idx, col_idx, value)
+        cell_style = None
+        if table_style and row_idx < len(table_style) and col_idx < len(table_style[row_idx]):
+            cell_style = table_style[row_idx][col_idx]
+        update_cell(table_grid, table_data, row_idx, col_idx, value, cell_style)
 
 
-def delete_row(table_grid, table_data, row_num):
+def delete_row(table_grid, table_data, row_num, table_style=None):
     """Deletes a row from the table (both data and widgets)"""
       
     if row_num < 0 or row_num >= len(table_data):
@@ -167,13 +210,11 @@ def delete_row(table_grid, table_data, row_num):
     # Remove row from data
     removed_row = table_data.pop(row_num)
     
-    # Calculate widget indices for removal
-    # In Kivy children are stored in reverse order of addition
-    # The last added widget has index 0
-    # For row row_num widgets are located at positions:
-    # start_idx = (len(table_data) - row_num) * cols - 1 (after removing row from data)
-    # end_idx = start_idx - cols + 1
+    # Remove row from style if exists
+    if table_style is not None and row_num < len(table_style):
+        removed_style_row = table_style.pop(row_num)
     
+    # Calculate widget indices for removal
     start_widget_idx = (len(table_data) - row_num) * cols - 1
     end_widget_idx = start_widget_idx - cols + 1
     
@@ -189,7 +230,7 @@ def delete_row(table_grid, table_data, row_num):
     return True
 
 
-def delete_col(table_grid, table_data, col_num):
+def delete_col(table_grid, table_data, col_num, table_style=None):
     """Deletes a column from the table (both data and widgets)"""
         
     if col_num < 0 or col_num >= table_grid.cols:
@@ -217,13 +258,10 @@ def delete_col(table_grid, table_data, col_num):
         return False
     
     # Collect widget indices for removal
-    # In each row r we need to remove the widget in column col_num
     widgets_to_remove = []
     
     for row in range(rows):
-        # Logical widget position: (row, col_num)
-        # Linear index in addition order: row * cols + col_num
-        # Index in children (reverse order): total_widgets - 1 - (row * cols + col_num)
+        # Calculate widget index
         widget_idx = total_widgets - 1 - (row * cols + col_num)
         
         if 0 <= widget_idx < len(table_grid.children):
@@ -238,13 +276,19 @@ def delete_col(table_grid, table_data, col_num):
         if col_num < len(row):
             removed_cell = row.pop(col_num)
     
+    # Remove column from style (from all rows)
+    if table_style is not None:
+        for row in table_style:
+            if col_num < len(row):
+                removed_style = row.pop(col_num)
+    
     # Decrease the number of columns in GridLayout
     table_grid.cols -= 1
     
     return True
 
 
-def insert_row(table_grid, table_data, row_num, row_data):
+def insert_row(table_grid, table_data, row_num, row_data, table_style=None, row_style=None):
     """Inserts a row at an arbitrary position in the table"""
     
     if row_num < 0 or row_num > len(table_data):
@@ -265,6 +309,15 @@ def insert_row(table_grid, table_data, row_num, row_data):
     # Insert data into table_data
     table_data.insert(row_num, list(row_data))
     
+    # Insert style row if table_style exists
+    if table_style is not None:
+        new_style_row = [None] * len(row_data)
+        if row_style:
+            for i, style in enumerate(row_style):
+                if i < len(new_style_row):
+                    new_style_row[i] = style
+        table_style.insert(row_num, new_style_row)
+    
     total_rows = len(table_data)
     
     print(f"Inserting row at position {row_num}")
@@ -284,13 +337,20 @@ def insert_row(table_grid, table_data, row_num, row_data):
         insert_indices.append((col, insert_index))
         print(f"Col {col}: will insert at index {insert_index}")
     
-    # LOOP 2: Create and insert widgets at calculated indices with actual text
+    # LOOP 2: Create and insert widgets at calculated indices with actual text and style
     for col, insert_index in insert_indices:
         # Take data in reverse order because children are stored in reverse order
         cell_data = row_data[cols - 1 - col]
         
-        # Create widget using create_cell function with actual text
-        label = create_cell(cell_data)
+        # Get style for this cell
+        cell_style = None
+        if table_style and row_num < len(table_style):
+            style_col = cols - 1 - col  # Same reverse order as data
+            if style_col < len(table_style[row_num]):
+                cell_style = table_style[row_num][style_col]
+        
+        # Create widget using create_cell function with actual text and style
+        label = create_cell(cell_data, cell_style)
         
         # Insert widget at pre-calculated index
         table_grid.add_widget(label, index=insert_index)
@@ -302,7 +362,7 @@ def insert_row(table_grid, table_data, row_num, row_data):
     return True
 
 
-def insert_col(table_grid, table_data, col_num, col_data):
+def insert_col(table_grid, table_data, col_num, col_data, table_style=None, col_style=None):
     """Inserts a column at an arbitrary position in the table"""
     
     if col_num < 0 or col_num > table_grid.cols:
@@ -321,6 +381,14 @@ def insert_col(table_grid, table_data, col_num, col_data):
     for i, row in enumerate(table_data):
         if i < len(col_data):
             row.insert(col_num, str(col_data[i]))
+    
+    # Insert column style into all rows of table_style
+    if table_style is not None:
+        for i, row in enumerate(table_style):
+            style_value = None
+            if col_style and i < len(col_style):
+                style_value = col_style[i]
+            row.insert(col_num, style_value)
     
     old_cols = table_grid.cols
     rows = len(table_data)
@@ -355,12 +423,17 @@ def insert_col(table_grid, table_data, col_num, col_data):
         insert_indices.append((row, insert_index))
         print(f"Row {row}: will insert at index {insert_index}")
     
-    # LOOP 2: Create and insert widgets at calculated indices with actual text
+    # LOOP 2: Create and insert widgets at calculated indices with actual text and style
     for row, insert_index in insert_indices:
         cell_data = col_data[row] if row < len(col_data) else ""
         
-        # Create widget using create_cell function with actual text
-        label = create_cell(cell_data)
+        # Get style for this cell
+        cell_style = None
+        if table_style and row < len(table_style) and col_num < len(table_style[row]):
+            cell_style = table_style[row][col_num]
+        
+        # Create widget using create_cell function with actual text and style
+        label = create_cell(cell_data, cell_style)
         
         # Insert widget at pre-calculated index
         table_grid.add_widget(label, index=insert_index)
@@ -378,6 +451,7 @@ class SimpleTableApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.table_data = []
+        self.table_style = []
         self.table_grid = None
         self.scroll_widget = None
         
@@ -422,15 +496,21 @@ class SimpleTableApp(App):
             ["Col1", "Col2", "Col3", "Col4", "Col5", "Col6", "Col7"]  # Headers
         ]
         
+        # Initialize table style (corresponding to table_data)
+        self.table_style = [
+            [None, None, None, None, None, None, None]  # Headers with no style
+        ]
+        
         # Add data rows directly to table_data during initialization (before widgets are created)
         for col in range(1, 11):  # 10 rows
             self.table_data.append([f"1x{col}", f"2x{col}", f"3x{col}", f"4x{col}", f"5x{col}", f"6x{col}", f"7x{col}"])
+            self.table_style.append([None, None, None, None, None, None, None])  # No style for data rows
         
         # Create table widget
         self.scroll_widget, self.table_grid = create_table_widget(self.table_data)
         
         # Fill the table
-        recreate_table(self.table_grid, self.table_data)
+        recreate_table(self.table_grid, self.table_data, self.table_style)
         
         # Add elements to main layout
         main_layout.add_widget(buttons_layout1)
@@ -445,22 +525,24 @@ class SimpleTableApp(App):
         """Adds a new row to the table"""
         row_num = len(self.table_data)  # -1 for headers + 1 for new number = len
         new_row = [f"1x{row_num}", f"2x{row_num}", f"3x{row_num}", f"4x{row_num}", f"5x{row_num}", f"6x{row_num}", f"7x{row_num}"]
-        add_row(self.table_grid, self.table_data, new_row)
-        recreate_table(self.table_grid, self.table_data)
+        add_row(self.table_grid, self.table_data, new_row, self.table_style)
+        recreate_table(self.table_grid, self.table_data, self.table_style)
         print(f"Added row. Total rows: {len(self.table_data) - 1}")  # -1 for headers
     
     def on_delete_row(self, instance):
         """Deletes the last row from the table"""
         if len(self.table_data) > 1:  # Keep headers
             self.table_data.pop()
-            recreate_table(self.table_grid, self.table_data)
+            if self.table_style and len(self.table_style) > 1:
+                self.table_style.pop()
+            recreate_table(self.table_grid, self.table_data, self.table_style)
             print(f"Removed row. Total rows: {len(self.table_data) - 1}")  # -1 for headers
     
     def on_delete_row_new(self, instance):
         """Deletes the second row from the table (first data row) using new delete_row function"""
         if len(self.table_data) > 1:  # Check that there's data besides headers
             # Delete first data row (index 1, since 0 is headers)
-            success = delete_row(self.table_grid, self.table_data, 1)
+            success = delete_row(self.table_grid, self.table_data, 1, self.table_style)
             if success:
                 print(f"Successfully deleted row. Total rows: {len(self.table_data) - 1}")  # -1 for headers
             else:
@@ -478,7 +560,7 @@ class SimpleTableApp(App):
     def on_update_table(self, instance):
         """Updates table without recreating widgets"""
         if self.table_grid and self.table_data:
-            success = update_table(self.table_grid, self.table_data)
+            success = update_table(self.table_grid, self.table_data, self.table_style)
             if success:
                 print("Table updated successfully")
             else:
@@ -488,23 +570,46 @@ class SimpleTableApp(App):
     
     def on_refresh_table(self, instance):
         """Force refreshes the table"""
-        recreate_table(self.table_grid, self.table_data)
+        recreate_table(self.table_grid, self.table_data, self.table_style)
         print("Table refreshed")
     
     def on_change_data(self, instance):
-        """Changes some data in the table for testing update_table"""
+        """Changes some data in the table for testing update_table with colored cells"""
         if self.table_data and len(self.table_data) > 1:
             import random
             
             # Change random cells using update_cell for abstraction
             rows_to_change = min(3, len(self.table_data) - 1)  # Don't touch headers
-            for _ in range(rows_to_change):
+            for i in range(rows_to_change):
                 row_idx = random.randint(1, len(self.table_data) - 1)  # Don't touch headers
                 col_idx = random.randint(0, len(self.table_data[row_idx]) - 1)
                 old_value = self.table_data[row_idx][col_idx]
                 new_value = f"NEW_{random.randint(1, 999)}"
-                update_cell(self.table_grid, self.table_data, row_idx, col_idx, new_value)
-                print(f"Changed cell ({row_idx},{col_idx}): '{old_value}' -> '{new_value}'")
+                
+                # Add some color to demonstrate styling
+                cell_style = None
+                if i == 0:  # First changed cell gets red color
+                    cell_style = {'color': [1, 0, 0, 1]}  # Red
+                elif i == 1:  # Second changed cell gets green color
+                    cell_style = {'color': [0, 1, 0, 1]}  # Green
+                elif i == 2:  # Third changed cell gets blue color
+                    cell_style = {'color': [0, 0, 1, 1]}  # Blue
+                
+                # Update the style in table_style (expand if needed)
+                if self.table_style:
+                    # Ensure table_style has enough rows
+                    while len(self.table_style) <= row_idx:
+                        self.table_style.append([])
+                    
+                    # Ensure the row has enough columns
+                    while len(self.table_style[row_idx]) <= col_idx:
+                        self.table_style[row_idx].append(None)
+                    
+                    # Now safely assign the style (Python allows mixed types in lists)
+                    self.table_style[row_idx][col_idx] = cell_style  # type: ignore
+                
+                update_cell(self.table_grid, self.table_data, row_idx, col_idx, new_value, cell_style)
+                print(f"Changed cell ({row_idx},{col_idx}): '{old_value}' -> '{new_value}' with style {cell_style}")
             
             print("Data changed. Use 'Update Table' to apply changes efficiently.")
         else:
@@ -563,7 +668,7 @@ class SimpleTableApp(App):
         """Deletes the first column from the table using new delete_col function"""
         if self.table_grid and self.table_grid.cols > 1:
             # Delete first column (index 0)
-            success = delete_col(self.table_grid, self.table_data, 0)
+            success = delete_col(self.table_grid, self.table_data, 0, self.table_style)
             if success:
                 print(f"Successfully deleted column. Remaining cols: {self.table_grid.cols}")
                 print(f"Remaining widgets: {len(self.table_grid.children)}")
@@ -581,7 +686,7 @@ class SimpleTableApp(App):
             # Insert at position 2 (after headers and first data row)
             insert_position = 2 if len(self.table_data) > 1 else 1
             
-            success = insert_row(self.table_grid, self.table_data, insert_position, new_row_data)
+            success = insert_row(self.table_grid, self.table_data, insert_position, new_row_data, self.table_style)
             if success:
                 print(f"Successfully inserted row at position {insert_position}")
                 print(f"Table now has {len(self.table_data)} rows total")
@@ -604,7 +709,7 @@ class SimpleTableApp(App):
             # Insert at position 2 (between Col2 and Col3)
             insert_position = 2
             
-            success = insert_col(self.table_grid, self.table_data, insert_position, col_data)
+            success = insert_col(self.table_grid, self.table_data, insert_position, col_data, self.table_style)
             if success:
                 print(f"Successfully inserted column at position {insert_position}")
                 print(f"Table now has {self.table_grid.cols} columns")
