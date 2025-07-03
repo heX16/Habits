@@ -16,9 +16,9 @@ from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty
 from kivy.metrics import dp
 
-from kivymd.uix.card import MDCard
-from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDButton, MDIconButton
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
 
 from ..models import HabitsModel, DateCalculator
 from ..widgets import StatusMenuPopup

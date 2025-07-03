@@ -15,9 +15,8 @@ from kivy.logger import Logger
 from kivy.resources import resource_add_path
 from kivy.lang import Builder
 
-# KivyMD imports
-from kivymd.app import MDApp
-from kivymd.theming import ThemeManager
+# Standard Kivy imports
+from kivy.app import App
 
 # Add the project root to the path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,12 +30,12 @@ from app.services.app_state_manager import AppStateManager
 
 
 
-class HabitsApp(MDApp):
-    """Main KivyMD application class"""
+class HabitsApp(App):
+    """Main Kivy application class"""
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        Logger.info('HabitsApp: Initializing KivyMD application')
+        Logger.info('HabitsApp: Initializing Kivy application')
         
         # App state manager
         self.state_manager = None
@@ -49,11 +48,6 @@ class HabitsApp(MDApp):
         
         # Options screen
         self.options_screen = None
-        
-        # Set theme
-        self.theme_cls.theme_style = "Dark"
-        self.theme_cls.primary_palette = "Blue"
-        self.theme_cls.accent_palette = "Orange"
         
     def build(self):
         """Build the application UI"""

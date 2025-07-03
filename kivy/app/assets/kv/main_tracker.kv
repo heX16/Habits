@@ -10,60 +10,56 @@
     status_bar: status_bar
     navigation_bar: navigation_bar
     
-    MDBoxLayout:
+    BoxLayout:
         orientation: 'vertical'
         padding: dp(10)
         spacing: dp(10)
-        md_bg_color: app.theme_cls.backgroundColor
         
         # Header with title and navigation
-        MDBoxLayout:
+        BoxLayout:
             id: navigation_bar
             orientation: 'horizontal'
             size_hint_y: None
             height: dp(60)
             spacing: dp(10)
             
-            MDLabel:
+            Label:
                 text: 'Habits Simple Tracker'
-                font_style: 'H5'
-                theme_text_color: 'Primary'
+                font_size: '20sp'
                 size_hint_x: 0.7
                 
-            MDButton:
+            Button:
                 text: 'Options'
                 size_hint_x: None
                 width: dp(100)
                 on_press: root.go_to_options()
         
         # Date navigation
-        MDBoxLayout:
+        BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
             height: dp(50)
             spacing: dp(5)
             
-            MDIconButton:
-                icon: 'chevron-left'
+            Button:
+                text: '<'
                 size_hint_x: None
                 width: dp(50)
                 on_press: root.navigate_previous()
                 disabled: root.is_loading
                 
-            MDLabel:
+            Label:
                 text: root.week_label
-                theme_text_color: 'Primary'
                 halign: 'center'
-                font_style: 'Body1'
                 
-            MDIconButton:
-                icon: 'chevron-right'
+            Button:
+                text: '>'
                 size_hint_x: None
                 width: dp(50)
                 on_press: root.navigate_next()
                 disabled: root.is_loading
                 
-            MDButton:
+            Button:
                 text: 'Today'
                 size_hint_x: None
                 width: dp(80)
@@ -78,26 +74,24 @@
             opacity: 1 if root.is_loading else 0
             
         # Main habit tracking table container
-        MDCard:
+        BoxLayout:
             orientation: 'vertical'
             padding: dp(5)
-            elevation: 2
             
-            MDBoxLayout:
+            BoxLayout:
                 id: table_container
                 orientation: 'vertical'
                 
                 # Custom table widget will be added here programmatically
                 
         # Status bar
-        MDBoxLayout:
+        BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
             height: dp(30)
             padding: [dp(5), 0]
             
-            MDLabel:
+            Label:
                 id: status_bar
                 text: 'Ready'
-                theme_text_color: 'Secondary'
                 halign: 'left' 

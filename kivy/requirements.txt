@@ -2,7 +2,7 @@
 kivy>=2.1.0
 
 # Additional Kivy components
-kivymd>=1.1.1
+# kivymd removed - using standard Kivy widgets
 
 # Date and time handling
 python-dateutil>=2.8.2
