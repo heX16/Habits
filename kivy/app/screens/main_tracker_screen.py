@@ -3,29 +3,32 @@ Main Tracker Screen
 
 Primary interface for habit tracking with 7-day table view.
 Handles status cycling, date navigation, and habit display.
-Uses KivyMD DataTable with logic similar to original script.js.
+Uses custom table widget with logic similar to original script.js.
 """
 
 from datetime import date, timedelta
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
 from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty
 from kivy.metrics import dp
 
-from kivymd.uix.datatables import MDDataTable
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDRaisedButton, MDIconButton
+from kivymd.uix.button import MDButton, MDIconButton
 
 from ..models import HabitsModel, DateCalculator
 from ..widgets import StatusMenuPopup
 
+# Import table widget utilities
+from ..widgets import create_table_widget, recreate_table
+
 
 class MainTrackerScreen(Screen):
-    """Main screen for habit tracking table interface using MDDataTable"""
+    """Main screen for habit tracking table interface using custom table widget"""
     
     # Properties for data binding
     habits_model = ObjectProperty(None, allownone=True)
@@ -40,7 +43,7 @@ class MainTrackerScreen(Screen):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        Logger.info('MainTrackerScreen: Initializing main tracker screen with MDDataTable')
+        Logger.info('MainTrackerScreen: Initializing main tracker screen with custom table widget')
         
         # Initialize data model
         self.habits_model = HabitsModel()
@@ -51,8 +54,9 @@ class MainTrackerScreen(Screen):
         self.current_start_date = None
         self.current_end_date = None
         
-        # Table widget reference
-        self.data_table = None
+        # Table widget references
+        self.table_scroll = None
+        self.table_grid = None
         
         # Store habits data for reference (like habitsData in script.js)
         self.habits_data = {}
@@ -114,7 +118,7 @@ class MainTrackerScreen(Screen):
         
     def render_table(self, data, start_date_str: date, end_date_str: date):
         """
-        Render the table with habits data (equivalent to renderTable in script.js)
+        Render the table with habits data using create_table_widget (equivalent to renderTable in script.js)
         """
         Logger.info('MainTrackerScreen: Rendering table')
         
@@ -136,46 +140,34 @@ class MainTrackerScreen(Screen):
         )
         dates = [date_info['date'] for date_info in date_headers]
         
-        # Remove existing table (equivalent to adjusting rows in script.js)
-        if self.data_table:
-            self.table_container.remove_widget(self.data_table)
+        # Remove existing table
+        if self.table_scroll:
+            self.table_container.remove_widget(self.table_scroll)
             
-        # Prepare column data
-        column_data = [("Habit", dp(150))]  # First column for habit name
+        # Prepare table data as 2D array
+        table_data = []
         
-        # Add date columns
+        # Create header row
+        header_row = ['Habit']  # First column for habit name
         for date_info in date_headers:
             day_name = date_info['day_name']
             day_number = date_info['day_number']
             column_name = f"{day_name}\n{day_number}"
-            column_data.append((column_name, dp(70)))
-            
+            header_row.append(column_name)
+        table_data.append(header_row)
+        
         # Fill data into rows (equivalent to data.habits.forEach in script.js)
-        row_data = []
         habits = data.get('habits', [])
         
         for habit_index, habit in enumerate(habits):
             row = self.initialize_habit_row(habit, dates, today)
-            row_data.append(tuple(row))
+            table_data.append(row)
             
-        # Create new data table
-        self.data_table = MDDataTable(
-            size_hint=(1, 1),
-            use_pagination=False,
-            check=False,
-            column_data=column_data,
-            row_data=row_data,
-            elevation=2,
-            background_color_header=[0.2, 0.2, 0.3, 1],
-            background_color_cell=[0.1, 0.1, 0.1, 0.9],
-            background_color_selected_cell=[0.3, 0.3, 0.8, 0.6],
-        )
-        
-        # Bind table events
-        self.data_table.bind(on_row_press=self.on_table_row_press)
+        # Create new table using create_table_widget
+        self.table_scroll, self.table_grid = create_table_widget(table_data)
         
         # Add table to container
-        self.table_container.add_widget(self.data_table)
+        self.table_container.add_widget(self.table_scroll)
         
         Logger.info(f'MainTrackerScreen: Rendered table with {len(habits)} habit rows')
         
@@ -219,7 +211,7 @@ class MainTrackerScreen(Screen):
         :param date_str: Date string in YYYY-MM-DD format
         :param today: Current date
         :param habit: Habit data object
-        :return: Tuple for MDDataTable cell (icon, color, text)
+        :return: String representation for the cell
         """
         # Parse cell date (equivalent to cellDate logic in script.js)
         cell_date = DateCalculator.parse_date_string(date_str)
@@ -229,7 +221,7 @@ class MainTrackerScreen(Screen):
         
         if is_future_day:
             # Future day styling
-            return ('calendar-outline', [0.5, 0.5, 0.5, 1], '')
+            return '...'
             
         # Get habit parameters (equivalent to getting habit data in script.js)
         is_bad_habit = habit.get('bad_habit', False)
@@ -243,131 +235,32 @@ class MainTrackerScreen(Screen):
         Get display format for a cell (equivalent to getStatusEmoji and updateCellDisplay logic in script.js)
         """
         if is_future_day:
-            return ('calendar-outline', [0.5, 0.5, 0.5, 1], '')
+            return '...'
             
-        # Status icons and colors (equivalent to getStatusEmoji in script.js)
+        # Status display (equivalent to getStatusEmoji in script.js)
         if status == 0:
-            # Empty status - show menu button equivalent
-            return ('circle-outline', [0.6, 0.6, 0.6, 1], '...')
+            # Empty status
+            return '-'
         elif status == 1:
             # Mini done
-            icon = 'check-circle-outline'
-            color = [0.3, 0.7, 0.3, 1] if not is_bad_habit else [0.8, 0.2, 0.2, 1]
-            return (icon, color, 'Mini')
+            return 'Mini'
         elif status == 2:
             # Done
-            icon = 'check-circle'
-            color = [0.2, 0.8, 0.2, 1] if not is_bad_habit else [0.8, 0.2, 0.2, 1]
-            return (icon, color, 'Done')
+            return 'Done'
         elif status == 3:
             # Elite done
-            icon = 'star-circle'
-            color = [1.0, 0.8, 0.0, 1] if not is_bad_habit else [0.8, 0.2, 0.2, 1]
-            return (icon, color, 'Elite')
+            return 'Elite'
         elif status == 9:
             # Failed
-            icon = 'close-circle'
-            color = [0.8, 0.2, 0.2, 1] if not is_bad_habit else [0.2, 0.8, 0.2, 1]
-            return (icon, color, 'Fail')
+            return 'Fail'
         elif 10 <= status <= 19:
             # Numeric statuses (10-19 map to 0-9)
             display_num = status - 10
-            icon = f'numeric-{display_num}-circle' if display_num < 10 else 'numeric-9-plus-circle'
-            color = [0.2, 0.6, 0.8, 1]
-            return (icon, color, str(display_num))
+            return str(display_num)
         else:
             # Default
-            return ('circle-outline', [0.6, 0.6, 0.6, 1], '')
-            
-    def on_table_row_press(self, table_instance, row_instance):
-        """
-        Handle table row press - equivalent to cell click logic in script.js
-        """
-        Logger.info(f'MainTrackerScreen: Table row pressed')
+            return '-'
         
-        try:
-            row_data = row_instance.item
-            habit_name = row_data[0]
-            
-            Logger.info(f'MainTrackerScreen: Clicked on habit: {habit_name}')
-            
-            # Find the habit data (equivalent to finding habit in habitsData in script.js)
-            habit = None
-            for h in self.habits_data.get('habits', []):
-                if h.get('name') == habit_name:
-                    habit = h
-                    break
-                    
-            if not habit:
-                Logger.warning(f'MainTrackerScreen: No habit data found for "{habit_name}"')
-                return
-                
-            # For now, show status menu for today (equivalent to showStatusMenu in script.js)
-            # TODO: Implement proper cell detection for specific date
-            today_str = date.today().strftime('%Y-%m-%d')
-            current_status = self.get_habit_status_for_date(habit['id'], today_str)
-            
-            # Show status menu (equivalent to showStatusMenu in script.js)
-            StatusMenuPopup.show_for_cell(
-                habit_data=habit,
-                current_status=current_status,
-                on_status_selected=lambda new_status: self.on_status_selected_from_menu(
-                    habit['id'], today_str, current_status, new_status
-                )
-            )
-            
-            self.update_status_bar(f'Status menu for habit "{habit_name}"')
-                
-        except Exception as e:
-            Logger.error(f'MainTrackerScreen: Error handling row press: {e}')
-            
-    def get_habit_status_for_date(self, habit_id: int, date_str: str) -> int:
-        """Get current status for a habit on specific date"""
-        for habit in self.habits_data.get('habits', []):
-            if habit.get('id') == habit_id:
-                for date_entry in habit.get('dates', []):
-                    if date_entry['date'] == date_str:
-                        return date_entry.get('status', 0)
-                break
-        return 0
-        
-    def on_status_selected_from_menu(self, habit_id: int, date_str: str, old_status: int, new_status: int):
-        """
-        Handle status selection from popup menu (equivalent to status update logic in script.js)
-        """
-        Logger.info(f'MainTrackerScreen: Status selected from menu - habit {habit_id}, date {date_str}, {old_status} → {new_status}')
-        
-        if new_status == old_status:
-            self.update_status_bar('No status change')
-            return
-            
-        # Update the database (equivalent to sendUpdate in script.js)
-        success = self.send_update(habit_id, date_str, new_status)
-        
-        if success:
-            self.update_status_bar(f'Status updated to {new_status}')
-            
-            # Refresh the table (equivalent to re-rendering in script.js)
-            if self.current_start_date and self.current_end_date:
-                self.fetch_habits_data(self.current_start_date, self.current_end_date)
-        else:
-            self.update_status_bar('Failed to update status')
-            
-    def send_update(self, habit_id: int, date_str: str, status: int) -> bool:
-        """
-        Send update request to backend (equivalent to sendUpdate in script.js)
-        """
-        try:
-            success = self.habits_model.update_habit_status(habit_id, date_str, status)
-            if success:
-                Logger.info(f'MainTrackerScreen: Update successful for habit {habit_id} on {date_str}')
-            else:
-                Logger.error(f'MainTrackerScreen: Failed to update habit {habit_id} on {date_str}')
-            return success
-        except Exception as e:
-            Logger.error(f'MainTrackerScreen: Error updating habit status: {e}')
-            return False
-            
     def on_data_changed(self, habits_model):
         """Handle data model changes"""
         Logger.info('MainTrackerScreen: Data changed, refreshing view')

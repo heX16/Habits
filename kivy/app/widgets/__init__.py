@@ -8,6 +8,7 @@ This package contains:
 - StatusIcon: Status display components
 - FloatingMenu: Popup status menu
 - NotificationBar: Message display
+- Table widget utilities: create_table_widget, recreate_table, etc.
 """
 
 # Widgets module for Habits Kivy app
@@ -15,5 +16,9 @@ from .status_cell import StatusCell
 from .habit_row import HabitRow
 from .date_header import DateHeader
 from .status_menu_popup import StatusMenuPopup
+from .table_widget import create_table_widget, recreate_table, update_table, update_cell, create_cell
 
-__all__ = ['StatusCell', 'HabitRow', 'DateHeader', 'StatusMenuPopup'] 
+__all__ = [
+    'StatusCell', 'HabitRow', 'DateHeader', 'StatusMenuPopup',
+    'create_table_widget', 'recreate_table', 'update_table', 'update_cell', 'create_cell'
+] 

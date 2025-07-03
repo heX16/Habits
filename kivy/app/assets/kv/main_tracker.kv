@@ -1,6 +1,6 @@
 # Main Tracker Screen Layout
 # Kivy layout definition for the main habit tracking interface
-# Updated to use KivyMD DataTable
+# Updated to use custom table widget
 
 <MainTrackerScreen>:
     name: 'main'
@@ -14,7 +14,7 @@
         orientation: 'vertical'
         padding: dp(10)
         spacing: dp(10)
-        md_bg_color: app.theme_cls.bg_normal
+        md_bg_color: app.theme_cls.backgroundColor
         
         # Header with title and navigation
         MDBoxLayout:
@@ -30,7 +30,7 @@
                 theme_text_color: 'Primary'
                 size_hint_x: 0.7
                 
-            MDRaisedButton:
+            MDButton:
                 text: 'Options'
                 size_hint_x: None
                 width: dp(100)
@@ -63,7 +63,7 @@
                 on_press: root.navigate_next()
                 disabled: root.is_loading
                 
-            MDRaisedButton:
+            MDButton:
                 text: 'Today'
                 size_hint_x: None
                 width: dp(80)
@@ -71,7 +71,7 @@
                 disabled: root.is_loading
         
         # Loading indicator
-        MDProgressBar:
+        ProgressBar:
             id: loading_indicator
             size_hint_y: None
             height: dp(4)
@@ -87,7 +87,7 @@
                 id: table_container
                 orientation: 'vertical'
                 
-                # MDDataTable will be added here programmatically
+                # Custom table widget will be added here programmatically
                 
         # Status bar
         MDBoxLayout:
@@ -100,5 +100,4 @@
                 id: status_bar
                 text: 'Ready'
                 theme_text_color: 'Secondary'
-                font_style: 'Caption'
                 halign: 'left' 
