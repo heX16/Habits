@@ -154,9 +154,8 @@ class OptionsScreen(Screen):
         super().__init__(**kwargs)
         Logger.info('OptionsScreen: Initializing options screen')
         
-        # Initialize data model if not provided
-        if not self.habits_model:
-            self.habits_model = HabitsModel()
+        # Initialize data model (will be set later by the main app)
+        self.habits_model = None
         
         # UI components
         self.content_layout = None
@@ -164,11 +163,16 @@ class OptionsScreen(Screen):
         self.habits_list_layout = None
         self.status_label = None
         
-        # Bind model events
-        self.habits_model.bind(on_data_changed=self.on_data_changed)
-        
         # Build UI
         Clock.schedule_once(self.build_ui, 0.1)
+        
+    def on_habits_model(self, instance, value):
+        """Called when habits_model property changes"""
+        if value is not None:
+            Logger.info('OptionsScreen: Habits model connected')
+            value.bind(on_data_changed=self.on_data_changed)
+            # Reload habits list
+            self.load_habits_list()
         
     def build_ui(self, dt=None):
         """Построение интерфейса экрана"""
@@ -322,6 +326,11 @@ class OptionsScreen(Screen):
     def load_habits_list(self):
         """Загружает список привычек из модели данных"""
         Logger.info('OptionsScreen: Loading habits list')
+        
+        if not self.habits_model:
+            Logger.warning('OptionsScreen: No habits model available')
+            self.update_status('Модель данных не доступна')
+            return
         
         try:
             self.habits_list = self.habits_model.get_habits_list()

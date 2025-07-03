@@ -45,10 +45,8 @@ class MainTrackerScreen(Screen):
         super().__init__(**kwargs)
         Logger.info('MainTrackerScreen: Initializing main tracker screen with custom table widget')
         
-        # Initialize data model
-        self.habits_model = HabitsModel()
-        self.habits_model.bind(on_data_changed=self.on_data_changed)
-        self.habits_model.bind(on_status_updated=self.on_status_updated)
+        # Initialize data model (will be set later by the main app)
+        self.habits_model = None
         
         # Current date range
         self.current_start_date = None
@@ -64,10 +62,36 @@ class MainTrackerScreen(Screen):
         # Schedule initial data load
         Clock.schedule_once(self.initialize_data, 0.1)
         
+    def on_habits_model(self, instance, value):
+        """Called when habits_model property changes"""
+        if value is not None:
+            Logger.info('MainTrackerScreen: Habits model connected')
+            value.bind(on_data_changed=self.on_data_changed)
+            value.bind(on_status_updated=self.on_status_updated)
+            # Reload data if we have a date range
+            if self.current_start_date and self.current_end_date:
+                self.load_current_week()
+        
     def initialize_data(self, dt=None):
         """Initialize the screen with data"""
         Logger.info('MainTrackerScreen: Initializing data')
-        self.load_current_week()
+        
+        # TEST: Add a simple label to see if container works
+        if self.table_container:
+            from kivy.uix.label import Label
+            test_label = Label(
+                text="TEST LABEL - TABLE CONTAINER WORKS!", 
+                font_size='18sp'
+            )
+            self.table_container.add_widget(test_label)
+            Logger.info('MainTrackerScreen: Added test label to table_container')
+        else:
+            Logger.error('MainTrackerScreen: table_container is None!')
+        
+        if self.habits_model:
+            self.load_current_week()
+        else:
+            Logger.info('MainTrackerScreen: Waiting for habits model to be set')
         
     def load_current_week(self):
         """Load data for the current week"""
@@ -84,6 +108,11 @@ class MainTrackerScreen(Screen):
         Fetch habits data from the model (equivalent to fetchHabitsData in script.js)
         """
         Logger.info(f'MainTrackerScreen: Fetching data from {start_date} to {end_date}')
+        
+        if not self.habits_model:
+            Logger.warning('MainTrackerScreen: No habits model available')
+            self.update_status_bar('No data model available')
+            return
         
         self.is_loading = True
         self.update_status_bar('Loading habits data...')
@@ -161,14 +190,32 @@ class MainTrackerScreen(Screen):
         
         for habit_index, habit in enumerate(habits):
             row = self.initialize_habit_row(habit, dates, today)
+            # TEST: Replace first cell of first habit with "TEST"
+            if habit_index == 0 and len(row) > 0:
+                row[0] = "TEST"
             table_data.append(row)
             
+        # DEBUG: Log table data
+        Logger.info(f'MainTrackerScreen: Table data has {len(table_data)} rows')
+        for i, row in enumerate(table_data):
+            Logger.info(f'MainTrackerScreen: Row {i}: {row[:3]}...')  # Log first 3 columns
+        
         # Create new table using create_table_widget
         self.table_scroll, self.table_grid = create_table_widget(table_data)
+        
+        # DEBUG: Check if widgets were created
+        Logger.info(f'MainTrackerScreen: Created table_scroll: {self.table_scroll}')
+        Logger.info(f'MainTrackerScreen: Created table_grid: {self.table_grid}')
+        Logger.info(f'MainTrackerScreen: Table grid has {len(self.table_grid.children)} children')
         
         # Add table to container
         self.table_container.add_widget(self.table_scroll)
         
+        # Fill table with data using recreate_table
+        from ..widgets.table_widget import recreate_table
+        recreate_table(self.table_grid, table_data)
+        
+        Logger.info(f'MainTrackerScreen: After recreate_table, grid has {len(self.table_grid.children)} children')
         Logger.info(f'MainTrackerScreen: Rendered table with {len(habits)} habit rows')
         
     def initialize_habit_row(self, habit, dates, today):
@@ -263,9 +310,9 @@ class MainTrackerScreen(Screen):
         
     def on_data_changed(self, habits_model):
         """Handle data model changes"""
-        Logger.info('MainTrackerScreen: Data changed, refreshing view')
-        if self.current_start_date and self.current_end_date:
-            self.fetch_habits_data(self.current_start_date, self.current_end_date)
+        Logger.info('MainTrackerScreen: Data changed - ignoring to prevent loop')
+        # Don't automatically refresh to prevent infinite loop
+        # Manual refresh can be done via navigation or screen enter
             
     def on_status_updated(self, habits_model, habit_id: int, date_str: str, status: int):
         """Handle individual status updates"""
