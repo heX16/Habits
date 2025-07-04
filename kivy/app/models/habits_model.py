@@ -432,4 +432,27 @@ class HabitsModel(EventDispatcher):
             
         except Exception as e:
             Logger.error(f'HabitsModel: Error getting parameter {param_name} for habit {habit_id}: {e}')
-            return default_value 
+            return default_value
+            
+    def refresh_all_data(self):
+        """
+        Refresh all data after import or major changes.
+        This will trigger a complete reload of habits data.
+        """
+        try:
+            Logger.info('HabitsModel: Refreshing all data')
+            
+            # Clear current data
+            self.habits_data = None
+            self.is_loaded = False
+            
+            # Reload data if we have a current date range
+            if self.current_start_date and self.current_end_date:
+                self.load_habits_data(self.current_start_date, self.current_end_date)
+            
+            # Dispatch event
+            self.dispatch('on_data_changed')
+            
+        except Exception as e:
+            Logger.error(f'HabitsModel: Error refreshing data: {e}')
+            raise 

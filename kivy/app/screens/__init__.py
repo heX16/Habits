@@ -12,5 +12,6 @@ This package contains:
 from .main_tracker_screen import MainTrackerScreen
 from .options_screen import OptionsScreen
 from .habit_edit_screen import HabitEditScreen
+from .habit_detail_screen import HabitDetailScreen
 
-__all__ = ['MainTrackerScreen', 'OptionsScreen', 'HabitEditScreen'] 
+__all__ = ['MainTrackerScreen', 'OptionsScreen', 'HabitEditScreen', 'HabitDetailScreen'] 

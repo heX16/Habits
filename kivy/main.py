@@ -23,7 +23,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from app.screens import MainTrackerScreen, OptionsScreen, HabitEditScreen
+from app.screens import MainTrackerScreen, OptionsScreen, HabitEditScreen, HabitDetailScreen
 from app.services.app_state_manager import AppStateManager
 
 
@@ -51,6 +51,9 @@ class HabitsApp(App):
         
         # Habit edit screen
         self.habit_edit_screen = None
+        
+        # Habit detail screen
+        self.habit_detail_screen = None
         
     def build(self):
         """Build the application UI"""
@@ -80,18 +83,23 @@ class HabitsApp(App):
             # Create habit edit screen
             self.habit_edit_screen = HabitEditScreen(name='habit_edit')
             
+            # Create habit detail screen
+            self.habit_detail_screen = HabitDetailScreen(name='habit_detail')
+            
             # Connect screens to shared habits model
             if self.state_manager.is_database_ready():
                 shared_model = self.state_manager.get_habits_model()
                 self.main_screen.habits_model = shared_model
                 self.options_screen.habits_model = shared_model
                 self.habit_edit_screen.habits_model = shared_model
+                self.habit_detail_screen.habits_model = shared_model
                 Logger.info('HabitsApp: Connected screens to shared habits model')
             
             # Add screens to screen manager
             self.screen_manager.add_widget(self.main_screen)
             self.screen_manager.add_widget(self.options_screen)
             self.screen_manager.add_widget(self.habit_edit_screen)
+            self.screen_manager.add_widget(self.habit_detail_screen)
             
             # Set initial screen
             self.screen_manager.current = 'main_tracker'

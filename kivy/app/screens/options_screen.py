@@ -21,6 +21,7 @@ from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, Lis
 
 from ..models import HabitsModel
 from ..widgets import StatusMenuPopup
+from ..services import FileManager
 
 
 class ConfirmationDialog(Popup):
@@ -71,7 +72,7 @@ class ConfirmationDialog(Popup):
 class HabitListItem(BoxLayout):
     """Элемент списка привычек с кнопками управления"""
     
-    def __init__(self, habit_data, on_edit=None, on_delete=None, on_move_up=None, on_move_down=None, **kwargs):
+    def __init__(self, habit_data, on_edit=None, on_delete=None, on_move_up=None, on_move_down=None, on_view_details=None, **kwargs):
         super().__init__(**kwargs)
         
         self.habit_data = habit_data
@@ -117,6 +118,17 @@ class HabitListItem(BoxLayout):
         down_btn.bind(on_press=lambda x: on_move_down(habit_data) if on_move_down else None)
         buttons_layout.add_widget(down_btn)
         
+        # Кнопка "View Details"
+        details_btn = Button(
+            text='📅',
+            size_hint_x=None,
+            width=dp(50),
+            font_size='16sp',
+            background_color=(0.3, 0.8, 0.6, 1)
+        )
+        details_btn.bind(on_press=lambda x: on_view_details(habit_data) if on_view_details else None)
+        buttons_layout.add_widget(details_btn)
+        
         # Кнопка "Настройки"
         edit_btn = Button(
             text='⚙️',
@@ -156,6 +168,9 @@ class OptionsScreen(Screen):
         
         # Initialize data model (will be set later by the main app)
         self.habits_model = None
+        
+        # Initialize file manager
+        self.file_manager = FileManager()
         
         # UI components
         self.content_layout = None
@@ -288,9 +303,9 @@ class OptionsScreen(Screen):
         
     def add_import_export_section(self, parent_layout):
         """Добавляет секцию импорта/экспорта данных"""
-        # Заголовок секции
+        # Section header
         section_label = Label(
-            text='Резервное копирование:',
+            text='Backup & Restore:',
             size_hint_y=None,
             height=dp(30),
             font_size='18sp',
@@ -300,21 +315,21 @@ class OptionsScreen(Screen):
         section_label.bind(size=section_label.setter('text_size'))
         parent_layout.add_widget(section_label)
         
-        # Layout для кнопок импорта/экспорта
+        # Layout for import/export buttons
         backup_layout = BoxLayout(orientation='horizontal', spacing=dp(10), size_hint_y=None, height=dp(50))
         
-        # Кнопка экспорта
+        # Export button
         export_btn = Button(
-            text='📤 Экспорт CSV',
+            text='📤 Export CSV',
             font_size='16sp',
             background_color=(0.6, 0.8, 0.3, 1)
         )
         export_btn.bind(on_press=self.export_data)
         backup_layout.add_widget(export_btn)
         
-        # Кнопка импорта
+        # Import button
         import_btn = Button(
-            text='📥 Импорт CSV',
+            text='📥 Import CSV',
             font_size='16sp',
             background_color=(0.3, 0.6, 0.8, 1)
         )
@@ -355,7 +370,8 @@ class OptionsScreen(Screen):
                 on_edit=self.edit_habit,
                 on_delete=self.delete_habit,
                 on_move_up=self.move_habit_up,
-                on_move_down=self.move_habit_down
+                on_move_down=self.move_habit_down,
+                on_view_details=self.view_habit_details
             )
             self.habits_list_layout.add_widget(item)
             
@@ -382,6 +398,18 @@ class OptionsScreen(Screen):
             self.load_habits_list()  # Перезагрузить список
         else:
             self.update_status('Ошибка добавления привычки')
+            
+    def view_habit_details(self, habit_data):
+        """Открывает экран календаря привычки"""
+        Logger.info(f'OptionsScreen: View habit details {habit_data.get("id")} - {habit_data.get("name")}')
+        
+        # Navigate to habit detail screen
+        if self.manager:
+            habit_detail_screen = self.manager.get_screen('habit_detail')
+            habit_detail_screen.load_habit_data(habit_data.get("id"))
+            self.manager.current = 'habit_detail'
+        else:
+            self.update_status('Error: No screen manager available')
             
     def edit_habit(self, habit_data):
         """Открывает экран редактирования привычки"""
@@ -451,18 +479,115 @@ class OptionsScreen(Screen):
             self.update_status('Ошибка перемещения привычки')
             
     def export_data(self, *args):
-        """Экспорт данных в CSV файл"""
+        """Export data to CSV file"""
         Logger.info('OptionsScreen: Export data to CSV')
         
-        # TODO: Реализовать экспорт данных
-        self.update_status('Экспорт данных (в разработке)')
+        if not self.habits_model:
+            self.update_status('Error: No data model available')
+            return
+        
+        try:
+            # Show file save dialog
+            self.file_manager.show_export_dialog(self._on_export_file_selected)
+            self.update_status('Select export file location...')
+            
+        except Exception as e:
+            Logger.error(f'OptionsScreen: Error starting export: {e}')
+            self.update_status(f'Export error: {e}')
+    
+    def _on_export_file_selected(self, file_path):
+        """Handle export file selection"""
+        Logger.info(f'OptionsScreen: Export file selected: {file_path}')
+        
+        try:
+            # Get CSV data from database
+            csv_lines = list(self.habits_model.database.export_to_csv())
+            
+            # Write to file
+            success = self.file_manager.write_csv_file(file_path, csv_lines)
+            
+            if success:
+                self.update_status(f'Data exported successfully to {file_path}')
+                Logger.info(f'OptionsScreen: Export completed: {len(csv_lines)} lines')
+            else:
+                self.update_status('Error writing CSV file')
+                
+        except Exception as e:
+            Logger.error(f'OptionsScreen: Error during export: {e}')
+            self.update_status(f'Export error: {e}')
         
     def import_data(self, *args):
-        """Импорт данных из CSV файла"""
+        """Import data from CSV file"""
         Logger.info('OptionsScreen: Import data from CSV')
         
-        # TODO: Реализовать импорт данных
-        self.update_status('Импорт данных (в разработке)')
+        if not self.habits_model:
+            self.update_status('Error: No data model available')
+            return
+        
+        try:
+            # Show file open dialog
+            self.file_manager.show_import_dialog(self._on_import_file_selected)
+            self.update_status('Select CSV file to import...')
+            
+        except Exception as e:
+            Logger.error(f'OptionsScreen: Error starting import: {e}')
+            self.update_status(f'Import error: {e}')
+    
+    def _on_import_file_selected(self, file_path):
+        """Handle import file selection"""
+        Logger.info(f'OptionsScreen: Import file selected: {file_path}')
+        
+        try:
+            # Check if file exists
+            if not self.file_manager.file_exists(file_path):
+                self.update_status('Error: File not found')
+                return
+            
+            # Read CSV file
+            csv_lines = self.file_manager.read_csv_file(file_path)
+            
+            if csv_lines is None:
+                self.update_status('Error reading CSV file')
+                return
+            
+            # Show confirmation dialog
+            self._show_import_confirmation(file_path, csv_lines)
+            
+        except Exception as e:
+            Logger.error(f'OptionsScreen: Error during import: {e}')
+            self.update_status(f'Import error: {e}')
+    
+    def _show_import_confirmation(self, file_path, csv_lines):
+        """Show import confirmation dialog"""
+        file_size = self.file_manager.get_file_size(file_path)
+        
+        message = f'Import data from:\n{file_path}\n\nFile size: {file_size} bytes\nLines: {len(csv_lines)}\n\nWARNING: This will replace all existing data!'
+        
+        dialog = ConfirmationDialog(
+            title='Confirm Import',
+            message=message,
+            on_confirm=lambda: self._perform_import(csv_lines)
+        )
+        dialog.open()
+    
+    def _perform_import(self, csv_lines):
+        """Perform the actual import operation"""
+        Logger.info(f'OptionsScreen: Performing import with {len(csv_lines)} lines')
+        
+        try:
+            # Import data using database
+            self.habits_model.database.import_from_csv(csv_lines)
+            
+            # Refresh the habits model and UI
+            self.habits_model.refresh_all_data()
+            self.load_habits_list()
+            
+            self.update_status(f'Import completed successfully ({len(csv_lines)} lines)')
+            Logger.info('OptionsScreen: Import completed successfully')
+            
+        except Exception as e:
+            Logger.error(f'OptionsScreen: Error during import: {e}')
+            self.update_status(f'Import error: {e}')
         
     def go_back_to_tracker(self, *args):
         """Возврат к главному экрану трекера"""
