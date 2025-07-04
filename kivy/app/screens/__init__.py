@@ -11,5 +11,6 @@ This package contains:
 # Screens module for Habits Kivy app
 from .main_tracker_screen import MainTrackerScreen
 from .options_screen import OptionsScreen
+from .habit_edit_screen import HabitEditScreen
 
-__all__ = ['MainTrackerScreen', 'OptionsScreen'] 
+__all__ = ['MainTrackerScreen', 'OptionsScreen', 'HabitEditScreen'] 

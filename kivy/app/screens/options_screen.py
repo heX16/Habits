@@ -387,8 +387,13 @@ class OptionsScreen(Screen):
         """Открывает экран редактирования привычки"""
         Logger.info(f'OptionsScreen: Edit habit {habit_data.get("id")} - {habit_data.get("name")}')
         
-        # TODO: Переход к экрану редактирования привычки
-        self.update_status(f'Редактирование привычки "{habit_data.get("name")}" (в разработке)')
+        # Navigate to habit edit screen
+        if self.manager:
+            habit_edit_screen = self.manager.get_screen('habit_edit')
+            habit_edit_screen.load_habit_data(habit_data.get("id"))
+            self.manager.current = 'habit_edit'
+        else:
+            self.update_status('Ошибка: Нет менеджера экранов')
         
     def delete_habit(self, habit_data):
         """Удаляет привычку с подтверждением"""

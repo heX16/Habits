@@ -26,7 +26,7 @@ class HabitsModel(EventDispatcher):
     is_loaded = BooleanProperty(False)
     is_readonly = BooleanProperty(False)
     
-    def __init__(self, db_path: str = None, **kwargs):
+    def __init__(self, db_path: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         
         # Use default database path if not provided
@@ -307,19 +307,19 @@ class HabitsModel(EventDispatcher):
             ]
             
         try:
-            current_index = cycle.index(current_status)
+            current_index = cycle.index(HabitStatus(current_status))
             next_index = (current_index + 1) % len(cycle)
             return cycle[next_index]
         except ValueError:
             # If current status is not in cycle, return first status
             return cycle[0]
             
-    def get_status_icon_path(self, status: int) -> str:
+    def get_status_icon_path(self, status: int) -> Optional[str]:
         """
         Get the icon path for a status.
         
         :param status: Status value
-        :return: Path to the icon file
+        :return: Path to the icon file or None if no icon
         """
         icon_map = {
             HabitStatus.NOT_SET: None,
@@ -333,7 +333,7 @@ class HabitsModel(EventDispatcher):
         if 10 <= status <= 19:
             return None  # Will show number instead
             
-        return icon_map.get(status)
+        return icon_map.get(HabitStatus(status))
         
     def get_status_text(self, status: int) -> str:
         """
@@ -391,4 +391,45 @@ class HabitsModel(EventDispatcher):
             
         except Exception as e:
             Logger.error(f'HabitsModel: Error getting habit data for ID {habit_id}: {e}')
-            return None 
+            return None
+            
+    def set_habit_parameter(self, habit_id: int, param_name: str, value: str) -> bool:
+        """
+        Set a parameter for a habit.
+        
+        :param habit_id: ID of the habit
+        :param param_name: Name of the parameter
+        :param value: Value of the parameter (as string)
+        :return: True if successful, False otherwise
+        """
+        try:
+            if self.is_readonly:
+                Logger.warning('HabitsModel: Cannot set parameter - database is read-only')
+                return False
+                
+            Logger.info(f'HabitsModel: Setting parameter {param_name}={value} for habit {habit_id}')
+            self.database.set_param(habit_id, param_name, value)
+            
+            self.dispatch('on_data_changed')
+            return True
+            
+        except Exception as e:
+            Logger.error(f'HabitsModel: Error setting parameter {param_name} for habit {habit_id}: {e}')
+            return False
+            
+    def get_habit_parameter(self, habit_id: int, param_name: str, default_value: str = '0') -> str:
+        """
+        Get a parameter for a habit.
+        
+        :param habit_id: ID of the habit
+        :param param_name: Name of the parameter
+        :param default_value: Default value if parameter is not set
+        :return: Parameter value as string
+        """
+        try:
+            result = self.database.get_param(habit_id, param_name, default_value)
+            return result if result is not None else default_value
+            
+        except Exception as e:
+            Logger.error(f'HabitsModel: Error getting parameter {param_name} for habit {habit_id}: {e}')
+            return default_value 
