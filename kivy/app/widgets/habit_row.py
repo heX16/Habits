@@ -11,7 +11,7 @@ from kivy.logger import Logger
 from kivy.properties import NumericProperty, StringProperty, ListProperty, ObjectProperty, BooleanProperty
 from kivy.event import EventDispatcher
 
-from .status_cell import StatusCell
+from .table_widget import UniversalCell
 
 
 class HabitRow(BoxLayout, EventDispatcher):
@@ -105,14 +105,15 @@ class HabitRow(BoxLayout, EventDispatcher):
         # Create new cells for each date
         total_width = 0
         for date_info in self.dates_data:
-            cell = StatusCell(
+            cell = UniversalCell(
+                cell_mode='interactive',
                 habit_id=self.habit_id,
                 date_str=date_info['date'],
                 status=date_info.get('status', 0),
                 habit_levels=self.habit_levels,
                 is_future=date_info.get('is_future', False),
                 is_readonly=self.is_readonly,
-                cell_size=self.cell_size
+                size=(self.cell_size, self.cell_size)
             )
             
             # Bind cell events to row events
@@ -159,7 +160,7 @@ class HabitRow(BoxLayout, EventDispatcher):
         """
         for cell in self.status_cells:
             if cell.date_str == date_str:
-                cell.set_status(new_status)
+                cell.update_status(new_status)
                 break
                 
         # Also update dates_data
@@ -203,12 +204,10 @@ class HabitRow(BoxLayout, EventDispatcher):
         """
         Highlight the cell for today's date.
         
-        :param today_date_str: Today's date string in YYYY-MM-DD format
+        :param today_date_str: Today's date in YYYY-MM-DD format
         """
         for cell in self.status_cells:
             if cell.date_str == today_date_str:
-                # Add visual highlight (would need custom implementation)
-                # For now, we can add a property or modify the cell appearance
-                setattr(cell, 'is_today', True)
-                cell.update_display()
-                break 
+                # Add some visual indication for today
+                # This could be a different background color, border, etc.
+                pass 

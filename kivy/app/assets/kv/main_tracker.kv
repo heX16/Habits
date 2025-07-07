@@ -74,15 +74,14 @@
             opacity: 1 if root.is_loading else 0
             
         # Main habit tracking table container
-        BoxLayout:
-            orientation: 'vertical'
-            padding: dp(5)
+        ScrollView:
+            id: table_container
+            bar_width: 15
+            bar_color: [0.5, 0.5, 0.5, 0.8]
+            bar_inactive_color: [0.7, 0.7, 0.7, 0.4]
+            scroll_type: ['bars', 'content']
             
-            BoxLayout:
-                id: table_container
-                orientation: 'vertical'
-                
-                # Custom table widget will be added here programmatically
+            # Custom table widget will be added here programmatically
                 
         # Status bar
         BoxLayout:
