@@ -178,6 +178,9 @@ class OptionsScreen(Screen):
         self.habits_list_layout = None
         self.status_label = None
         
+        # Flag to prevent circular updates
+        self._updating_habits_list = False
+        
         # Build UI
         Clock.schedule_once(self.build_ui, 0.1)
         
@@ -347,6 +350,9 @@ class OptionsScreen(Screen):
             self.update_status('Модель данных не доступна')
             return
         
+        # Set flag to prevent circular updates
+        self._updating_habits_list = True
+        
         try:
             self.habits_list = self.habits_model.get_habits_list()
             self.rebuild_habits_list()
@@ -354,6 +360,22 @@ class OptionsScreen(Screen):
         except Exception as e:
             Logger.error(f'OptionsScreen: Error loading habits list: {e}')
             self.update_status(f'Ошибка загрузки: {e}')
+        finally:
+            # Always reset the flag
+            self._updating_habits_list = False
+            
+    def _delayed_load_habits_list(self, dt):
+        """Отложенная загрузка списка привычек"""
+        # Additional check to prevent cascading calls
+        if hasattr(self, '_last_load_time'):
+            import time
+            if time.time() - self._last_load_time < 0.5:  # Less than 0.5 seconds ago
+                Logger.info('OptionsScreen: Skipping delayed load - too soon after last load')
+                return
+        
+        import time
+        self._last_load_time = time.time()
+        self.load_habits_list()
             
     def rebuild_habits_list(self):
         """Перестраивает UI список привычек"""
@@ -395,7 +417,7 @@ class OptionsScreen(Screen):
         if habit_id:
             self.add_habit_input.text = ''
             self.update_status(f'Привычка "{name}" добавлена')
-            self.load_habits_list()  # Перезагрузить список
+            # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
             self.update_status('Ошибка добавления привычки')
             
@@ -444,7 +466,7 @@ class OptionsScreen(Screen):
         
         if success:
             self.update_status(f'Привычка "{habit_name}" удалена')
-            self.load_habits_list()  # Перезагрузить список
+            # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
             self.update_status('Ошибка удаления привычки')
             
@@ -459,7 +481,7 @@ class OptionsScreen(Screen):
         
         if success:
             self.update_status(f'Привычка "{habit_name}" перемещена вверх')
-            self.load_habits_list()  # Перезагрузить список
+            # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
             self.update_status('Ошибка перемещения привычки')
             
@@ -474,7 +496,7 @@ class OptionsScreen(Screen):
         
         if success:
             self.update_status(f'Привычка "{habit_name}" перемещена вниз')
-            self.load_habits_list()  # Перезагрузить список
+            # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
             self.update_status('Ошибка перемещения привычки')
             
@@ -601,8 +623,14 @@ class OptionsScreen(Screen):
             
     def on_data_changed(self, *args):
         """Обработка изменений в данных"""
-        Logger.info('OptionsScreen: Data changed, reloading habits list')
-        self.load_habits_list()
+        # Prevent circular updates
+        if self._updating_habits_list:
+            Logger.info('OptionsScreen: Data changed during update, skipping reload to prevent cycle')
+            return
+            
+        Logger.info('OptionsScreen: Data changed, scheduling habits list reload')
+        # Schedule reload to prevent immediate circular calls
+        Clock.schedule_once(self._delayed_load_habits_list, 0.1)
         
     def update_status(self, message):
         """Обновляет статусное сообщение"""

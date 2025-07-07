@@ -92,7 +92,7 @@ class HabitRow(BoxLayout, EventDispatcher):
     def update_cells_readonly(self, *args):
         """Update readonly state for all cells"""
         for cell in self.status_cells:
-            cell.is_readonly = self.is_readonly
+            cell.is_disabled = self.is_readonly
             
     def rebuild_cells(self, *args):
         """Rebuild status cells based on dates_data"""
@@ -109,17 +109,15 @@ class HabitRow(BoxLayout, EventDispatcher):
                 cell_mode='interactive',
                 habit_id=self.habit_id,
                 date_str=date_info['date'],
-                status=date_info.get('status', 0),
+                value=date_info.get('status', 0),
                 habit_levels=self.habit_levels,
-                is_future=date_info.get('is_future', False),
-                is_readonly=self.is_readonly,
                 size=(self.cell_size, self.cell_size)
             )
             
             # Bind cell events to row events
-            cell.bind(on_status_clicked=self.on_cell_clicked)
-            cell.bind(on_status_double_clicked=self.on_cell_double_clicked)
-            cell.bind(on_status_changed=self.on_cell_status_changed)
+            cell.bind(on_cell_clicked=self.on_cell_clicked)
+            cell.bind(on_cell_double_clicked=self.on_cell_double_clicked)
+            cell.bind(on_cell_value_changed=self.on_cell_status_changed)
             
             self.cells_container.add_widget(cell)
             self.status_cells.append(cell)
@@ -160,7 +158,7 @@ class HabitRow(BoxLayout, EventDispatcher):
         """
         for cell in self.status_cells:
             if cell.date_str == date_str:
-                cell.update_status(new_status)
+                cell.value = new_status
                 break
                 
         # Also update dates_data
@@ -178,7 +176,7 @@ class HabitRow(BoxLayout, EventDispatcher):
         """
         for cell in self.status_cells:
             if cell.date_str == date_str:
-                return cell.status
+                return cell.value
         return 0
         
     def update_habit_data(self, habit_data: dict):

@@ -105,7 +105,8 @@ class HabitsModel(EventDispatcher):
             self.is_loaded = True
             
             Logger.info(f'HabitsModel: Loaded {len(data.get("habits", []))} habits')
-            self.dispatch('on_data_changed')
+            # Note: Don't dispatch on_data_changed for simple data loading
+            # This event should only be dispatched when data is actually modified
             
             return data
             

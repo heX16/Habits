@@ -216,13 +216,12 @@ class MainTrackerScreen(Screen):
             # Create interactive cell configuration
             cell_config = {
                 'cell_mode': 'interactive',
-                'status': status,
+                'value': status,
                 'habit_id': habit.get('id', 0),
                 'date_str': date_str,
                 'habit_levels': int(habit.get('levels', 0)),
                 'bad_habit': habit.get('bad_habit') == '1',
-                'habits_model': self.habits_model,
-                'is_future': is_future
+                'habits_model': self.habits_model
             }
             
             row.append(cell_config)
