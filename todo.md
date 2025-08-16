@@ -8,6 +8,12 @@
 "Старый notification_service больше не используется (остался только в документации)." - почисти доку.
 "очистим старый notification_service.py файл... Теперь давайте удалим старый notification_service.py и улучшим" - надо удалить старые файлы.
 
+
+Я вижу файл "notification_popup.py". Кажется его тоже нужно удалить, но там два файла, убедись, что ты удаляешь тот, который не актуальный.
+notification_manager.py
+notification_popup.py
+
+
 ## 2
 
 `def get_database_info(self) -> dict:`
