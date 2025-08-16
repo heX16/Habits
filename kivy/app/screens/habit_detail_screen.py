@@ -199,7 +199,10 @@ class HabitDetailScreen(Screen):
         first_day = (first_day + 1) % 7  # Convert to Sunday=0 format
         
         # Get tracking data
-        tracking = self.habit_data.get('tracking', [])
+        if not self.habit_data:
+            tracking = []
+        else:
+            tracking = self.habit_data.get('tracking', [])
         
         # Build calendar grid (6 weeks)
         day_num = 1

@@ -415,6 +415,10 @@ class OptionsScreen(Screen):
             
         Logger.info(f'OptionsScreen: Adding new habit: {name}')
         
+        if not self.habits_model:
+            self.notifications.show('Модель данных не доступна')
+            return
+        
         # Добавить через модель данных
         habit_id = self.habits_model.add_habit(name)
         
@@ -466,10 +470,14 @@ class OptionsScreen(Screen):
         
     def _confirm_delete_habit(self, habit_id, habit_name):
         """Подтверждение удаления привычки"""
+        if not self.habits_model:
+            self.notifications.show('Модель данных не доступна')
+            return
+            
         success = self.habits_model.delete_habit(habit_id)
         
         if success:
-            self.notifications.show(f'Привычка "{habit_name}" удалена', , 'success')
+            self.notifications.show(f'Привычка "{habit_name}" удалена', 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
             self.notifications.show('Ошибка удаления привычки')
@@ -481,10 +489,14 @@ class OptionsScreen(Screen):
         
         Logger.info(f'OptionsScreen: Move habit up: {habit_id} - {habit_name}')
         
+        if not self.habits_model:
+            self.notifications.show('Модель данных не доступна')
+            return
+            
         success = self.habits_model.reorder_habit(habit_id, 'up')
         
         if success:
-            self.notifications.show(f'Привычка "{habit_name}" перемещена вверх', , 'success')
+            self.notifications.show(f'Привычка "{habit_name}" перемещена вверх', 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
             self.notifications.show('Ошибка перемещения привычки')
@@ -496,10 +508,14 @@ class OptionsScreen(Screen):
         
         Logger.info(f'OptionsScreen: Move habit down: {habit_id} - {habit_name}')
         
+        if not self.habits_model:
+            self.notifications.show('Модель данных не доступна')
+            return
+            
         success = self.habits_model.reorder_habit(habit_id, 'down')
         
         if success:
-            self.notifications.show(f'Привычка "{habit_name}" перемещена вниз', , 'success')
+            self.notifications.show(f'Привычка "{habit_name}" перемещена вниз', 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
             self.notifications.show('Ошибка перемещения привычки')
@@ -515,7 +531,7 @@ class OptionsScreen(Screen):
         try:
             # Show file save dialog
             self.file_manager.show_export_dialog(self._on_export_file_selected)
-            self.notifications.show('Select export file location...', , 'success')
+            self.notifications.show('Select export file location...', 'success')
             
         except Exception as e:
             Logger.error(f'OptionsScreen: Error starting export: {e}')
@@ -526,6 +542,10 @@ class OptionsScreen(Screen):
         Logger.info(f'OptionsScreen: Export file selected: {file_path}')
         
         try:
+            if not self.habits_model:
+                self.notifications.show('Модель данных не доступна')
+                return
+                
             # Get CSV data from database
             csv_lines = list(self.habits_model.database.export_to_csv())
             
@@ -601,6 +621,10 @@ class OptionsScreen(Screen):
         Logger.info(f'OptionsScreen: Performing import with {len(csv_lines)} lines')
         
         try:
+            if not self.habits_model:
+                self.notifications.show('Модель данных не доступна')
+                return
+                
             # Import data using database
             self.habits_model.database.import_from_csv(csv_lines)
             

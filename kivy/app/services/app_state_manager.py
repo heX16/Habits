@@ -18,7 +18,7 @@ from ..models import HabitsModel
 class AppStateManager:
     """Manages application state and lifecycle"""
     
-    def __init__(self, db_path: str = None):
+    def __init__(self, db_path: str | None = None):
         Logger.info('AppStateManager: Initializing app state manager')
         
         self.is_initialized = False
@@ -61,6 +61,8 @@ class AppStateManager:
     def _load_app_preferences(self):
         """Load application preferences"""
         try:
+            if self.db_path is None:
+                return
             preferences_path = os.path.join(os.path.dirname(self.db_path), 'preferences.json')
             if os.path.exists(preferences_path):
                 with open(preferences_path, 'r', encoding='utf-8') as f:
@@ -82,6 +84,8 @@ class AppStateManager:
     def _save_app_preferences(self):
         """Save application preferences"""
         try:
+            if self.db_path is None:
+                return
             preferences_path = os.path.join(os.path.dirname(self.db_path), 'preferences.json')
             with open(preferences_path, 'w', encoding='utf-8') as f:
                 json.dump(self.preferences, f, indent=2)
@@ -146,6 +150,10 @@ class AppStateManager:
             return {'status': 'not_ready'}
             
         try:
+            if self.habits_model is None:
+                Logger.error('AppStateManager: Habits model not initialized')
+                return {'status': 'error', 'error': 'Habits model not initialized'}
+                
             habits_count = len(self.habits_model.get_habits_list())
             is_readonly = self.habits_model.is_readonly
             
@@ -154,7 +162,9 @@ class AppStateManager:
                 'path': self.db_path,
                 'habits_count': habits_count,
                 'is_readonly': is_readonly,
-                'db_version': self.habits_model.database.DB_VERSION
+                'db_version': self.habits_model.database.get_param(
+                    self.habits_model.database.GLOBAL_PARAMS, 'db_version'
+                )
             }
         except Exception as e:
             Logger.error(f'AppStateManager: Error getting database info: {e}')
@@ -262,6 +272,10 @@ class AppStateManager:
             return
             
         try:
+            if self.habits_model is None:
+                Logger.error('AppStateManager: Habits model not initialized for sample data')
+                return
+                
             # Add sample habits
             sample_habits = [
                 'Morning Exercise',

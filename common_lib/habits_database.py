@@ -455,7 +455,7 @@ class HabitsDatabase:
             'habits': habits_data
         }
 
-    def validate_param(self, param_name: str, habit_id: int, value: str = None) -> None:
+    def validate_param(self, param_name: str, habit_id: int, value: str | None = None) -> None:
         """
         Validate parameter name and check if it can be used with given habit_id.
 

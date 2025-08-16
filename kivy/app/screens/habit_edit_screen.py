@@ -34,11 +34,11 @@ class HabitEditScreen(Screen):
         Logger.info('HabitEditScreen: Initializing')
         
         # UI components
-        self.name_input = None
-        self.fail_by_default_checkbox = None
-        self.bad_habit_checkbox = None
-        self.levels_spinner = None
-        self.status_label = None
+        self.name_input: TextInput = None
+        self.fail_by_default_checkbox: CheckBox = None
+        self.bad_habit_checkbox: CheckBox = None
+        self.levels_spinner: Spinner = None
+        self.status_label: Label = None
         
         # Current parameter values
         self.current_params = {

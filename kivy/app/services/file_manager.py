@@ -113,7 +113,7 @@ class FileManager:
             if platform == 'android':
                 # Android external storage
                 try:
-                    from android.storage import primary_external_storage_path
+                    from android.storage import primary_external_storage_path  # type: ignore
                     return primary_external_storage_path()
                 except ImportError:
                     Logger.warning('FileManager: Android storage module not available')
@@ -121,7 +121,7 @@ class FileManager:
             elif platform == 'ios':
                 # iOS documents directory
                 try:
-                    from ios import get_documents_dir
+                    from ios import get_documents_dir  # type: ignore
                     return get_documents_dir()
                 except ImportError:
                     Logger.warning('FileManager: iOS module not available')
