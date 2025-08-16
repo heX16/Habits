@@ -22,6 +22,7 @@ from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, Lis
 from ..models import HabitsModel
 from ..widgets import StatusMenuPopup
 from ..services import FileManager
+from ..widgets.notification_manager import get_notification_manager
 
 
 class ConfirmationDialog(Popup):
@@ -165,6 +166,9 @@ class OptionsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Logger.info('OptionsScreen: Initializing options screen')
+        
+        # Initialize notifications (same as web version)
+        self.notifications = get_notification_manager()
         
         # Initialize data model (will be set later by the main app)
         self.habits_model = None
@@ -347,7 +351,7 @@ class OptionsScreen(Screen):
         
         if not self.habits_model:
             Logger.warning('OptionsScreen: No habits model available')
-            self.update_status('Модель данных не доступна')
+            self.notifications.show('Модель данных не доступна')
             return
         
         # Set flag to prevent circular updates
@@ -356,10 +360,10 @@ class OptionsScreen(Screen):
         try:
             self.habits_list = self.habits_model.get_habits_list()
             self.rebuild_habits_list()
-            self.update_status(f'Загружено {len(self.habits_list)} привычек')
+            # No success notification needed (keeping it simple like web version)
         except Exception as e:
             Logger.error(f'OptionsScreen: Error loading habits list: {e}')
-            self.update_status(f'Ошибка загрузки: {e}')
+            self.notifications.show(f'Ошибка загрузки: {e}')
         finally:
             # Always reset the flag
             self._updating_habits_list = False
@@ -406,7 +410,7 @@ class OptionsScreen(Screen):
             
         name = self.add_habit_input.text.strip()
         if not name:
-            self.update_status('Введите название привычки')
+            self.notifications.show('Введите название привычки')
             return
             
         Logger.info(f'OptionsScreen: Adding new habit: {name}')
@@ -416,10 +420,10 @@ class OptionsScreen(Screen):
         
         if habit_id:
             self.add_habit_input.text = ''
-            self.update_status(f'Привычка "{name}" добавлена')
+            self.notifications.show(f'Привычка "{name}" добавлена', 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
-            self.update_status('Ошибка добавления привычки')
+            self.notifications.show('Ошибка добавления привычки')
             
     def view_habit_details(self, habit_data):
         """Открывает экран календаря привычки"""
@@ -431,7 +435,7 @@ class OptionsScreen(Screen):
             habit_detail_screen.load_habit_data(habit_data.get("id"))
             self.manager.current = 'habit_detail'
         else:
-            self.update_status('Error: No screen manager available')
+            self.notifications.show('Error: No screen manager available')
             
     def edit_habit(self, habit_data):
         """Открывает экран редактирования привычки"""
@@ -443,7 +447,7 @@ class OptionsScreen(Screen):
             habit_edit_screen.load_habit_data(habit_data.get("id"))
             self.manager.current = 'habit_edit'
         else:
-            self.update_status('Ошибка: Нет менеджера экранов')
+            self.notifications.show('Ошибка: Нет менеджера экранов')
         
     def delete_habit(self, habit_data):
         """Удаляет привычку с подтверждением"""
@@ -465,10 +469,10 @@ class OptionsScreen(Screen):
         success = self.habits_model.delete_habit(habit_id)
         
         if success:
-            self.update_status(f'Привычка "{habit_name}" удалена')
+            self.notifications.show(f'Привычка "{habit_name}" удалена', , 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
-            self.update_status('Ошибка удаления привычки')
+            self.notifications.show('Ошибка удаления привычки')
             
     def move_habit_up(self, habit_data):
         """Перемещает привычку вверх"""
@@ -480,10 +484,10 @@ class OptionsScreen(Screen):
         success = self.habits_model.reorder_habit(habit_id, 'up')
         
         if success:
-            self.update_status(f'Привычка "{habit_name}" перемещена вверх')
+            self.notifications.show(f'Привычка "{habit_name}" перемещена вверх', , 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
-            self.update_status('Ошибка перемещения привычки')
+            self.notifications.show('Ошибка перемещения привычки')
             
     def move_habit_down(self, habit_data):
         """Перемещает привычку вниз"""
@@ -495,10 +499,10 @@ class OptionsScreen(Screen):
         success = self.habits_model.reorder_habit(habit_id, 'down')
         
         if success:
-            self.update_status(f'Привычка "{habit_name}" перемещена вниз')
+            self.notifications.show(f'Привычка "{habit_name}" перемещена вниз', , 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
-            self.update_status('Ошибка перемещения привычки')
+            self.notifications.show('Ошибка перемещения привычки')
             
     def export_data(self, *args):
         """Export data to CSV file"""
@@ -511,11 +515,11 @@ class OptionsScreen(Screen):
         try:
             # Show file save dialog
             self.file_manager.show_export_dialog(self._on_export_file_selected)
-            self.update_status('Select export file location...')
+            self.notifications.show('Select export file location...', , 'success')
             
         except Exception as e:
             Logger.error(f'OptionsScreen: Error starting export: {e}')
-            self.update_status(f'Export error: {e}')
+            self.notifications.show(f'Export error: {e}')
     
     def _on_export_file_selected(self, file_path):
         """Handle export file selection"""
@@ -529,14 +533,14 @@ class OptionsScreen(Screen):
             success = self.file_manager.write_csv_file(file_path, csv_lines)
             
             if success:
-                self.update_status(f'Data exported successfully to {file_path}')
+                self.notifications.show(f'Data exported successfully to {file_path}', 'success')
                 Logger.info(f'OptionsScreen: Export completed: {len(csv_lines)} lines')
             else:
-                self.update_status('Error writing CSV file')
+                self.notifications.show('Error writing CSV file')
                 
         except Exception as e:
             Logger.error(f'OptionsScreen: Error during export: {e}')
-            self.update_status(f'Export error: {e}')
+            self.notifications.show(f'Export error: {e}')
         
     def import_data(self, *args):
         """Import data from CSV file"""
@@ -553,7 +557,7 @@ class OptionsScreen(Screen):
             
         except Exception as e:
             Logger.error(f'OptionsScreen: Error starting import: {e}')
-            self.update_status(f'Import error: {e}')
+            self.notifications.show(f'Import error: {e}')
     
     def _on_import_file_selected(self, file_path):
         """Handle import file selection"""

@@ -22,6 +22,7 @@ from kivy.uix.button import Button
 
 from ..models import HabitsModel, DateCalculator
 from ..widgets import StatusMenuPopup
+from ..widgets.notification_manager import get_notification_manager
 
 # Import universal table widget
 from ..widgets import create_universal_table
@@ -44,6 +45,9 @@ class MainTrackerScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Logger.info('MainTrackerScreen: Initializing main tracker screen with universal table widget')
+        
+        # Initialize notifications (same as web version)
+        self.notifications = get_notification_manager()
         
         # Initialize data model (will be set later by the main app)
         self.habits_model = None
@@ -88,7 +92,7 @@ class MainTrackerScreen(Screen):
             self.fetch_habits_data(start_date, end_date)
         except Exception as e:
             Logger.error(f'MainTrackerScreen: Error loading current week: {e}')
-            self.update_status_bar(f'Error loading data: {e}')
+            self.notifications.show(f'Error loading data: {e}')
         
     def fetch_habits_data(self, start_date: date, end_date: date):
         """
@@ -98,7 +102,7 @@ class MainTrackerScreen(Screen):
         
         if not self.habits_model:
             Logger.warning('MainTrackerScreen: No habits model available')
-            self.update_status_bar('No data model available')
+            self.notifications.show('No data model available')
             return
         
         self.is_loading = True
@@ -128,7 +132,7 @@ class MainTrackerScreen(Screen):
             
         except Exception as e:
             Logger.error(f'MainTrackerScreen: Error fetching habits data: {e}')
-            self.update_status_bar(f'Error: {e}')
+            self.notifications.show(f'Error loading habits: {e}')
         finally:
             self.is_loading = False
         
