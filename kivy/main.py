@@ -18,6 +18,9 @@ from kivy.lang import Builder
 # Standard Kivy imports
 from kivy.app import App
 
+# Application constants
+from config_constants import CONFIG_FILENAME
+
 # Add the project root to the path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
@@ -157,8 +160,14 @@ class HabitsApp(App):
             
     def get_application_config(self):
         """Get path to the application config file"""
-        config_path = os.path.join(os.path.dirname(__file__), 'config.ini')
-        Logger.info(f'HabitsApp: Using config file: {config_path}')
+        config_path = os.path.join(os.path.dirname(__file__), CONFIG_FILENAME)
+        
+        if not os.path.exists(config_path):
+            Logger.error(f'HabitsApp: Config file not found: {config_path}')
+            Logger.warning('HabitsApp: Using default Kivy configuration')
+        else:
+            Logger.info(f'HabitsApp: Using config file: {config_path}')
+            
         return config_path
 
 

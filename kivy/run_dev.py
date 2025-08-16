@@ -17,11 +17,19 @@ os.environ['KIVY_DEV_MODE'] = '1'
 
 # Configure Kivy before importing
 from kivy.config import Config
+from kivy.logger import Logger
 
-# Load configuration from config.ini if exists
-config_file = Path(__file__).parent / 'config.ini'
+# Application constants
+from config_constants import CONFIG_FILENAME
+
+# Load configuration from habits.ini if exists
+config_file = Path(__file__).parent / CONFIG_FILENAME
 if config_file.exists():
     Config.read(str(config_file))
+    Logger.info(f'Development: Loaded config from {config_file}')
+else:
+    Logger.error(f'Development: Config file not found: {config_file}')
+    Logger.warning('Development: Using default Kivy configuration')
 
 # Development-specific settings
 Config.set('kivy', 'log_level', 'debug')  # Debug level
