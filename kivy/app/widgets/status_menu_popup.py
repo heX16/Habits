@@ -1,8 +1,8 @@
 """
 Status Menu Popup Widget
 
-Всплывающее меню для выбора статуса привычки при двойном клике.
-Отображает доступные статусы в зависимости от настроек привычки.
+Popup menu for selecting habit status on double click.
+Displays available statuses based on habit settings.
 """
 
 from kivy.uix.popup import Popup
@@ -13,16 +13,16 @@ from kivy.metrics import dp
 from kivy.logger import Logger
 
 class StatusMenuPopup(Popup):
-    """Всплывающее меню выбора статуса привычки"""
+    """Popup menu for habit status selection"""
     
     def __init__(self, habit_data, current_status, on_status_selected, **kwargs):
         """
-        Инициализация меню статусов
+        Initialize status menu
         
         Args:
-            habit_data: данные привычки с параметрами
-            current_status: текущий статус ячейки
-            on_status_selected: callback функция для выбора статуса
+            habit_data: habit data with parameters
+            current_status: current cell status
+            on_status_selected: callback function for status selection
         """
         super().__init__(**kwargs)
         
@@ -30,33 +30,33 @@ class StatusMenuPopup(Popup):
         self.current_status = current_status
         self.on_status_selected = on_status_selected
         
-        # Настройки popup
-        self.title = f"Статус: {habit_data.get('name', 'Привычка')}"
+        # Popup settings
+        self.title = f"Status: {habit_data.get('name', 'Habit')}"
         self.size_hint = (0.8, 0.6)
         self.auto_dismiss = True
         
-        # Создаем содержимое
+        # Create content
         self.content = self._create_content()
         
         Logger.info(f"StatusMenuPopup: Created for habit '{habit_data.get('name')}', current status: {current_status}")
     
     def _create_content(self):
-        """Создает содержимое popup с кнопками статусов"""
+        """Create popup content with status buttons"""
         layout = GridLayout(cols=1, spacing=dp(10), padding=dp(10))
         
-        # Заголовок
+        # Header
         header_label = Label(
-            text="Выберите статус:",
+            text="Select status:",
             size_hint_y=None,
             height=dp(30),
             font_size='16sp'
         )
         layout.add_widget(header_label)
         
-        # Получаем доступные статусы
+        # Get available statuses
         available_statuses = self._get_available_statuses()
         
-        # Создаем сетку кнопок статусов
+        # Create status buttons grid
         buttons_grid = GridLayout(cols=2, spacing=dp(5))
         
         for status_value, status_info in available_statuses.items():
@@ -67,20 +67,20 @@ class StatusMenuPopup(Popup):
                 font_size='14sp'
             )
             
-            # Выделяем текущий статус
+            # Highlight current status
             if status_value == self.current_status:
-                button.background_color = (0.3, 0.6, 1, 1)  # Синий цвет
+                button.background_color = (0.3, 0.6, 1, 1)  # Blue color
             else:
-                button.background_color = (0.9, 0.9, 0.9, 1)  # Серый цвет
+                button.background_color = (0.9, 0.9, 0.9, 1)  # Gray color
             
             button.bind(on_press=lambda btn, status=status_value: self._on_status_button_press(status))
             buttons_grid.add_widget(button)
         
         layout.add_widget(buttons_grid)
         
-        # Кнопка отмены
+        # Cancel button
         cancel_button = Button(
-            text="Отмена",
+            text="Cancel",
             size_hint_y=None,
             height=dp(40),
             background_color=(0.8, 0.3, 0.3, 1)
@@ -92,55 +92,55 @@ class StatusMenuPopup(Popup):
     
     def _get_available_statuses(self):
         """
-        Определяет доступные статусы на основе настроек привычки
+        Determine available statuses based on habit settings
         
         Returns:
-            dict: словарь {status_value: {'text': 'display_text', 'icon': 'icon_name'}}
+            dict: dictionary {status_value: {'text': 'display_text', 'icon': 'icon_name'}}
         """
-        # Получаем режим привычки (по умолчанию level3)
+        # Get habit mode (default level3)
         mode = self.habit_data.get('mode', 'level3')
         levels = self.habit_data.get('levels', 3)
         
         statuses = {}
         
         if mode == 'level1' or levels == 1:
-            # Только базовые статусы
+            # Basic statuses only
             statuses = {
-                0: {'text': '❌ Не выполнено', 'icon': 'not_set'},
-                2: {'text': '✅ Выполнено', 'icon': 'done'},
-                9: {'text': '❌ Провал', 'icon': 'fail'}
+                0: {'text': '❌ Not done', 'icon': 'not_set'},
+                2: {'text': '✅ Done', 'icon': 'done'},
+                9: {'text': '❌ Failed', 'icon': 'fail'}
             }
         elif mode == 'level10' or levels == 10:
-            # Числовые статусы 0-9
+            # Numeric statuses 0-9
             statuses = {
-                0: {'text': '0️⃣ Не выполнено', 'icon': 'not_set'},
-                10: {'text': '0️⃣ Ноль', 'icon': 'number_0'},
-                11: {'text': '1️⃣ Один', 'icon': 'number_1'},
-                12: {'text': '2️⃣ Два', 'icon': 'number_2'},
-                13: {'text': '3️⃣ Три', 'icon': 'number_3'},
-                14: {'text': '4️⃣ Четыре', 'icon': 'number_4'},
-                15: {'text': '5️⃣ Пять', 'icon': 'number_5'},
-                16: {'text': '6️⃣ Шесть', 'icon': 'number_6'},
-                17: {'text': '7️⃣ Семь', 'icon': 'number_7'},
-                18: {'text': '8️⃣ Восемь', 'icon': 'number_8'},
-                19: {'text': '9️⃣ Девять', 'icon': 'number_9'},
-                9: {'text': '❌ Провал', 'icon': 'fail'}
+                0: {'text': '0️⃣ Not done', 'icon': 'not_set'},
+                10: {'text': '0️⃣ Zero', 'icon': 'number_0'},
+                11: {'text': '1️⃣ One', 'icon': 'number_1'},
+                12: {'text': '2️⃣ Two', 'icon': 'number_2'},
+                13: {'text': '3️⃣ Three', 'icon': 'number_3'},
+                14: {'text': '4️⃣ Four', 'icon': 'number_4'},
+                15: {'text': '5️⃣ Five', 'icon': 'number_5'},
+                16: {'text': '6️⃣ Six', 'icon': 'number_6'},
+                17: {'text': '7️⃣ Seven', 'icon': 'number_7'},
+                18: {'text': '8️⃣ Eight', 'icon': 'number_8'},
+                19: {'text': '9️⃣ Nine', 'icon': 'number_9'},
+                9: {'text': '❌ Failed', 'icon': 'fail'}
             }
         else:
-            # Полный режим level3 (по умолчанию)
+            # Full level3 mode (default)
             statuses = {
-                0: {'text': '❌ Не выполнено', 'icon': 'not_set'},
-                1: {'text': '🟡 Мини', 'icon': 'done_mini'},
-                2: {'text': '✅ Выполнено', 'icon': 'done'},
-                3: {'text': '⭐ Элита', 'icon': 'done_elite'},
-                9: {'text': '❌ Провал', 'icon': 'fail'}
+                0: {'text': '❌ Not done', 'icon': 'not_set'},
+                1: {'text': '🟡 Mini', 'icon': 'done_mini'},
+                2: {'text': '✅ Done', 'icon': 'done'},
+                3: {'text': '⭐ Elite', 'icon': 'done_elite'},
+                9: {'text': '❌ Failed', 'icon': 'fail'}
             }
         
         Logger.info(f"StatusMenuPopup: Available statuses for mode '{mode}': {list(statuses.keys())}")
         return statuses
     
     def _on_status_button_press(self, status_value):
-        """Обработка нажатия на кнопку статуса"""
+        """Handle status button press"""
         Logger.info(f"StatusMenuPopup: Status selected: {status_value}")
         
         if self.on_status_selected:
@@ -149,19 +149,19 @@ class StatusMenuPopup(Popup):
         self.dismiss()
     
     def _on_cancel(self, button):
-        """Обработка отмены выбора"""
+        """Handle selection cancellation"""
         Logger.info("StatusMenuPopup: Cancelled")
         self.dismiss()
     
     @staticmethod
     def show_for_cell(habit_data, current_status, on_status_selected):
         """
-        Статический метод для показа popup
+        Static method to show popup
         
         Args:
-            habit_data: данные привычки
-            current_status: текущий статус
-            on_status_selected: callback функция
+            habit_data: habit data
+            current_status: current status
+            on_status_selected: callback function
         """
         popup = StatusMenuPopup(
             habit_data=habit_data,

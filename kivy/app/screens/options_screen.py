@@ -26,7 +26,7 @@ from ..widgets.notification_manager import get_notification_manager
 
 
 class ConfirmationDialog(Popup):
-    """Диалог подтверждения для удаления привычек"""
+    """Confirmation dialog for habit deletion"""
     
     def __init__(self, title, message, on_confirm=None, **kwargs):
         super().__init__(**kwargs)
@@ -35,10 +35,10 @@ class ConfirmationDialog(Popup):
         self.size_hint = (0.8, 0.4)
         self.auto_dismiss = False
         
-        # Основной layout
+        # Main layout
         layout = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(10))
         
-        # Сообщение
+        # Message
         message_label = Label(
             text=message,
             text_size=(None, None),
@@ -47,16 +47,16 @@ class ConfirmationDialog(Popup):
         )
         layout.add_widget(message_label)
         
-        # Кнопки
+        # Buttons
         buttons_layout = BoxLayout(orientation='horizontal', spacing=dp(10), size_hint_y=None, height=dp(50))
         
-        # Кнопка отмены
-        cancel_btn = Button(text='Отмена', background_color=(0.7, 0.7, 0.7, 1))
+        # Cancel button
+        cancel_btn = Button(text='Cancel', background_color=(0.7, 0.7, 0.7, 1))
         cancel_btn.bind(on_press=self.dismiss)
         buttons_layout.add_widget(cancel_btn)
         
-        # Кнопка подтверждения
-        confirm_btn = Button(text='Подтвердить', background_color=(0.8, 0.3, 0.3, 1))
+        # Confirm button
+        confirm_btn = Button(text='Confirm', background_color=(0.8, 0.3, 0.3, 1))
         confirm_btn.bind(on_press=lambda x: self._on_confirm(on_confirm))
         buttons_layout.add_widget(confirm_btn)
         
@@ -64,14 +64,14 @@ class ConfirmationDialog(Popup):
         self.content = layout
     
     def _on_confirm(self, callback):
-        """Обработка подтверждения"""
+        """Handle confirmation"""
         if callback:
             callback()
         self.dismiss()
 
 
 class HabitListItem(BoxLayout):
-    """Элемент списка привычек с кнопками управления"""
+    """Habit list item with management buttons"""
     
     def __init__(self, habit_data, on_edit=None, on_delete=None, on_move_up=None, on_move_down=None, on_view_details=None, **kwargs):
         super().__init__(**kwargs)
@@ -83,7 +83,7 @@ class HabitListItem(BoxLayout):
         self.height = dp(60)
         self.padding = [dp(10), dp(5)]
         
-        # Название привычки
+        # Habit name
         self.name_label = Label(
             text=habit_data.get('name', ''),
             size_hint_x=0.5,
@@ -94,10 +94,10 @@ class HabitListItem(BoxLayout):
         )
         self.add_widget(self.name_label)
         
-        # Контейнер для кнопок
+        # Buttons container
         buttons_layout = BoxLayout(orientation='horizontal', spacing=dp(5), size_hint_x=0.5)
         
-        # Кнопка "Вверх"
+        # Up button
         up_btn = Button(
             text='↑',
             size_hint_x=None,
@@ -108,7 +108,7 @@ class HabitListItem(BoxLayout):
         up_btn.bind(on_press=lambda x: on_move_up(habit_data) if on_move_up else None)
         buttons_layout.add_widget(up_btn)
         
-        # Кнопка "Вниз"
+        # Down button
         down_btn = Button(
             text='↓',
             size_hint_x=None,
@@ -119,7 +119,7 @@ class HabitListItem(BoxLayout):
         down_btn.bind(on_press=lambda x: on_move_down(habit_data) if on_move_down else None)
         buttons_layout.add_widget(down_btn)
         
-        # Кнопка "View Details"
+        # View Details button
         details_btn = Button(
             text='📅',
             size_hint_x=None,
@@ -130,7 +130,7 @@ class HabitListItem(BoxLayout):
         details_btn.bind(on_press=lambda x: on_view_details(habit_data) if on_view_details else None)
         buttons_layout.add_widget(details_btn)
         
-        # Кнопка "Настройки"
+        # Settings button
         edit_btn = Button(
             text='⚙️',
             size_hint_x=None,
@@ -141,7 +141,7 @@ class HabitListItem(BoxLayout):
         edit_btn.bind(on_press=lambda x: on_edit(habit_data) if on_edit else None)
         buttons_layout.add_widget(edit_btn)
         
-        # Кнопка "Удалить"
+        # Delete button
         delete_btn = Button(
             text='🗑️',
             size_hint_x=None,
@@ -156,7 +156,7 @@ class HabitListItem(BoxLayout):
 
 
 class OptionsScreen(Screen):
-    """Экран настроек и управления привычками"""
+    """Options screen for habit management and settings"""
     
     # Properties for data binding
     habits_model = ObjectProperty(None, allownone=True)
@@ -197,15 +197,15 @@ class OptionsScreen(Screen):
             self.load_habits_list()
         
     def build_ui(self, dt=None):
-        """Построение интерфейса экрана"""
+        """Build screen interface"""
         Logger.info('OptionsScreen: Building UI')
         
-        # Основной layout
+        # Main layout
         main_layout = BoxLayout(orientation='vertical', padding=dp(10), spacing=dp(10))
         
-        # Заголовок
+        # Title
         title_label = Label(
-            text='Настройки привычек',
+            text='Habit Settings',
             size_hint_y=None,
             height=dp(50),
             font_size='24sp',
@@ -213,18 +213,18 @@ class OptionsScreen(Screen):
         )
         main_layout.add_widget(title_label)
         
-        # Секция добавления новой привычки
+        # Add new habit section
         self.add_habit_section(main_layout)
         
-        # Секция списка привычек
+        # Habits list section
         self.add_habits_list_section(main_layout)
         
-        # Секция импорта/экспорта
+        # Import/export section
         self.add_import_export_section(main_layout)
         
-        # Статусная строка
+        # Status bar
         self.status_label = Label(
-            text='Готов к работе',
+            text='Ready to work',
             size_hint_y=None,
             height=dp(30),
             font_size='14sp',
@@ -232,9 +232,9 @@ class OptionsScreen(Screen):
         )
         main_layout.add_widget(self.status_label)
         
-        # Кнопка "Назад"
+        # Back button
         back_btn = Button(
-            text='← Назад к трекеру',
+            text='← Back to Tracker',
             size_hint_y=None,
             height=dp(50),
             font_size='16sp',
@@ -245,14 +245,14 @@ class OptionsScreen(Screen):
         
         self.add_widget(main_layout)
         
-        # Загрузить список привычек
+        # Load habits list
         self.load_habits_list()
         
     def add_habit_section(self, parent_layout):
-        """Добавляет секцию для создания новой привычки"""
-        # Заголовок секции
+        """Add section for creating new habit"""
+        # Section title
         section_label = Label(
-            text='Добавить новую привычку:',
+            text='Add New Habit:',
             size_hint_y=None,
             height=dp(30),
             font_size='18sp',
@@ -262,12 +262,12 @@ class OptionsScreen(Screen):
         section_label.bind(size=section_label.setter('text_size'))
         parent_layout.add_widget(section_label)
         
-        # Layout для ввода
+        # Input layout
         input_layout = BoxLayout(orientation='horizontal', spacing=dp(10), size_hint_y=None, height=dp(50))
         
-        # Поле ввода названия привычки
+        # Habit name input field
         self.add_habit_input = TextInput(
-            hint_text='Название новой привычки',
+            hint_text='New habit name',
             size_hint_x=0.7,
             multiline=False,
             font_size='16sp'
@@ -275,9 +275,9 @@ class OptionsScreen(Screen):
         self.add_habit_input.bind(on_text_validate=self.add_new_habit)
         input_layout.add_widget(self.add_habit_input)
         
-        # Кнопка добавления
+        # Add button
         add_btn = Button(
-            text='Добавить',
+            text='Add',
             size_hint_x=0.3,
             font_size='16sp',
             background_color=(0.3, 0.8, 0.3, 1)
@@ -288,10 +288,10 @@ class OptionsScreen(Screen):
         parent_layout.add_widget(input_layout)
         
     def add_habits_list_section(self, parent_layout):
-        """Добавляет секцию со списком привычек"""
-        # Заголовок секции
+        """Add habits list section"""
+        # Section title
         section_label = Label(
-            text='Управление привычками:',
+            text='Habit Management:',
             size_hint_y=None,
             height=dp(30),
             font_size='18sp',
@@ -301,7 +301,7 @@ class OptionsScreen(Screen):
         section_label.bind(size=section_label.setter('text_size'))
         parent_layout.add_widget(section_label)
         
-        # Scrollable список привычек
+        # Scrollable habits list
         scroll = ScrollView(size_hint=(1, 0.4))
         self.habits_list_layout = BoxLayout(orientation='vertical', spacing=dp(5), size_hint_y=None)
         self.habits_list_layout.bind(minimum_height=self.habits_list_layout.setter('height'))
@@ -309,7 +309,7 @@ class OptionsScreen(Screen):
         parent_layout.add_widget(scroll)
         
     def add_import_export_section(self, parent_layout):
-        """Добавляет секцию импорта/экспорта данных"""
+        """Add import/export data section"""
         # Section header
         section_label = Label(
             text='Backup & Restore:',
@@ -346,12 +346,12 @@ class OptionsScreen(Screen):
         parent_layout.add_widget(backup_layout)
         
     def load_habits_list(self):
-        """Загружает список привычек из модели данных"""
+        """Load habits list from data model"""
         Logger.info('OptionsScreen: Loading habits list')
         
         if not self.habits_model:
             Logger.warning('OptionsScreen: No habits model available')
-            self.notifications.show('Модель данных не доступна')
+            self.notifications.show('Data model not available')
             return
         
         # Set flag to prevent circular updates
@@ -363,13 +363,13 @@ class OptionsScreen(Screen):
             # No success notification needed (keeping it simple like web version)
         except Exception as e:
             Logger.error(f'OptionsScreen: Error loading habits list: {e}')
-            self.notifications.show(f'Ошибка загрузки: {e}')
+            self.notifications.show(f'Loading error: {e}')
         finally:
             # Always reset the flag
             self._updating_habits_list = False
             
     def _delayed_load_habits_list(self, dt):
-        """Отложенная загрузка списка привычек"""
+        """Delayed habits list loading"""
         # Additional check to prevent cascading calls
         if hasattr(self, '_last_load_time'):
             import time
@@ -382,14 +382,14 @@ class OptionsScreen(Screen):
         self.load_habits_list()
             
     def rebuild_habits_list(self):
-        """Перестраивает UI список привычек"""
+        """Rebuild UI habits list"""
         if not self.habits_list_layout:
             return
             
-        # Очистить существующий список
+        # Clear existing list
         self.habits_list_layout.clear_widgets()
         
-        # Добавить элементы для каждой привычки
+        # Add elements for each habit
         for habit in self.habits_list:
             item = HabitListItem(
                 habit_data=habit,
@@ -404,33 +404,33 @@ class OptionsScreen(Screen):
         Logger.info(f'OptionsScreen: Rebuilt habits list with {len(self.habits_list)} items')
         
     def add_new_habit(self, *args):
-        """Добавляет новую привычку"""
+        """Add new habit"""
         if not self.add_habit_input:
             return
             
         name = self.add_habit_input.text.strip()
         if not name:
-            self.notifications.show('Введите название привычки')
+            self.notifications.show('Enter habit name')
             return
             
         Logger.info(f'OptionsScreen: Adding new habit: {name}')
         
         if not self.habits_model:
-            self.notifications.show('Модель данных не доступна')
+            self.notifications.show('Data model not available')
             return
         
-        # Добавить через модель данных
+        # Add through data model
         habit_id = self.habits_model.add_habit(name)
         
         if habit_id:
             self.add_habit_input.text = ''
-            self.notifications.show(f'Привычка "{name}" добавлена', 'success')
+            self.notifications.show(f'Habit "{name}" added', 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
-            self.notifications.show('Ошибка добавления привычки')
+            self.notifications.show('Error adding habit')
             
     def view_habit_details(self, habit_data):
-        """Открывает экран календаря привычки"""
+        """Open habit calendar screen"""
         Logger.info(f'OptionsScreen: View habit details {habit_data.get("id")} - {habit_data.get("name")}')
         
         # Navigate to habit detail screen
@@ -442,7 +442,7 @@ class OptionsScreen(Screen):
             self.notifications.show('Error: No screen manager available')
             
     def edit_habit(self, habit_data):
-        """Открывает экран редактирования привычки"""
+        """Open habit edit screen"""
         Logger.info(f'OptionsScreen: Edit habit {habit_data.get("id")} - {habit_data.get("name")}')
         
         # Navigate to habit edit screen
@@ -451,74 +451,74 @@ class OptionsScreen(Screen):
             habit_edit_screen.load_habit_data(habit_data.get("id"))
             self.manager.current = 'habit_edit'
         else:
-            self.notifications.show('Ошибка: Нет менеджера экранов')
+            self.notifications.show('Error: No screen manager available')
         
     def delete_habit(self, habit_data):
-        """Удаляет привычку с подтверждением"""
-        habit_name = habit_data.get('name', 'Неизвестная привычка')
+        """Delete habit with confirmation"""
+        habit_name = habit_data.get('name', 'Unknown habit')
         habit_id = habit_data.get('id')
         
         Logger.info(f'OptionsScreen: Delete habit {habit_id} - {habit_name}')
         
-        # Показать диалог подтверждения
+        # Show confirmation dialog
         dialog = ConfirmationDialog(
-            title='Удаление привычки',
-            message=f'Вы уверены, что хотите удалить привычку "{habit_name}"?\n\nВсе данные отслеживания будут потеряны!',
+            title='Delete Habit',
+            message=f'Are you sure you want to delete habit "{habit_name}"?\n\nAll tracking data will be lost!',
             on_confirm=lambda: self._confirm_delete_habit(habit_id, habit_name)
         )
         dialog.open()
         
     def _confirm_delete_habit(self, habit_id, habit_name):
-        """Подтверждение удаления привычки"""
+        """Confirm habit deletion"""
         if not self.habits_model:
-            self.notifications.show('Модель данных не доступна')
+            self.notifications.show('Data model not available')
             return
             
         success = self.habits_model.delete_habit(habit_id)
         
         if success:
-            self.notifications.show(f'Привычка "{habit_name}" удалена', 'success')
+            self.notifications.show(f'Habit "{habit_name}" deleted', 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
-            self.notifications.show('Ошибка удаления привычки')
+            self.notifications.show('Error deleting habit')
             
     def move_habit_up(self, habit_data):
-        """Перемещает привычку вверх"""
+        """Move habit up"""
         habit_id = habit_data.get('id')
         habit_name = habit_data.get('name', '')
         
         Logger.info(f'OptionsScreen: Move habit up: {habit_id} - {habit_name}')
         
         if not self.habits_model:
-            self.notifications.show('Модель данных не доступна')
+            self.notifications.show('Data model not available')
             return
             
         success = self.habits_model.reorder_habit(habit_id, 'up')
         
         if success:
-            self.notifications.show(f'Привычка "{habit_name}" перемещена вверх', 'success')
+            self.notifications.show(f'Habit "{habit_name}" moved up', 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
-            self.notifications.show('Ошибка перемещения привычки')
+            self.notifications.show('Error moving habit')
             
     def move_habit_down(self, habit_data):
-        """Перемещает привычку вниз"""
+        """Move habit down"""
         habit_id = habit_data.get('id')
         habit_name = habit_data.get('name', '')
         
         Logger.info(f'OptionsScreen: Move habit down: {habit_id} - {habit_name}')
         
         if not self.habits_model:
-            self.notifications.show('Модель данных не доступна')
+            self.notifications.show('Data model not available')
             return
             
         success = self.habits_model.reorder_habit(habit_id, 'down')
         
         if success:
-            self.notifications.show(f'Привычка "{habit_name}" перемещена вниз', 'success')
+            self.notifications.show(f'Habit "{habit_name}" moved down', 'success')
             # Note: load_habits_list() will be called automatically via on_data_changed event
         else:
-            self.notifications.show('Ошибка перемещения привычки')
+            self.notifications.show('Error moving habit')
             
     def export_data(self, *args):
         """Export data to CSV file"""
@@ -543,7 +543,7 @@ class OptionsScreen(Screen):
         
         try:
             if not self.habits_model:
-                self.notifications.show('Модель данных не доступна')
+                self.notifications.show('Data model not available')
                 return
                 
             # Get CSV data from database
@@ -622,7 +622,7 @@ class OptionsScreen(Screen):
         
         try:
             if not self.habits_model:
-                self.notifications.show('Модель данных не доступна')
+                self.notifications.show('Data model not available')
                 return
                 
             # Import data using database
@@ -640,17 +640,17 @@ class OptionsScreen(Screen):
             self.update_status(f'Import error: {e}')
         
     def go_back_to_tracker(self, *args):
-        """Возврат к главному экрану трекера"""
+        """Return to main tracker screen"""
         Logger.info('OptionsScreen: Go back to tracker')
         
-        # Переключиться на главный экран
+        # Switch to main screen
         if self.manager:
             self.manager.current = 'main_tracker'
         else:
             Logger.warning('OptionsScreen: No screen manager found')
             
     def on_data_changed(self, *args):
-        """Обработка изменений в данных"""
+        """Handle data changes"""
         # Prevent circular updates
         if self._updating_habits_list:
             Logger.info('OptionsScreen: Data changed during update, skipping reload to prevent cycle')
@@ -661,17 +661,17 @@ class OptionsScreen(Screen):
         Clock.schedule_once(self._delayed_load_habits_list, 0.1)
         
     def update_status(self, message):
-        """Обновляет статусное сообщение"""
+        """Update status message"""
         self.status_message = message
         if self.status_label:
             self.status_label.text = message
         Logger.info(f'OptionsScreen: Status - {message}')
         
     def on_enter(self):
-        """Вызывается при входе на экран"""
+        """Called when entering the screen"""
         Logger.info('OptionsScreen: Screen entered')
         self.load_habits_list()
         
     def on_leave(self):
-        """Вызывается при выходе с экрана"""
+        """Called when leaving the screen"""
         Logger.info('OptionsScreen: Screen left') 

@@ -391,7 +391,7 @@ class HabitsDatabase:
         return {
             'id': habit_id_val,
             'name': habit_name,
-            # TODO:       "first_tracking_date": "Tue, 28 Jan 2025 00:00:00 GMT", - да блин, это не тот формат, нужен нормальный YYYY-MM-DD!
+            # TODO:       "first_tracking_date": "Tue, 28 Jan 2025 00:00:00 GMT", - wrong format, need proper YYYY-MM-DD!
             'first_tracking_date': first_tracking_date,
             'bad_habit': bad_habit,
             'levels': levels,
@@ -630,16 +630,16 @@ class HabitsDatabase:
         The 'all' key contains a list of all available statuses.
         '''
 
-        # TODO: (читай текст ниже...)
-        # идея для оптимизации:
-        # нужно сделать один массив который содержит все состояния и их описания (цвет, иконка и тп).
-        # а эта функция будет возвращать наборы из словарей вида:
+        # TODO: (read text below...)
+        # optimization idea:
+        # need to create a single array containing all states and their descriptions (color, icon, etc.).
+        # and this function will return sets of dictionaries like:
         # 'gh1': {
         #     HabitStatus.NOT_SET: 0,
         #     HabitStatus.DONE: 1,
         #     HabitStatus.FAIL: 2
         # }, ...
-        # тоесть словари, которые указывают на номера в массиве. а также их ключи - это номер статуса.
+        # i.e. dictionaries that point to array indices. and their keys are status numbers.
 
         return {
             # good habits
