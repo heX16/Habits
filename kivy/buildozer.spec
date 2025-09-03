@@ -113,7 +113,7 @@ android.private_storage = True
 # android.ndk_path =
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
-# android.sdk_path =
+android.sdk_path = C:/Programs/AndroidSDK
 
 # (str) ANT directory (if empty, it will be automatically downloaded.)
 # android.ant_path =
@@ -147,7 +147,7 @@ android.allow_backup = True
 # you can do so with the manifestPlaceholders property.
 # This property takes a map of key-value pairs. (via a string)
 # Usage example : android.manifest_placeholders = key:value, key2:value2
-# android.manifest_placeholders = 
+# android.manifest_placeholders =
 
 # (bool) Skip byte compile for .py files
 # android.no-byte-compile-python = False
@@ -273,14 +273,14 @@ android.debug_artifact = apk
 # android.add_compile_options = "sourceCompatibility = 1.8", "targetCompatibility = 1.8"
 
 # (list) Gradle repositories to add {can be necessary for some android.gradle_dependencies}
-# please enclose in double quotes 
+# please enclose in double quotes
 # e.g. android.gradle_repositories = "google()", "jcenter()", "maven { url 'https://kotlin.bintray.com/ktor' }"
 # android.gradle_repositories =
 
-# (list) packaging options to add 
+# (list) packaging options to add
 # see https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.PackagingOptions.html
 # can be necessary to solve conflicts in gradle_dependencies
-# please enclose in double quotes 
+# please enclose in double quotes
 # e.g. android.add_packaging_options = "exclude 'META-INF/common.kotlin_module'", "exclude 'META-INF/*.kotlin_module'"
 # android.add_packaging_options =
 
@@ -432,7 +432,7 @@ warn_on_root = 1
 # (str) Path to find Ant binary if not found in PATH
 # ant.path =
 
-# (str) Path to find the Gradle binary if not found in PATH  
+# (str) Path to find the Gradle binary if not found in PATH
 # gradle.path =
 
 # (str) Path to find NDK r21 directory if not found in PATH
@@ -442,4 +442,4 @@ warn_on_root = 1
 # sdk.path =
 
 # (str) Path to find keystore if not found in default location
-# keystore.path = 
+# keystore.path =
