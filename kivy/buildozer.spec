@@ -43,7 +43,7 @@ requirements = python3,kivy==2.1.0,python-dateutil
 icon.filename = %(source.dir)s/../images_source/app_icon.png
 
 # (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)
-orientation = portrait
+orientation = portrait, landscape, portrait-reverse, landscape-reverse
 
 # (list) List of service to declare
 # services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
@@ -113,7 +113,7 @@ android.private_storage = True
 # android.ndk_path =
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
-android.sdk_path = C:/Programs/AndroidSDK
+# android.sdk_path = C:/Programs/AndroidSDK
 
 # (str) ANT directory (if empty, it will be automatically downloaded.)
 # android.ant_path =
