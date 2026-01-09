@@ -33,7 +33,7 @@ http://server.test/habits/js/constants.js    - Generated constants
 """
 import os
 from flask import Flask, jsonify, request, render_template, send_file, Response, redirect, url_for, send_from_directory
-from web.habits_core import init_db, api_fetch_habits, api_fetch_main_page, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits, api_rename_habit, api_reorder_habit, prepare_js_constants, get_database
+from web.habits_core import init_db, api_fetch_habits, api_fetch_main_page, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits, api_rename_habit, api_reorder_habit, prepare_js_constants, get_database, get_database_path
 from common_lib.habits_database import HabitsDatabase
 
 def create_app():
@@ -43,7 +43,7 @@ def create_app():
     app = Flask(__name__, static_folder='static', template_folder='templates')
 
     # Get database instance from core
-    db = get_database()
+    db = get_database(get_database_path())
 
     # Initialize the database on app startup.
     with app.app_context():

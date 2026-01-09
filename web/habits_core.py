@@ -1,18 +1,44 @@
 # habits_core.py
 from datetime import datetime, timedelta, date
+from pathlib import Path
+from typing import Union
 from common_lib.habits_database import HabitsDatabase
 from web.habits_config import Config
 import os
+import argparse
+import sys
 
-def get_database() -> HabitsDatabase:
+def get_database_path() -> Path:
     """
-    Create and return database instance using configuration.
+    Get database path.
+    1. Command line: `--db-path`
+    2. Environment variable `HABITS_WEB_DB_PATH`
+    3. Config `habits_core.py`, `HABITS_WEB_DB_PATH`
+    
+    :return: Path to database file
+    """
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--db-path', type=str, help='Path to database file')
+    args, _ = parser.parse_known_args()
+    
+    # Priority: CLI argument > environment variable > config default
+    if args.db_path:
+        return Path(args.db_path)
+    
+    env_db_path = os.environ.get('HABITS_WEB_DB_PATH')
+    if env_db_path:
+        return Path(env_db_path)
+    
+    return Path(Config.HABITS_WEB_DB_PATH)
 
+def get_database(db_path: Union[Path, str]) -> HabitsDatabase:
+    """
+    Create and return database instance using provided database path.
+
+    :param db_path: Path to database file
     :return: Configured HabitsDatabase instance
     """
-    # Get database path from environment variable or use default from config
-    db_path = os.environ.get('HABITS_WEB_DB_PATH') or Config.HABITS_WEB_DB_PATH
-
     return HabitsDatabase(db_path, create_tables_if_missing=Config.CREATE_TABLES_IF_MISSING)
 
 def init_db(database: HabitsDatabase):
