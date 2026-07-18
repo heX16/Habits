@@ -85,7 +85,7 @@ function renderHabitsList(habits) {
         deleteButton.textContent = 'Delete';
         deleteButton.dataset.habitId = habit.id;
         deleteButton.addEventListener('click', function () {
-            deleteHabit(this.dataset.habitId);
+            deleteHabit(this.dataset.habitId, habit.name);
         });
 
         // Add all buttons to container
@@ -128,9 +128,10 @@ function addHabit(habitName) {
 /**
  * Sends a request to delete a habit.
  * @param {string} habitId - The ID of the habit to delete.
+ * @param {string} habitName - The name of the habit to delete.
  */
-function deleteHabit(habitId) {
-    if (confirm('Are you sure you want to delete this habit?')) {
+function deleteHabit(habitId, habitName) {
+    if (confirm(`Are you sure you want to delete habit "${habitName}"?`)) {
         fetch('./api/habits/delete', {
             method: 'DELETE',
             headers: {
