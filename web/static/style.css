@@ -447,16 +447,11 @@ table#habits-table th {
     border-radius: var(--border-radius);
 }
 
-.options-habit-name {
-    flex-grow: 1;
-    margin-right: var(--space-md);
-}
-
 .options-habit-buttons {
     display: flex;
     gap: var(--space-xs);
-    min-width: 12.5rem;
-    justify-content: flex-end;
+    margin-right: var(--space-md);
+    flex-shrink: 0;
 }
 
 /* Form elements */

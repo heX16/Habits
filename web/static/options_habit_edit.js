@@ -49,12 +49,6 @@ function renderHabitsList(habits) {
     habits.forEach((habit, index) => {
         const li = document.createElement('li');
 
-        // Create name span
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'options-habit-name';
-        nameSpan.textContent = habit.name;
-        li.appendChild(nameSpan);
-
         // Create buttons container
         const buttonsContainer = document.createElement('div');
         buttonsContainer.className = 'options-habit-buttons';
@@ -100,8 +94,12 @@ function renderHabitsList(habits) {
         buttonsContainer.appendChild(optionsButton);
         buttonsContainer.appendChild(deleteButton);
 
-        // Add container to list item
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'options-habit-name';
+        nameSpan.textContent = habit.name;
+
         li.appendChild(buttonsContainer);
+        li.appendChild(nameSpan);
         habitsList.appendChild(li);
     });
 }
