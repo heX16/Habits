@@ -20,4 +20,4 @@ class Config:
 
     # Delay (in milliseconds) between queue drain cycles when sending
     # pending habit status updates from the main page.
-    UPDATE_QUEUE_INTERVAL_MS = 5000
+    UPDATE_QUEUE_INTERVAL_MS = 2000
