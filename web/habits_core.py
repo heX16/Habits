@@ -247,7 +247,8 @@ def prepare_js_constants(database):
     constants = {
         'tableDaysCount': 10,
         'approximateHabitsCount': len(habits_list),
-        'connectionCheckIntervalMin': Config.CONNECTION_CHECK_INTERVAL_MIN
+        'connectionCheckIntervalMin': Config.CONNECTION_CHECK_INTERVAL_MIN,
+        'updateQueueIntervalMs': Config.UPDATE_QUEUE_INTERVAL_MS
     }
 
     # prepare dict of string for template

@@ -17,3 +17,7 @@ class Config:
     # Also used as the long-poll hold duration on the server.
     # 0 disables the connection monitor feature.
     CONNECTION_CHECK_INTERVAL_MIN = 5.0
+
+    # Delay (in milliseconds) between queue drain cycles when sending
+    # pending habit status updates from the main page.
+    UPDATE_QUEUE_INTERVAL_MS = 5000

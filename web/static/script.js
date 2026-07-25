@@ -29,6 +29,7 @@ let lastClickTime = 0;
  * Global queue of pending habit status updates.
  * Each packet: { habitId, date, status, cell, key }.
  * Only the latest packet per cell (habitId|date) is kept.
+ * UPDATE_QUEUE_INTERVAL_MS comes from constants.js (Config.UPDATE_QUEUE_INTERVAL_MS).
  */
 let updateQueue = [];
 let updateTimerId = null;
@@ -94,7 +95,7 @@ function stopUpdateTimer() {
  */
 function ensureUpdateTimerRunning() {
     if (updateQueue.length > 0 && updateTimerId === null && !isProcessingUpdates) {
-        updateTimerId = setInterval(onUpdateTimerTick, 1000);
+        updateTimerId = setInterval(onUpdateTimerTick, UPDATE_QUEUE_INTERVAL_MS);
     }
 }
 
