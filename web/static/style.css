@@ -300,6 +300,21 @@ th.current-day {
     cursor: default !important;
 }
 
+/* Save indicator (pending / in-flight updates) */
+.save-indicator {
+    font-size: var(--font-size-xs);
+    vertical-align: middle;
+    margin-left: var(--space-md);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity var(--transition-default) ease-out;
+}
+
+.save-indicator.visible {
+    visibility: visible;
+    opacity: 1;
+}
+
 /* Settings icon */
 .settings-icon {
     font-size: var(--font-size-xs);

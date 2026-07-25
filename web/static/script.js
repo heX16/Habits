@@ -54,6 +54,23 @@ function makeUpdateKey(habitId, date) {
 }
 
 /**
+ * Shows or hides the save indicator based on whether there are
+ * pending or in-flight updates.
+ */
+function updateSaveIndicatorVisibility() {
+    const indicator = document.getElementById('save-indicator');
+    if (!indicator) {
+        return;
+    }
+
+    if (updateQueue.length > 0 || isProcessingUpdates) {
+        indicator.classList.add('visible');
+    } else {
+        indicator.classList.remove('visible');
+    }
+}
+
+/**
  * Removes any queued update for the given cell.
  * @param {number} habitId
  * @param {string} date
@@ -63,6 +80,7 @@ function removePendingUpdatesForCell(habitId, date) {
     updateQueue = updateQueue.filter(function (packet) {
         return packet.key !== key;
     });
+    updateSaveIndicatorVisibility();
 }
 
 /**
@@ -106,6 +124,7 @@ function ensureUpdateTimerRunning() {
 function onUpdateTimerTick() {
     if (updateQueue.length === 0) {
         stopUpdateTimer();
+        updateSaveIndicatorVisibility();
         return;
     }
 
@@ -127,6 +146,7 @@ function onUpdateTimerTick() {
  */
 async function processUpdateQueue() {
     isProcessingUpdates = true;
+    updateSaveIndicatorVisibility();
 
     try {
         // Snapshot keys present at tick start. Packets enqueued while sending
@@ -183,6 +203,7 @@ async function processUpdateQueue() {
     } finally {
         isProcessingUpdates = false;
         ensureUpdateTimerRunning();
+        updateSaveIndicatorVisibility();
     }
 }
 
@@ -205,6 +226,7 @@ function enqueueUpdate(habitId, date, status, cell) {
         key: makeUpdateKey(habitId, date)
     });
     ensureUpdateTimerRunning();
+    updateSaveIndicatorVisibility();
 }
 
 /**
