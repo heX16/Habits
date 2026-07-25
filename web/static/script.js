@@ -4,8 +4,8 @@
 /**
  * This script handles the functionality for the main habit tracker page.
  * It fetches habits and tracking data for the last 7 days and renders a table.
- * Single clicks cycle the status (0→1→...→0) and schedule a backend update after N seconds.
- * Double-clicking a cell shows a floating menu for explicit status selection.
+ * Single clicks cycle the status (0→1→...→0) and enqueue a backend update.
+ * A global queue drains one update per second. Double-clicking a cell shows a floating menu.
  */
 
 let openStatusMenu = null; // Holds the currently open status menu (if any)
@@ -24,6 +24,14 @@ let lastClickedCell = null;
 let lastClickedStatus = null;
 let lastClickTime = 0;
 
+/**
+ * Global queue of pending habit status updates.
+ * Each packet: { habitId, date, status, cell, key }.
+ * Only the latest packet per cell (habitId|date) is kept.
+ */
+let updateQueue = [];
+let updateTimerId = null;
+
 const statusMenu = new FloatingMenu();
 
 // Store the habits data for reference
@@ -31,6 +39,88 @@ let habitsData = {};
 
 // Add at the beginning of the file
 const notifications = new NotificationManager();
+
+/**
+ * Builds a unique key for a habit cell.
+ * @param {number} habitId
+ * @param {string} date
+ * @returns {string}
+ */
+function makeUpdateKey(habitId, date) {
+    return habitId + '|' + date;
+}
+
+/**
+ * Removes any queued update for the given cell.
+ * @param {number} habitId
+ * @param {string} date
+ */
+function removePendingUpdatesForCell(habitId, date) {
+    const key = makeUpdateKey(habitId, date);
+    updateQueue = updateQueue.filter(function (packet) {
+        return packet.key !== key;
+    });
+}
+
+/**
+ * Ensures the drain timer is running while the queue is non-empty.
+ */
+function ensureUpdateTimerRunning() {
+    if (updateQueue.length > 0 && updateTimerId === null) {
+        updateTimerId = setInterval(processNextUpdate, 1000);
+    }
+}
+
+/**
+ * Takes the oldest packet from the queue and sends it to the server.
+ * Stops the timer when the queue becomes empty.
+ */
+function processNextUpdate() {
+    if (updateQueue.length === 0) {
+        if (updateTimerId !== null) {
+            clearInterval(updateTimerId);
+            updateTimerId = null;
+        }
+        return;
+    }
+
+    const packet = updateQueue.shift();
+
+    // Play animation at the same time as sending update
+    if (packet.status === 3) {
+        playFireworkAnimation(packet.cell, true);
+    } else if (packet.status === 2) {
+        playFireworkAnimation(packet.cell, false);
+    }
+
+    sendUpdate(packet.habitId, packet.date, packet.status, packet.cell);
+
+    if (updateQueue.length === 0 && updateTimerId !== null) {
+        clearInterval(updateTimerId);
+        updateTimerId = null;
+    }
+}
+
+/**
+ * Enqueues a status update for a cell.
+ * If a packet for the same cell already exists, it is removed first.
+ * Starts the drain timer if it is not running.
+ * @param {number} habitId
+ * @param {string} date
+ * @param {number} status
+ * @param {HTMLElement} cell
+ */
+function enqueueUpdate(habitId, date, status, cell) {
+    removePendingUpdatesForCell(habitId, date);
+    updateQueue.push({
+        habitId: habitId,
+        date: date,
+        status: status,
+        cell: cell,
+        key: makeUpdateKey(habitId, date)
+    });
+    ensureUpdateTimerRunning();
+}
 
 /**
  * Calculate date range for the table, ending with Sunday
@@ -253,7 +343,7 @@ function attachCellListeners(cell) {
 
 /**
  * Handles a single click event on a cell.
- * It cycles the status and schedules an update after 2 seconds.
+ * It cycles the status and enqueues a backend update.
  * @param {HTMLElement} cell - The table cell element.
  * @param {MouseEvent} e - The mouse event.
  */
@@ -286,44 +376,25 @@ function handleCellClick(cell, e) {
         const newStatus = statusOptions[nextIndex].value;
 
         updateCellContent(cell, newStatus);
-
-        if (cell.pendingUpdateTimer) {
-            clearTimeout(cell.pendingUpdateTimer);
-        }
-
-        cell.pendingUpdateTimer = setTimeout(() => {
-            const status = parseInt(cell.dataset.status);
-            // Play animation at the same time as sending update
-            if (status === 3) {
-                playFireworkAnimation(cell, true);
-            } else if (status === 2) {
-                playFireworkAnimation(cell, false);
-            }
-            sendUpdate(parseInt(cell.dataset.habitId), cell.dataset.date, status, cell);
-            cell.pendingUpdateTimer = null;
-        }, 2000);
+        enqueueUpdate(habitId, cell.dataset.date, newStatus, cell);
     }
 }
 
 /**
  * Handles a double-click event on a cell.
- * It cancels any pending update and shows a floating status selection menu.
+ * It cancels any pending queued update and shows a floating status selection menu.
  * @param {HTMLElement} cell - The table cell element.
  * @param {MouseEvent} e - The mouse event.
  */
 function handleCellDblClick(cell, e) {
     e.stopPropagation();
 
-    // Cancel update timer if exists
-    if (cell.pendingUpdateTimer) {
-        clearTimeout(cell.pendingUpdateTimer);
-        cell.pendingUpdateTimer = null;
-    }
+    const habitId = parseInt(cell.dataset.habitId);
+    removePendingUpdatesForCell(habitId, cell.dataset.date);
 
     // Restore previous state
     if (lastClickedCell === cell && lastClickedStatus !== null) {
         // Get habit parameters
-        const habitId = parseInt(cell.dataset.habitId);
         const habit = habitsData.habits.find(h => h.id === habitId);
         const isBadHabit = habit && habit.bad_habit;
         const levels = habit && habit.levels;
@@ -423,21 +494,7 @@ function showStatusMenu(cell, event) {
         label: option.label,
         onClick: () => {
             updateCellContent(cell, option.value);
-
-            if (cell.pendingUpdateTimer) {
-                clearTimeout(cell.pendingUpdateTimer);
-            }
-
-            cell.pendingUpdateTimer = setTimeout(() => {
-                const status = parseInt(cell.dataset.status);
-                if (status === 3) {
-                    playFireworkAnimation(cell, true);
-                } else if (status === 2) {
-                    playFireworkAnimation(cell, false);
-                }
-                sendUpdate(parseInt(cell.dataset.habitId), cell.dataset.date, status, cell);
-                cell.pendingUpdateTimer = null;
-            }, 2000);
+            enqueueUpdate(habitId, cell.dataset.date, option.value, cell);
         }
     }));
 
