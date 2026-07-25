@@ -5,7 +5,8 @@
  * This script handles the functionality for the main habit tracker page.
  * It fetches habits and tracking data for the last 7 days and renders a table.
  * Single clicks cycle the status (0→1→...→0) and enqueue a backend update.
- * A global queue drains one update per second. Double-clicking a cell shows a floating menu.
+ * A global queue drains all pending updates on each 1s tick (sequentially, awaiting
+ * each response). Double-clicking a cell shows a floating menu.
  */
 
 let openStatusMenu = null; // Holds the currently open status menu (if any)
@@ -31,6 +32,7 @@ let lastClickTime = 0;
  */
 let updateQueue = [];
 let updateTimerId = null;
+let isProcessingUpdates = false;
 
 const statusMenu = new FloatingMenu();
 
@@ -63,41 +65,123 @@ function removePendingUpdatesForCell(habitId, date) {
 }
 
 /**
- * Ensures the drain timer is running while the queue is non-empty.
+ * Returns true if two packets have identical field values.
+ * @param {Object} a
+ * @param {Object} b
+ * @returns {boolean}
  */
-function ensureUpdateTimerRunning() {
-    if (updateQueue.length > 0 && updateTimerId === null) {
-        updateTimerId = setInterval(processNextUpdate, 1000);
+function packetsAreEqual(a, b) {
+    return a.habitId === b.habitId &&
+        a.date === b.date &&
+        a.status === b.status &&
+        a.cell === b.cell &&
+        a.key === b.key;
+}
+
+/**
+ * Stops the drain timer if it is running.
+ */
+function stopUpdateTimer() {
+    if (updateTimerId !== null) {
+        clearInterval(updateTimerId);
+        updateTimerId = null;
     }
 }
 
 /**
- * Takes the oldest packet from the queue and sends it to the server.
- * Stops the timer when the queue becomes empty.
+ * Ensures the drain timer is running while the queue is non-empty
+ * and no batch is currently being processed.
  */
-function processNextUpdate() {
+function ensureUpdateTimerRunning() {
+    if (updateQueue.length > 0 && updateTimerId === null && !isProcessingUpdates) {
+        updateTimerId = setInterval(onUpdateTimerTick, 1000);
+    }
+}
+
+/**
+ * Timer tick: if the queue has packets, pause the timer and drain them all.
+ * If the queue is empty, stop the timer.
+ */
+function onUpdateTimerTick() {
     if (updateQueue.length === 0) {
-        if (updateTimerId !== null) {
-            clearInterval(updateTimerId);
-            updateTimerId = null;
-        }
+        stopUpdateTimer();
         return;
     }
 
-    const packet = updateQueue.shift();
-
-    // Play animation at the same time as sending update
-    if (packet.status === 3) {
-        playFireworkAnimation(packet.cell, true);
-    } else if (packet.status === 2) {
-        playFireworkAnimation(packet.cell, false);
+    if (isProcessingUpdates) {
+        return;
     }
 
-    sendUpdate(packet.habitId, packet.date, packet.status, packet.cell);
+    // Pause the timer while a batch is in flight
+    stopUpdateTimer();
+    processUpdateQueue();
+}
 
-    if (updateQueue.length === 0 && updateTimerId !== null) {
-        clearInterval(updateTimerId);
-        updateTimerId = null;
+/**
+ * Drains all queued packets sequentially, awaiting a response for each.
+ * A packet is removed only if its values are unchanged since the send started
+ * (user may have clicked the same cell again and replaced it in the queue).
+ * On network/HTTP error the loop aborts; remaining packets stay queued and
+ * the timer is restarted.
+ */
+async function processUpdateQueue() {
+    isProcessingUpdates = true;
+
+    try {
+        // Snapshot keys present at tick start. Packets enqueued while sending
+        // wait for the next timer cycle.
+        const keysToProcess = updateQueue.map(function (packet) {
+            return packet.key;
+        });
+
+        for (let i = 0; i < keysToProcess.length; i++) {
+            const key = keysToProcess[i];
+            const packetRef = updateQueue.find(function (packet) {
+                return packet.key === key;
+            });
+            if (!packetRef) {
+                // Cancelled (e.g. double-click) before we reached it
+                continue;
+            }
+
+            const packetCopy = {
+                habitId: packetRef.habitId,
+                date: packetRef.date,
+                status: packetRef.status,
+                cell: packetRef.cell,
+                key: packetRef.key
+            };
+
+            // Play animation at the same time as sending update
+            if (packetCopy.status === 3) {
+                playFireworkAnimation(packetCopy.cell, true);
+            } else if (packetCopy.status === 2) {
+                playFireworkAnimation(packetCopy.cell, false);
+            }
+
+            try {
+                await sendUpdate(packetCopy.habitId, packetCopy.date, packetCopy.status, packetCopy.cell);
+            } catch (error) {
+                // Leave failed and remaining packets in the queue; timer will retry later
+                break;
+            }
+
+            const currentPacket = updateQueue.find(function (packet) {
+                return packet.key === packetCopy.key;
+            });
+
+            if (currentPacket && packetsAreEqual(packetCopy, currentPacket)) {
+                // Values unchanged — remove the sent packet
+                const removeIndex = updateQueue.indexOf(currentPacket);
+                if (removeIndex !== -1) {
+                    updateQueue.splice(removeIndex, 1);
+                }
+            }
+            // If values differ or packet is gone, keep it for the next cycle
+        }
+    } finally {
+        isProcessingUpdates = false;
+        ensureUpdateTimerRunning();
     }
 }
 
@@ -517,9 +601,10 @@ function removeStatusMenu() {
  * @param {string} date - The date of the status.
  * @param {number} status - The new status.
  * @param {HTMLElement} cell - The table cell element (for logging purposes).
+ * @returns {Promise<Object>} Resolves with response data on success; rejects on error.
  */
 function sendUpdate(habitId, date, status, cell) {
-    fetch('./api/habits/update', {
+    return fetch('./api/habits/update', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -540,12 +625,14 @@ function sendUpdate(habitId, date, status, cell) {
         })
         .then(data => {
             console.log('Update successful for habit', habitId, 'on', date, ':', data);
+            return data;
         })
         .catch(error => {
             console.error('Error updating habit status:', error);
             notifications.show(error.message);
             // Restore previous status
             updateCellContent(cell, lastClickedStatus || 0);
+            throw error;
         });
 }
 
