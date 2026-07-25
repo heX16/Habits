@@ -22,18 +22,22 @@ http://server.test/habits/api/habits/import       - POST: import habits from CSV
 http://server.test/habits/api/param/<name>        - GET/POST: get/set global parameter
 http://server.test/habits/api/param/<name>/<id>   - GET/POST: get/set habit parameter
 http://server.test/habits/api/main_page          - GET: fetch main page data
+http://server.test/habits/api/keepalive          - GET: long-poll connectivity check
 
 Static files:
 http://server.test/habits/static/script.js   - Main page script
 http://server.test/habits/static/habit.js    - Single habit page script
 http://server.test/habits/static/edit.js     - Edit page script
 http://server.test/habits/static/menu.js     - Floating menu component
+http://server.test/habits/static/connection_monitor.js - Long-poll connection monitor
 http://server.test/habits/static/style.css   - Styles
 http://server.test/habits/js/constants.js    - Generated constants
 """
 import os
+import time
 from flask import Flask, jsonify, request, render_template, send_file, Response, redirect, url_for, send_from_directory
 from web.habits_core import init_db, api_fetch_habits, api_fetch_main_page, api_update_habit, api_add_habit, api_delete_habit, api_get_all_habits, api_export_habits, api_import_habits, api_rename_habit, api_reorder_habit, prepare_js_constants, get_database, get_database_path
+from web.habits_config import Config
 from common_lib.habits_database import HabitsDatabase
 
 def create_app():
@@ -254,6 +258,19 @@ def create_app():
         if isinstance(result, tuple):
             return jsonify(result[0]), result[1]
         return jsonify(result)
+
+    @app.route('/api/keepalive', methods=['GET'])
+    def api_keepalive():
+        """
+        Long-poll connectivity check.
+        Holds the HTTP connection for CONNECTION_CHECK_INTERVAL_MIN minutes,
+        then returns a simple OK response. Used by the browser to detect
+        connection loss without frequent polling.
+        """
+        interval_min = Config.CONNECTION_CHECK_INTERVAL_MIN
+        if interval_min and interval_min > 0:
+            time.sleep(interval_min * 60)
+        return jsonify({'status': 'ok'})
 
     return app
 

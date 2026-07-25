@@ -4,7 +4,11 @@ class NotificationManager {
     }
 
     createContainer() {
-        const container = document.createElement('div');
+        let container = document.getElementById('notification-container');
+        if (container) {
+            return container;
+        }
+        container = document.createElement('div');
         container.id = 'notification-container';
         document.body.appendChild(container);
         return container;

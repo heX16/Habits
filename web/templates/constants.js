@@ -1,6 +1,7 @@
 // This file is generated automatically
 const tableDaysCount = {{ constants.tableDaysCount }};
 const approximateHabitsCount = {{ constants.approximateHabitsCount }}; // Approximate number of habits
+const CONNECTION_CHECK_INTERVAL_MIN = {{ constants.connectionCheckIntervalMin }};
 
 const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
