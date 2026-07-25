@@ -631,8 +631,6 @@ function sendUpdate(habitId, date, status, cell) {
         .catch(error => {
             console.error('Error updating habit status:', error);
             notifications.show(error.message);
-            // Restore previous status
-            updateCellContent(cell, lastClickedStatus || 0);
             throw error;
         });
 }
